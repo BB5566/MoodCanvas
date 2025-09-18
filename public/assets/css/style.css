@@ -5,795 +5,849 @@
 
 /* --- CSS 變數與全域設定 --- */
 :root {
-    --font-main: 'Noto Sans TC', sans-serif;
-    --color-text: #E0E0E0;
-    --color-text-muted: #A0A0A0;
-    --color-primary: #8A9BFF;
-    --color-accent: #4DD0E1;
-    --border-radius-lg: 20px;
-    --border-radius-md: 12px;
-    --border-radius-sm: 8px;
-    --shadow-light: 0 4px 15px rgba(0, 0, 0, 0.1);
-    --shadow-strong: 0 8px 30px rgba(0, 0, 0, 0.2);
-    --glass-bg: rgba(255, 255, 255, 0.1);
-    --glass-border: 1px solid rgba(255, 255, 255, 0.2);
-    --backdrop-blur: blur(15px);
-    --text-primary: #FFFFFF;
-    --text-secondary: #A0A0A0;
-    --accent-color: #4DD0E1;
-    --accent-color-rgb: 77, 208, 225;
-    --border-color: rgba(255, 255, 255, 0.3);
-    --border-color-hover: rgba(255, 255, 255, 0.5);
-    --bg-hover: rgba(255, 255, 255, 0.2);
+  --font-main: 'Noto Sans TC', sans-serif;
+  --color-text: #e0e0e0;
+  --color-text-muted: #a0a0a0;
+  --color-primary: #8a9bff;
+  --color-accent: #4dd0e1;
+  --border-radius-lg: 20px;
+  --border-radius-md: 12px;
+  --border-radius-sm: 8px;
+  --shadow-light: 0 4px 15px rgba(0, 0, 0, 0.1);
+  --shadow-strong: 0 8px 30px rgba(0, 0, 0, 0.2);
+  --glass-bg: rgba(255, 255, 255, 0.1);
+  --glass-border: 1px solid rgba(255, 255, 255, 0.2);
+  --backdrop-blur: blur(15px);
+  --text-primary: #ffffff;
+  --text-secondary: #a0a0a0;
+  --accent-color: #4dd0e1;
+  --accent-color-rgb: 77, 208, 225;
+  --border-color: rgba(255, 255, 255, 0.3);
+  --border-color-hover: rgba(255, 255, 255, 0.5);
+  --bg-hover: rgba(255, 255, 255, 0.2);
 }
 
 * {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
 body {
-    font-family: var(--font-main);
-    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-    color: var(--color-text);
-    line-height: 1.6;
-    min-height: 100vh;
-    overflow-x: hidden;
-    padding-top: 80px; /* 為懸浮 header 預留空間 */
+  font-family: var(--font-main);
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  color: var(--color-text);
+  line-height: 1.6;
+  min-height: 100vh;
+  overflow-x: hidden;
+  padding-top: 80px; /* 為懸浮 header 預留空間 */
 }
 
 /* --- 動態背景 --- */
 body::before,
 body::after {
-    content: '';
-    position: fixed;
-    border-radius: 50%;
-    background: linear-gradient(45deg, var(--color-primary), var(--color-accent));
-    filter: blur(100px);
-    opacity: 0.3;
-    z-index: -1;
-    pointer-events: none;
+  content: '';
+  position: fixed;
+  border-radius: 50%;
+  background: linear-gradient(45deg, var(--color-primary), var(--color-accent));
+  filter: blur(100px);
+  opacity: 0.3;
+  z-index: -1;
+  pointer-events: none;
 }
 
 body::before {
-    width: 400px;
-    height: 400px;
-    top: 10%;
-    left: 10%;
-    animation: moveShape 25s infinite alternate;
+  width: 400px;
+  height: 400px;
+  top: 10%;
+  left: 10%;
+  animation: moveShape 25s infinite alternate;
 }
 
 body::after {
-    width: 500px;
-    height: 500px;
-    bottom: 5%;
-    right: 5%;
-    animation: moveShape 30s infinite alternate-reverse;
+  width: 500px;
+  height: 500px;
+  bottom: 5%;
+  right: 5%;
+  animation: moveShape 30s infinite alternate-reverse;
 }
 
 @keyframes moveShape {
-    from { transform: translate(0, 0) rotate(0deg) scale(1); }
-    to { transform: translate(100px, -50px) rotate(180deg) scale(1.2); }
+  from {
+    transform: translate(0, 0) rotate(0deg) scale(1);
+  }
+  to {
+    transform: translate(100px, -50px) rotate(180deg) scale(1.2);
+  }
 }
 
 /* --- 懸浮導覽列 --- */
 .glass-header {
-    position: fixed;
-    top: 15px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 95%;
-    max-width: 1200px;
-    z-index: 1000;
-    background: var(--glass-bg);
-    border: var(--glass-border);
-    backdrop-filter: var(--backdrop-blur);
-    -webkit-backdrop-filter: var(--backdrop-blur);
-    border-radius: var(--border-radius-md);
-    box-shadow: var(--shadow-strong);
-    padding: 0.75rem 1.5rem;
+  position: fixed;
+  top: 15px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 95%;
+  max-width: 1200px;
+  z-index: 1000;
+  background: var(--glass-bg);
+  border: var(--glass-border);
+  backdrop-filter: var(--backdrop-blur);
+  -webkit-backdrop-filter: var(--backdrop-blur);
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow-strong);
+  padding: 0.75rem 1.5rem;
 }
 
 .navbar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .navbar-brand {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: #fff;
-    text-decoration: none;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #fff;
+  text-decoration: none;
 }
 
 .navbar-nav {
-    list-style: none;
-    display: flex;
-    gap: 1rem;
-    align-items: center;
+  list-style: none;
+  display: flex;
+  gap: 1rem;
+  align-items: center;
 }
 
 .nav-link {
-    color: var(--color-text);
-    text-decoration: none;
-    padding: 0.5rem 1rem;
-    border-radius: var(--border-radius-sm);
-    transition: background 0.3s ease, color 0.3s ease;
+  color: var(--color-text);
+  text-decoration: none;
+  padding: 0.5rem 1rem;
+  border-radius: var(--border-radius-sm);
+  transition: background 0.3s ease, color 0.3s ease;
 }
 
-.nav-link:hover, .nav-link.active {
-    background: rgba(255, 255, 255, 0.2);
-    color: #fff;
+.nav-link:hover,
+.nav-link.active {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
 }
 
 .nav-user-greeting {
-    color: var(--color-text-muted);
+  color: var(--color-text-muted);
 }
 
 /* --- 主內容與便當盒網格 --- */
 .main-container {
-    max-width: 1400px;
-    margin: 2rem auto;
-    padding: 0 1rem;
+  max-width: 1400px;
+  margin: 2rem auto;
+  padding: 0 1rem;
 }
 
 .bento-grid {
-    display: grid;
-    grid-template-columns: repeat(12, 1fr);
-    grid-auto-rows: minmax(100px, auto);
-    gap: 20px;
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  grid-auto-rows: minmax(100px, auto);
+  gap: 20px;
 }
 
 .bento-card {
-    background: var(--glass-bg);
-    border: var(--glass-border);
-    backdrop-filter: var(--backdrop-blur);
-    -webkit-backdrop-filter: var(--backdrop-blur);
-    border-radius: var(--border-radius-lg);
-    padding: 1.5rem;
-    box-shadow: var(--shadow-light);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  background: var(--glass-bg);
+  border: var(--glass-border);
+  backdrop-filter: var(--backdrop-blur);
+  -webkit-backdrop-filter: var(--backdrop-blur);
+  border-radius: var(--border-radius-lg);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-light);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .bento-card:hover {
-    transform: translateY(-5px);
-    box-shadow: var(--shadow-strong);
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-strong);
 }
 
 /* --- 特定卡片佈局 --- */
-.bento-calendar { grid-column: span 12; grid-row: span 5; }
+.bento-calendar {
+  grid-column: span 12;
+  grid-row: span 5;
+}
 @media (min-width: 992px) {
-    .bento-calendar { grid-column: span 8; grid-row: span 5; }
-    .bento-sidebar { grid-column: span 4; grid-row: span 5; display: flex; flex-direction: column; gap: 20px; }
+  .bento-calendar {
+    grid-column: span 8;
+    grid-row: span 5;
+  }
+  .bento-sidebar {
+    grid-column: span 4;
+    grid-row: span 5;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
 }
 
 .bento-sidebar .bento-card {
-    flex-grow: 1;
+  flex-grow: 1;
 }
 
 /* --- 日曆樣式 --- */
 .calendar-container {
-    height: 100%;
-    display: flex;
-    flex-direction: column;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .calendar-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1.5rem;
-    padding: 0 0.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding: 0 0.5rem;
 }
 
 .calendar-header h2 {
-    color: #fff;
-    font-weight: 700;
-    margin: 0;
+  color: #fff;
+  font-weight: 700;
+  margin: 0;
 }
 
 .calendar-nav {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
 }
 
 .nav-arrow {
-    font-size: 2rem;
-    color: var(--color-text);
-    text-decoration: none;
-    transition: color 0.3s ease;
+  font-size: 2rem;
+  color: var(--color-text);
+  text-decoration: none;
+  transition: color 0.3s ease;
 }
-.nav-arrow:hover { color: #fff; }
+.nav-arrow:hover {
+  color: #fff;
+}
 
 .today-link {
-    background: rgba(255, 255, 255, 0.2);
-    color: #fff;
-    padding: 0.3rem 0.8rem;
-    border-radius: var(--border-radius-sm);
-    text-decoration: none;
-    font-size: 0.9rem;
-    transition: background 0.3s ease;
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  padding: 0.3rem 0.8rem;
+  border-radius: var(--border-radius-sm);
+  text-decoration: none;
+  font-size: 0.9rem;
+  transition: background 0.3s ease;
 }
-.today-link:hover { background: rgba(255, 255, 255, 0.3); }
+.today-link:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
 
 .calendar {
-    width: 100%;
-    border-collapse: collapse;
-    table-layout: fixed;
-    flex-grow: 1;
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  flex-grow: 1;
 }
 
 .calendar th {
-    padding-bottom: 1rem;
-    text-align: center;
-    font-weight: 500;
-    color: var(--color-text-muted);
+  padding-bottom: 1rem;
+  text-align: center;
+  font-weight: 500;
+  color: var(--color-text-muted);
 }
 
 .calendar td {
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    vertical-align: top;
-    height: 120px;
-    transition: background-color 0.3s ease;
-    position: relative;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  vertical-align: top;
+  height: 120px;
+  transition: background-color 0.3s ease;
+  position: relative;
 }
-.calendar td:first-child { border-left: none; }
-.calendar td:last-child { border-right: none; }
-.calendar tr:first-child td { border-top: none; }
-.calendar tr:last-child td { border-bottom: none; }
+.calendar td:first-child {
+  border-left: none;
+}
+.calendar td:last-child {
+  border-right: none;
+}
+.calendar tr:first-child td {
+  border-top: none;
+}
+.calendar tr:last-child td {
+  border-bottom: none;
+}
 
 .day-number {
-    position: absolute;
-    top: 8px;
-    left: 8px;
-    font-size: 0.9rem;
-    color: var(--color-text-muted);
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
 }
 
 .calendar td.today .day-number {
-    color: var(--color-accent);
-    font-weight: 700;
+  color: var(--color-accent);
+  font-weight: 700;
 }
 
-.diary-entry, .no-diary {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    cursor: pointer;
-    border-radius: var(--border-radius-md); /* Match cell rounding */
+.diary-entry,
+.no-diary {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  border-radius: var(--border-radius-md); /* Match cell rounding */
 }
 
 .diary-entry:hover {
-    background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .mood-emoji {
-    font-size: 2.5rem;
-    transition: transform 0.3s ease;
+  font-size: 2.5rem;
+  transition: transform 0.3s ease;
 }
 
 .diary-entry:hover .mood-emoji {
-    transform: scale(1.2);
+  transform: scale(1.2);
 }
 
 .add-diary-btn {
-    font-size: 2rem;
-    color: var(--color-text-muted);
-    transition: color 0.3s ease, transform 0.3s ease;
+  font-size: 2rem;
+  color: var(--color-text-muted);
+  transition: color 0.3s ease, transform 0.3s ease;
 }
 
 .no-diary:hover .add-diary-btn {
-    color: #fff;
-    transform: scale(1.3);
+  color: #fff;
+  transform: scale(1.3);
 }
 
 .no-diary {
-    text-decoration: none;
+  text-decoration: none;
 }
 
 .no-diary:focus {
-    outline: 2px solid var(--accent-color);
-    outline-offset: 2px;
+  outline: 2px solid var(--accent-color);
+  outline-offset: 2px;
 }
 
 /* Guest placeholder for add button (visual only) */
 .no-diary-guest {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    border-radius: var(--border-radius-md);
-    pointer-events: none; /* visual only, not interactive */
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: var(--border-radius-md);
+  pointer-events: none; /* visual only, not interactive */
 }
 
 .no-diary-guest .add-diary-btn {
-    font-size: 2rem;
-    color: var(--color-text-muted);
-    opacity: 0.9;
+  font-size: 2rem;
+  color: var(--color-text-muted);
+  opacity: 0.9;
 }
 
 /* --- 多篇日記樣式 --- */
 .multiple-diaries {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    align-items: center;
-    gap: 2px;
-    padding: 8px;
-    text-decoration: none;
-    border-radius: var(--border-radius-md);
-    transition: background-color 0.3s ease;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 2px;
+  padding: 8px;
+  text-decoration: none;
+  border-radius: var(--border-radius-md);
+  transition: background-color 0.3s ease;
 }
 
 .multiple-diaries:hover {
-    background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .diary-entry-small {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 30px;
-    min-height: 30px;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.1);
-    transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 30px;
+  min-height: 30px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
 }
 
 .multiple-diaries:hover .diary-entry-small {
-    background: rgba(255, 255, 255, 0.2);
-    transform: scale(1.1);
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.1);
 }
 
 .mood-emoji-small {
-    font-size: 1.2rem;
+  font-size: 1.2rem;
 }
 
 .more-diaries {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 30px;
-    min-height: 30px;
-    border-radius: 50%;
-    background: rgba(138, 155, 255, 0.3);
-    color: var(--color-accent);
-    font-size: 0.8rem;
-    font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 30px;
+  min-height: 30px;
+  border-radius: 50%;
+  background: rgba(138, 155, 255, 0.3);
+  color: var(--color-accent);
+  font-size: 0.8rem;
+  font-weight: bold;
 }
 
 /* --- 側邊欄卡片 --- */
 .sidebar-card h3 {
-    color: #fff;
-    margin-bottom: 1rem;
-    border-bottom: 1px solid var(--glass-border);
-    padding-bottom: 0.75rem;
+  color: #fff;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid var(--glass-border);
+  padding-bottom: 0.75rem;
 }
 
 .stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
-    gap: 1rem;
-    text-align: center;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+  gap: 1rem;
+  text-align: center;
 }
 
 .stat-number {
-    font-size: 2rem;
-    font-weight: 700;
-    color: var(--color-accent);
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--color-accent);
 }
 
 .stat-label {
-    font-size: 0.8rem;
-    color: var(--color-text-muted);
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
 }
 
 .mood-distribution .mood-item {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
 }
 
-.mood-emoji-large { font-size: 1.8rem; }
+.mood-emoji-large {
+  font-size: 1.8rem;
+}
 
-.mood-info { flex-grow: 1; }
+.mood-info {
+  flex-grow: 1;
+}
 
 .mood-bar {
-    background: rgba(0, 0, 0, 0.2);
-    border-radius: 5px;
-    height: 10px;
-    overflow: hidden;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 5px;
+  height: 10px;
+  overflow: hidden;
 }
 
 .mood-fill {
-    background: linear-gradient(90deg, var(--color-primary), var(--color-accent));
-    height: 100%;
-    border-radius: 5px;
+  background: linear-gradient(90deg, var(--color-primary), var(--color-accent));
+  height: 100%;
+  border-radius: 5px;
 }
 
 .quick-actions {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
 }
 
 .quick-btn {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.75rem;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: var(--border-radius-md);
-    color: var(--color-text);
-    text-decoration: none;
-    transition: background 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: var(--border-radius-md);
+  color: var(--color-text);
+  text-decoration: none;
+  transition: background 0.3s ease;
 }
 
 .quick-btn:hover {
-    background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.2);
 }
 
-.quick-btn-icon { font-size: 1.2rem; }
+.quick-btn-icon {
+  font-size: 1.2rem;
+}
 
 /* --- 按鈕 --- */
 .btn {
-    padding: 0.75rem 1.5rem;
-    border: none;
-    border-radius: var(--border-radius-md);
-    text-decoration: none;
-    font-weight: 700;
-    transition: all 0.3s ease;
-    cursor: pointer;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: var(--border-radius-md);
+  text-decoration: none;
+  font-weight: 700;
+  transition: all 0.3s ease;
+  cursor: pointer;
 }
 
 .btn-primary {
-    background: var(--color-primary);
-    color: white;
-    box-shadow: 0 4px 15px rgba(138, 155, 255, 0.3);
+  background: var(--color-primary);
+  color: white;
+  box-shadow: 0 4px 15px rgba(138, 155, 255, 0.3);
 }
 
 .btn-primary:hover {
-    background: #7A8BFF;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(138, 155, 255, 0.4);
+  background: #7a8bff;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(138, 155, 255, 0.4);
 }
 
 .btn.btn-tertiary {
-    background-color: transparent;
-    border: 1px solid var(--border-color);
-    color: var(--text-secondary);
+  background-color: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
 }
 
 .btn.btn-tertiary:hover {
-    background-color: var(--bg-hover);
-    border-color: var(--border-color-hover);
-    color: var(--text-primary);
+  background-color: var(--bg-hover);
+  border-color: var(--border-color-hover);
+  color: var(--text-primary);
 }
 
 .btn-secondary {
-    background: var(--color-accent);
-    color: white;
-    box-shadow: 0 4px 15px rgba(77, 208, 225, 0.3);
+  background: var(--color-accent);
+  color: white;
+  box-shadow: 0 4px 15px rgba(77, 208, 225, 0.3);
 }
 
 .btn-secondary:hover {
-    background: #3BC0D1;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(77, 208, 225, 0.4);
+  background: #3bc0d1;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(77, 208, 225, 0.4);
 }
 
 .btn-danger {
-    background: linear-gradient(135deg, #FF6B6B, #FF5722);
-    color: white;
-    box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+  background: linear-gradient(135deg, #ff6b6b, #ff5722);
+  color: white;
+  box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
 }
 
 .btn-danger:hover {
-    background: linear-gradient(135deg, #FF5252, #F44336);
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+  background: linear-gradient(135deg, #ff5252, #f44336);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
 }
 
 /* --- 表單樣式 (create.php) --- */
 .form-container {
-    max-width: 768px;
-    margin: 2rem auto;
-    padding: 2rem;
+  max-width: 768px;
+  margin: 2rem auto;
+  padding: 2rem;
 }
 
 .form-title {
-    text-align: center;
-    font-size: 1.75rem;
-    font-weight: 600;
-    color: var(--text-primary);
-    margin-bottom: 2rem;
+  text-align: center;
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 2rem;
 }
 
 .form-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1.5rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
 }
 
 .form-group {
-    margin-bottom: 1.5rem;
+  margin-bottom: 1.5rem;
 }
 
 .form-group label {
-    display: block;
-    font-weight: 500;
-    margin-bottom: 0.5rem;
-    color: var(--text-secondary);
+  display: block;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  color: var(--text-secondary);
 }
 
-.form-group input[type="text"],
-.form-group input[type="date"],
+.form-group input[type='text'],
+.form-group input[type='date'],
 .form-group textarea,
 .form-group select {
-    width: 100%;
-    padding: 0.75rem 1rem;
-    background-color: rgba(255, 255, 255, 0.1);
-    border: 1px solid var(--border-color);
-    border-radius: var(--border-radius);
-    color: var(--text-primary);
-    font-size: 1rem;
-    transition: all 0.2s ease-in-out;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background-color: rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  color: var(--text-primary);
+  font-size: 1rem;
+  transition: all 0.2s ease-in-out;
 }
 
-.form-group input[type="password"] {
-    width: 100%;
-    padding: 0.75rem 1rem;
-    background-color: rgba(255, 255, 255, 0.1);
-    border: 1px solid var(--border-color);
-    border-radius: var(--border-radius);
-    color: var(--text-primary);
-    font-size: 1rem;
-    transition: all 0.2s ease-in-out;
+.form-group input[type='password'] {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background-color: rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  color: var(--text-primary);
+  font-size: 1rem;
+  transition: all 0.2s ease-in-out;
 }
 
 /* 修正下拉選單可讀性與互動色彩 */
 .form-group select {
-    background-color: rgba(30, 30, 40, 0.9);
-    color: #fff;
-    border: 1px solid var(--border-color);
-    border-radius: var(--border-radius);
-    font-size: 1rem;
-    transition: all 0.2s;
+  background-color: rgba(30, 30, 40, 0.9);
+  color: #fff;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  font-size: 1rem;
+  transition: all 0.2s;
 }
 
-.form-group select:focus, .form-group select:hover {
-    background-color: rgba(77, 208, 225, 0.15);
-    color: #222;
-    border-color: var(--accent-color);
+.form-group select:focus,
+.form-group select:hover {
+  background-color: rgba(77, 208, 225, 0.15);
+  color: #222;
+  border-color: var(--accent-color);
 }
 
 .form-group input:focus,
 .form-group textarea:focus,
 .form-group select:focus {
-    outline: none;
-    border-color: var(--accent-color);
-    box-shadow: 0 0 0 3px rgba(var(--accent-color-rgb), 0.3);
+  outline: none;
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 3px rgba(var(--accent-color-rgb), 0.3);
 }
 
 textarea {
-    resize: vertical;
-    min-height: 120px;
+  resize: vertical;
+  min-height: 120px;
 }
 
 .ai-section {
-    border: 1px solid var(--border-color);
-    border-radius: var(--border-radius);
-    padding: 1.5rem;
-    margin-top: 2rem;
-    margin-bottom: 2rem;
-    background: rgba(0,0,0,0.1);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  padding: 1.5rem;
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+  background: rgba(0, 0, 0, 0.1);
 }
 
 .ai-section legend {
-    padding: 0 0.5rem;
-    margin-left: 1rem;
-    font-weight: 600;
-    color: var(--text-primary);
+  padding: 0 0.5rem;
+  margin-left: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
 }
 
 .spinner-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 40px;
-    margin: 1rem 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 40px;
+  margin: 1rem 0;
 }
 
 .image-preview-container {
-    margin-top: 1rem;
-    text-align: center;
+  margin-top: 1rem;
+  text-align: center;
 }
 
 #image-preview {
-    max-width: 100%;
-    border-radius: var(--border-radius);
-    border: 1px solid var(--border-color);
+  max-width: 100%;
+  border-radius: var(--border-radius);
+  border: 1px solid var(--border-color);
 }
 
 .text-result-container {
-    margin-top: 1rem;
-    padding: 1rem;
-    background-color: rgba(0,0,0,0.15);
-    border-radius: var(--border-radius);
-    min-height: 50px;
+  margin-top: 1rem;
+  padding: 1rem;
+  background-color: rgba(0, 0, 0, 0.15);
+  border-radius: var(--border-radius);
+  min-height: 50px;
 }
 
 .form-actions {
-    display: flex;
-    justify-content: center;
-    gap: 1rem;
-    margin-top: 2rem;
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 2rem;
 }
 
 /* --- 日記詳情樣式 (detail.php) --- */
 .diary-detail {
-    max-width: 800px;
-    margin: 2rem auto;
-    padding: 2rem 2.5rem;
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 2rem 2.5rem;
 }
 
 .diary-detail-header {
-    text-align: center;
-    margin-bottom: 2rem;
-    border-bottom: 1px solid var(--border-color);
-    padding-bottom: 1.5rem;
+  text-align: center;
+  margin-bottom: 2rem;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 1.5rem;
 }
 
 .diary-mood {
-    font-size: 2.5rem;
-    display: block;
-    margin-bottom: 0.5rem;
+  font-size: 2.5rem;
+  display: block;
+  margin-bottom: 0.5rem;
 }
 
 .diary-title {
-    font-size: 2rem;
-    font-weight: 700;
-    color: var(--text-primary);
-    margin-bottom: 0.5rem;
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
 }
 
 .diary-date {
-    font-size: 1rem;
-    color: var(--text-secondary);
+  font-size: 1rem;
+  color: var(--text-secondary);
 }
 
 .diary-image-container {
-    margin-bottom: 2rem;
-    text-align: center;
+  margin-bottom: 2rem;
+  text-align: center;
 }
 
 .diary-image {
-    max-width: 100%;
-    border-radius: var(--border-radius);
-    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+  max-width: 100%;
+  border-radius: var(--border-radius);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
 }
 
 .ai-credit {
-    font-size: 0.8rem;
-    color: var(--text-secondary);
-    margin-top: 0.5rem;
-    text-align: center;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-top: 0.5rem;
+  text-align: center;
 }
 
 .diary-content-wrapper {
-    padding: 1rem 0;
+  padding: 1rem 0;
 }
 
 .diary-content {
-    font-size: 1.1rem;
-    line-height: 1.8;
-    color: var(--text-primary);
-    white-space: pre-wrap; /* This is important */
+  font-size: 1.1rem;
+  line-height: 1.8;
+  color: var(--text-primary);
+  white-space: pre-wrap; /* This is important */
 }
 
 .ai-generated-text {
-    margin-top: 2rem;
-    padding-top: 1.5rem;
-    border-top: 1px solid var(--border-color);
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border-color);
 }
 
 .ai-generated-text h4 {
-    font-weight: 600;
-    margin-bottom: 1rem;
-    color: var(--text-primary);
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: var(--text-primary);
 }
 
 .ai-generated-text blockquote {
-    border-left: 3px solid var(--accent-color);
-    padding-left: 1.5rem;
-    margin: 0;
-    font-style: italic;
-    color: var(--text-secondary);
+  border-left: 3px solid var(--accent-color);
+  padding-left: 1.5rem;
+  margin: 0;
+  font-style: italic;
+  color: var(--text-secondary);
 }
 
 .diary-actions {
-    text-align: center;
-    margin-top: 2rem;
+  text-align: center;
+  margin-top: 2rem;
 }
 
 /* --- 多篇日記列表樣式 --- */
 .diary-list-ul {
-    list-style: none;
-    padding: 0;
-    margin: 1.5rem 0;
+  list-style: none;
+  padding: 0;
+  margin: 1.5rem 0;
 }
 .diary-list-ul li {
-    margin-bottom: 1rem;
-    background: rgba(255,255,255,0.04);
-    border-radius: 8px;
-    transition: background 0.2s;
+  margin-bottom: 1rem;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 8px;
+  transition: background 0.2s;
 }
 .diary-list-ul li a {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 1rem 1.5rem;
-    color: var(--text-primary);
-    text-decoration: none;
-    font-size: 1.08em;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  color: var(--text-primary);
+  text-decoration: none;
+  font-size: 1.08em;
 }
 .diary-list-ul li a:hover {
-    background: var(--bg-hover);
+  background: var(--bg-hover);
 }
 .diary-list-title {
-    font-weight: 600;
-    flex: 1;
+  font-weight: 600;
+  flex: 1;
 }
 .diary-list-time {
-    color: var(--text-secondary);
-    margin-left: 1.5rem;
-    min-width: 60px;
-    text-align: right;
+  color: var(--text-secondary);
+  margin-left: 1.5rem;
+  min-width: 60px;
+  text-align: right;
 }
 .diary-list-emoji {
-    font-size: 1.5em;
-    margin-left: 1.5rem;
+  font-size: 1.5em;
+  margin-left: 1.5rem;
 }
 
 /* --- RWD --- */
 @media (max-width: 991px) {
-    .bento-grid {
-        grid-template-columns: 1fr;
-    }
-    .bento-calendar, .bento-sidebar {
-        grid-column: span 1;
-    }
-    .bento-sidebar {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-    }
+  .bento-grid {
+    grid-template-columns: 1fr;
+  }
+  .bento-calendar,
+  .bento-sidebar {
+    grid-column: span 1;
+  }
+  .bento-sidebar {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
 }
 
 @media (max-width: 768px) {
-    body { padding-top: 70px; }
-    .glass-header { padding: 0.5rem 1rem; }
-    .navbar-nav { gap: 0.5rem; }
-    .nav-link { padding: 0.5rem; }
-    .nav-user-greeting { display: none; }
-    .bento-sidebar { grid-template-columns: 1fr; }
-    .calendar td { height: 100px; }
-    .mood-emoji { font-size: 2rem; }
+  body {
+    padding-top: 70px;
+  }
+  .glass-header {
+    padding: 0.5rem 1rem;
+  }
+  .navbar-nav {
+    gap: 0.5rem;
+  }
+  .nav-link {
+    padding: 0.5rem;
+  }
+  .nav-user-greeting {
+    display: none;
+  }
+  .bento-sidebar {
+    grid-template-columns: 1fr;
+  }
+  .calendar td {
+    height: 100px;
+  }
+  .mood-emoji {
+    font-size: 2rem;
+  }
 }

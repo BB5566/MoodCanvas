@@ -61,9 +61,9 @@ if (isset($diaries)) {
 ?>
 
 <?php if ($showSuccessMessage): ?>
-<div class="alert alert-success" style="text-align: center; margin: 1rem auto; max-width: 600px; padding: 1rem; background: rgba(76, 175, 80, 0.2); border: 1px solid rgba(76, 175, 80, 0.5); border-radius: 8px; color: #4CAF50;">
-    <?php echo htmlspecialchars($successMessage); ?>
-</div>
+    <div class="alert alert-success" style="text-align: center; margin: 1rem auto; max-width: 600px; padding: 1rem; background: rgba(76, 175, 80, 0.2); border: 1px solid rgba(76, 175, 80, 0.5); border-radius: 8px; color: #4CAF50;">
+        <?php echo htmlspecialchars($successMessage); ?>
+    </div>
 <?php endif; ?>
 
 <div class="bento-grid">
@@ -82,7 +82,13 @@ if (isset($diaries)) {
             <table class="calendar">
                 <thead>
                     <tr>
-                        <th>日</th><th>一</th><th>二</th><th>三</th><th>四</th><th>五</th><th>六</th>
+                        <th>日</th>
+                        <th>一</th>
+                        <th>二</th>
+                        <th>三</th>
+                        <th>四</th>
+                        <th>五</th>
+                        <th>六</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -94,18 +100,18 @@ if (isset($diaries)) {
                         $currentDay = 1;
                         while ($currentDay <= $daysInMonth) {
                             if (($currentDay + $firstDayOfWeek - 1) % 7 == 0 && $currentDay > 1) echo "</tr><tr>";
-                            
+
                             $isToday = ($year == $todayYear && $month == $todayMonth && $currentDay == $todayDay);
                             $tdClass = $isToday ? 'today' : '';
-                            
+
                             echo "<td class='{$tdClass}'>";
                             echo "<div class='day-number'>{$currentDay}</div>";
-                            
+
                             if (isset($diariesOnDate[$currentDay])) {
                                 $dayDiaries = $diariesOnDate[$currentDay];
                                 $diaryCount = count($dayDiaries);
                                 $currentDate = sprintf('%04d-%02d-%02d', $year, $month, $currentDay);
-                                
+
                                 if ($diaryCount === 1) {
                                     // 只有一篇日記，直接顯示
                                     $diary = $dayDiaries[0];
@@ -141,7 +147,7 @@ if (isset($diaries)) {
                                     echo "</div>";
                                 }
                             }
-                            
+
                             echo "</td>";
                             $currentDay++;
                         }
@@ -179,41 +185,41 @@ if (isset($diaries)) {
 
         <!-- 心情分佈 -->
         <?php if (!empty($moodStats)): ?>
-        <div class="bento-card">
-            <h3>💭 心情分佈</h3>
-            <div class="mood-distribution">
-                <?php foreach (array_slice($moodStats, 0, 4) as $mood => $count): ?>
-                    <div class="mood-item">
-                        <span class="mood-emoji-large"><?php echo htmlspecialchars($mood); ?></span>
-                        <div class="mood-info">
-                            <span class="mood-count"><?php echo $count; ?> 次</span>
-                            <div class="mood-bar">
-                                <div class="mood-fill" style="width: <?php echo ($count / max($moodStats)) * 100; ?>%"></div>
+            <div class="bento-card">
+                <h3>💭 心情分佈</h3>
+                <div class="mood-distribution">
+                    <?php foreach (array_slice($moodStats, 0, 4) as $mood => $count): ?>
+                        <div class="mood-item">
+                            <span class="mood-emoji-large"><?php echo htmlspecialchars($mood); ?></span>
+                            <div class="mood-info">
+                                <span class="mood-count"><?php echo $count; ?> 次</span>
+                                <div class="mood-bar">
+                                    <div class="mood-fill" style="width: <?php echo ($count / max($moodStats)) * 100; ?>%"></div>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                <?php endforeach; ?>
+                    <?php endforeach; ?>
+                </div>
             </div>
-        </div>
         <?php endif; ?>
-        
+
         <!-- 快速操作 -->
         <div class="bento-card">
-             <h3>⚡ 快速操作</h3>
-             <div class="quick-actions">
+            <h3>⚡ 快速操作</h3>
+            <div class="quick-actions">
                 <?php if (isset($_SESSION['user_id'])): ?>
-                <a href="index.php?action=diary_create" class="quick-btn">
-                    <span class="quick-btn-icon">✏️</span>
-                    <span>寫新日記</span>
-                </a>
-                <a href="#" class="quick-btn">
-                    <span class="quick-btn-icon">🎲</span>
-                    <span>隨機回憶</span>
-                </a>
+                    <a href="index.php?action=diary_create" class="quick-btn">
+                        <span class="quick-btn-icon">✏️</span>
+                        <span>寫新日記</span>
+                    </a>
+                    <a href="#" class="quick-btn">
+                        <span class="quick-btn-icon">🎲</span>
+                        <span>隨機回憶</span>
+                    </a>
                 <?php else: ?>
-                <div class="quick-btn" style="opacity:0.8; padding:0.55rem 1rem; border-radius:8px; display:inline-flex; align-items:center; gap:0.5rem;">
-                    <span style="font-size:0.95rem;">需登入才能新增或刪除日記</span>
-                </div>
+                    <div class="quick-btn" style="opacity:0.8; padding:0.55rem 1rem; border-radius:8px; display:inline-flex; align-items:center; gap:0.5rem;">
+                        <span style="font-size:0.95rem;">需登入才能新增或刪除日記</span>
+                    </div>
                 <?php endif; ?>
             </div>
         </div>

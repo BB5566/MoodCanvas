@@ -40,7 +40,7 @@ if ($showImage) {
             $imageUrl = APP_URL . '/public/' . $imagePath;
         }
     }
-    
+
     // 檢查檔案是否存在
     $localPath = str_replace(APP_URL . '/', '', $imageUrl);
     if (!file_exists(BASE_PATH . '/' . $localPath)) {
@@ -84,39 +84,39 @@ if ($showImage) {
 
     <div class="diary-actions">
         <a href="index.php?action=home" class="btn btn-tertiary">返回日曆</a>
-            <?php if (!empty($is_owner) && $is_owner === true): ?>
-                <a href="#" onclick="confirmDelete(<?php echo $diary['id']; ?>)" class="btn btn-danger">🗑️ 刪除日記</a>
-            <?php else: ?>
-                <div style="display:inline-block; margin-left:0.5rem; color:#f55;">需登入並為作者才能刪除或編輯此篇日記</div>
-            <?php endif; ?>
-            <!-- <a href="#" class="btn btn-secondary">編輯日記</a> -->
-        </div>
+        <?php if (!empty($is_owner) && $is_owner === true): ?>
+            <a href="#" onclick="confirmDelete(<?php echo $diary['id']; ?>)" class="btn btn-danger">🗑️ 刪除日記</a>
+        <?php else: ?>
+            <div style="display:inline-block; margin-left:0.5rem; color:#f55;">需登入並為作者才能刪除或編輯此篇日記</div>
+        <?php endif; ?>
+        <!-- <a href="#" class="btn btn-secondary">編輯日記</a> -->
+    </div>
 </div>
 
 <script>
-function confirmDelete(diaryId) {
-    if (confirm('確定要刪除這篇日記嗎？此操作無法復原。')) {
-        // 創建表單並提交
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = 'index.php?action=diary_delete';
-        
-        const idInput = document.createElement('input');
-        idInput.type = 'hidden';
-        idInput.name = 'diary_id';
-        idInput.value = diaryId;
-        
-        const csrfInput = document.createElement('input');
-        csrfInput.type = 'hidden';
-        csrfInput.name = 'csrf_token';
-        csrfInput.value = '<?php echo htmlspecialchars(generateCsrfToken()); ?>';
-        
-        form.appendChild(idInput);
-        form.appendChild(csrfInput);
-        document.body.appendChild(form);
-        form.submit();
+    function confirmDelete(diaryId) {
+        if (confirm('確定要刪除這篇日記嗎？此操作無法復原。')) {
+            // 創建表單並提交
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = 'index.php?action=diary_delete';
+
+            const idInput = document.createElement('input');
+            idInput.type = 'hidden';
+            idInput.name = 'diary_id';
+            idInput.value = diaryId;
+
+            const csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = 'csrf_token';
+            csrfInput.value = '<?php echo htmlspecialchars(generateCsrfToken()); ?>';
+
+            form.appendChild(idInput);
+            form.appendChild(csrfInput);
+            document.body.appendChild(form);
+            form.submit();
+        }
     }
-}
 </script>
 
 <?php
