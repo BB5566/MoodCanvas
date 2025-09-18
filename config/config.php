@@ -97,7 +97,8 @@ if (!defined('APP_URL')) {
 }
 
 if (!defined('DEBUG')) {
-    define('DEBUG', getenv('DEBUG') === 'true' ? true : true);
+    // Set DEBUG to true only when environment explicitly sets DEBUG=true
+    define('DEBUG', getenv('DEBUG') === 'true' ? true : false);
 }
 if (!defined('SESSION_NAME')) {
     define('SESSION_NAME', getenv('SESSION_NAME') ?: 'moodcanvas_session');
