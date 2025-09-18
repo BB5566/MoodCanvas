@@ -1,4 +1,5 @@
 <?php
+
 /**
  * MoodCanvas 配置文件 - 修正版本
  * 移除對 mysqli 的依賴，使用 PDO
@@ -10,7 +11,8 @@ if (session_status() == PHP_SESSION_NONE) {
 }
 
 // 載入 .env 檔案
-function loadEnvFile($path) {
+function loadEnvFile($path)
+{
     if (file_exists($path)) {
         $lines = file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
         foreach ($lines as $line) {
@@ -18,14 +20,14 @@ function loadEnvFile($path) {
             if (strpos($line, '=') !== false) {
                 list($key, $value) = explode('=', $line, 2);
                 $key = trim($key);
-                
+
                 // 處理行內註釋：移除 # 後的所有內容
                 if (strpos($value, '#') !== false) {
                     $value = substr($value, 0, strpos($value, '#'));
                 }
-                
+
                 $value = trim($value, '"\''); // 移除引號和空格
-                
+
                 // 設定環境變數
                 if (!getenv($key)) { // 只有當環境變數不存在時才設定
                     putenv("{$key}={$value}");
@@ -127,7 +129,8 @@ if (!defined('DB_CHARSET')) {
 }
 
 // 建立 PDO 連線函數
-function getDbConnection() {
+function getDbConnection()
+{
     try {
         $dsn = "mysql:host=" . DB_HOST . ";port=" . DB_PORT . ";dbname=" . DB_NAME . ";charset=" . DB_CHARSET;
         $options = [
@@ -144,7 +147,7 @@ function getDbConnection() {
             // 記錄詳細錯誤訊息以便除錯
             $error_msg = "資料庫連線失敗: " . $e->getMessage();
             @error_log($error_msg);
-            
+
             // 顯示更詳細的錯誤訊息供除錯
             echo "<div style='background:#ffebee;border:1px solid #f44336;padding:10px;margin:10px;'>";
             echo "<h3>資料庫連線錯誤</h3>";
@@ -245,12 +248,13 @@ spl_autoload_register(function ($class) {
 });
 
 // 簡單的路由函數
-function route($uri, $controller, $action = 'index') {
+function route($uri, $controller, $action = 'index')
+{
     $current_uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
     $base_path = '/project/MoodCanvas';
     $current_uri = str_replace($base_path, '', $current_uri);
     $current_uri = trim($current_uri, '/');
-    
+
     if ($current_uri === trim($uri, '/')) {
         $controller_file = APP_PATH . '/controllers/' . $controller . '.php';
         if (file_exists($controller_file)) {
@@ -269,20 +273,24 @@ function route($uri, $controller, $action = 'index') {
 }
 
 // 輔助函數
-function url($path = '') {
+function url($path = '')
+{
     return APP_URL . '/' . ltrim($path, '/');
 }
 
-function asset($path) {
+function asset($path)
+{
     return url('public/assets/' . ltrim($path, '/'));
 }
 
-function redirect($url) {
+function redirect($url)
+{
     header('Location: ' . $url);
     exit;
 }
 
-function view($template, $data = []) {
+function view($template, $data = [])
+{
     extract($data);
     $view_file = APP_PATH . '/views/' . $template . '.php';
     if (file_exists($view_file)) {
@@ -293,22 +301,25 @@ function view($template, $data = []) {
     return "View not found: $template";
 }
 
-function generateCsrfToken() {
+function generateCsrfToken()
+{
     if (!isset($_SESSION[CSRF_TOKEN_NAME])) {
         $_SESSION[CSRF_TOKEN_NAME] = bin2hex(random_bytes(32));
     }
     return $_SESSION[CSRF_TOKEN_NAME];
 }
 
-function verifyCsrfToken($token) {
+function verifyCsrfToken($token)
+{
     return isset($_SESSION[CSRF_TOKEN_NAME]) && hash_equals($_SESSION[CSRF_TOKEN_NAME], $token);
 }
 
 // 記錄函數 - 安全版本
-function logMessage($message, $level = 'INFO') {
+function logMessage($message, $level = 'INFO')
+{
     $timestamp = date('Y-m-d H:i:s');
     $log_entry = "[$timestamp] [$level] $message" . PHP_EOL;
-    
+
     // 安全的日誌寫入，避免權限錯誤導致程式中斷
     $log_file = LOGS_PATH . '/app.log';
     if (is_writable(dirname($log_file)) || (file_exists($log_file) && is_writable($log_file))) {

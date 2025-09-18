@@ -9,11 +9,11 @@ $uri = $_SERVER['REQUEST_URI'] ?? '/';
 $uriPath = parse_url($uri, PHP_URL_PATH);
 $publicPath = __DIR__ . '/public' . $uriPath;
 if ($uriPath !== '/' && file_exists($publicPath) && is_file($publicPath)) {
-    // serve static file directly
-    // Use fastcgi or webserver to serve; fallback to readfile for CLI
-    header('Content-Type: ' . mime_content_type($publicPath));
-    readfile($publicPath);
-    exit;
+  // serve static file directly
+  // Use fastcgi or webserver to serve; fallback to readfile for CLI
+  header('Content-Type: ' . mime_content_type($publicPath));
+  readfile($publicPath);
+  exit;
 }
 
 // Otherwise, forward to public index
