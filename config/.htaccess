@@ -1,0 +1,3 @@
+# Protect sensitive files
+Order deny,allow
+Deny from all

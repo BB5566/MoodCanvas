@@ -1,0 +1,18 @@
+# robots.txt for MoodCanvas project
+# bb-made.com/project/MoodCanvas/
+
+User-agent: *
+Allow: /project/MoodCanvas/public/
+Allow: /project/MoodCanvas/public/index.php?action=portfolio
+Allow: /project/MoodCanvas/public/index.php?action=portfolio_features
+Allow: /project/MoodCanvas/public/index.php?action=portfolio_tech
+
+# 隱藏敏感文件和目錄
+Disallow: /project/MoodCanvas/config/
+Disallow: /project/MoodCanvas/app/
+Disallow: /project/MoodCanvas/logs/
+Disallow: /project/MoodCanvas/database/
+Disallow: /project/MoodCanvas/scripts/
+
+# 允許搜尋引擎索引作品集相關頁面
+Sitemap: https://bb-made.com/project/MoodCanvas/sitemap.xml
