@@ -205,6 +205,11 @@ document.addEventListener('DOMContentLoaded', function() {
         if (mood && mood.trim() !== "") {
             // 注意：這裡需要一個後端端點來處理這個請求。
             // 我們假設有一個 action=diary_quick_create
+            if (!window.__IS_LOGGED_IN__) {
+                alert('需登入才能快速建立日記，請先登入或註冊。');
+                return;
+            }
+
             fetch('index.php?action=diary_quick_create', {
                 method: 'POST',
                 headers: {

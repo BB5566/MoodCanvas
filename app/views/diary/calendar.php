@@ -130,9 +130,16 @@ if (isset($diaries)) {
                                 }
                             } else {
                                 $currentDate = sprintf('%04d-%02d-%02d', $year, $month, $currentDay);
-                                echo "<a href='index.php?action=diary_create&date={$currentDate}' class='no-diary' title='新增日記'>";
-                                echo "<span class='add-diary-btn'>+</span>";
-                                echo "</a>";
+                                // 只有已登入使用者才允許新增日記；訪客會看到提示
+                                if (isset($_SESSION['user_id'])) {
+                                    echo "<a href='index.php?action=diary_create&date={$currentDate}' class='no-diary' title='新增日記'>";
+                                    echo "<span class='add-diary-btn'>+</span>";
+                                    echo "</a>";
+                                } else {
+                                    echo "<div class='no-diary-guest' title='需登入才能新增日記' style='opacity:0.6;'>";
+                                    echo "<span class='add-diary-btn'>+</span>";
+                                    echo "</div>";
+                                }
                             }
                             
                             echo "</td>";
@@ -194,6 +201,7 @@ if (isset($diaries)) {
         <div class="bento-card">
              <h3>⚡ 快速操作</h3>
              <div class="quick-actions">
+                <?php if (isset($_SESSION['user_id'])): ?>
                 <a href="index.php?action=diary_create" class="quick-btn">
                     <span class="quick-btn-icon">✏️</span>
                     <span>寫新日記</span>
@@ -202,6 +210,11 @@ if (isset($diaries)) {
                     <span class="quick-btn-icon">🎲</span>
                     <span>隨機回憶</span>
                 </a>
+                <?php else: ?>
+                <div class="quick-btn" style="opacity:0.8; padding:0.55rem 1rem; border-radius:8px; display:inline-flex; align-items:center; gap:0.5rem;">
+                    <span style="font-size:0.95rem;">需登入才能新增或刪除日記</span>
+                </div>
+                <?php endif; ?>
             </div>
         </div>
     </div>

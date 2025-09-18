@@ -304,6 +304,26 @@ body::after {
     outline-offset: 2px;
 }
 
+/* Guest placeholder for add button (visual only) */
+.no-diary-guest {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: var(--border-radius-md);
+    pointer-events: none; /* visual only, not interactive */
+}
+
+.no-diary-guest .add-diary-btn {
+    font-size: 2rem;
+    color: var(--color-text-muted);
+    opacity: 0.9;
+}
+
 /* --- 多篇日記樣式 --- */
 .multiple-diaries {
     position: absolute;

@@ -29,13 +29,14 @@ class DiaryController {
      * 顯示日曆頁面 (首頁)
      */
     public function index() {
-        // 檢查使用者是否已登入
+        // 支援訪客預覽：若未登入，使用示範用戶（PUBLIC_DEMO_USER_ID 或預設 1）來顯示日曆
+        $is_guest_view = false;
         if (!isset($_SESSION['user_id'])) {
-            $this->redirectToLogin();
-            return;
+            $is_guest_view = true;
+            $user_id = defined('PUBLIC_DEMO_USER_ID') ? constant('PUBLIC_DEMO_USER_ID') : 1;
+        } else {
+            $user_id = $_SESSION['user_id'];
         }
-
-        $user_id = $_SESSION['user_id'];
         
         // 獲取年月參數，預設為當前月份
         $year = $_GET['year'] ?? date('Y');
@@ -113,17 +114,21 @@ class DiaryController {
      * 顯示單篇日記詳情
      */
     public function show() {
-        // 檢查使用者是否已登入
+        // 顯示單篇日記：允許訪客預覽示範日記（示範用戶 id），但未登入者不得編輯或刪除
+        $is_guest_view = false;
         if (!isset($_SESSION['user_id'])) {
-            $this->redirectToLogin();
-            return;
+            $is_guest_view = true;
+            $user_id = defined('PUBLIC_DEMO_USER_ID') ? constant('PUBLIC_DEMO_USER_ID') : 1;
+        } else {
+            $user_id = $_SESSION['user_id'];
         }
 
         $diary_id = $_GET['id'] ?? null;
         if (!$diary_id) {
             $this->showError('無效的日記ID');
             return;
-        }        $user_id = $_SESSION['user_id'];
+        }
+
         $diary = $this->diaryModel->findById($diary_id, $user_id);
         
         if (!$diary) {
@@ -132,6 +137,8 @@ class DiaryController {
         }
 
         $pageTitle = '日記詳情';
+        // 是否為該日記擁有者（用於控制刪除/編輯按鈕顯示）
+        $is_owner = isset($_SESSION['user_id']) && ($_SESSION['user_id'] == ($diary['user_id'] ?? null));
         include BASE_PATH . '/app/views/diary/detail.php';
     }
 
@@ -484,12 +491,14 @@ class DiaryController {
      * 顯示指定日期的所有日記
      */
     public function showByDate() {
+        // 支援訪客預覽：若未登入，使用示範用戶來顯示該日期的日記列表
+        $is_guest_view = false;
         if (!isset($_SESSION['user_id'])) {
-            $this->redirectToLogin();
-            return;
+            $is_guest_view = true;
+            $user_id = defined('PUBLIC_DEMO_USER_ID') ? constant('PUBLIC_DEMO_USER_ID') : 1;
+        } else {
+            $user_id = $_SESSION['user_id'];
         }
-
-        $user_id = $_SESSION['user_id'];
         $date = $_GET['date'] ?? null;
 
         if (!$date || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {

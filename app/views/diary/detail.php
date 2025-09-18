@@ -84,9 +84,13 @@ if ($showImage) {
 
     <div class="diary-actions">
         <a href="index.php?action=home" class="btn btn-tertiary">返回日曆</a>
-        <a href="#" onclick="confirmDelete(<?php echo $diary['id']; ?>)" class="btn btn-danger">🗑️ 刪除日記</a>
-        <!-- <a href="#" class="btn btn-secondary">編輯日記</a> -->
-    </div>
+            <?php if (!empty($is_owner) && $is_owner === true): ?>
+                <a href="#" onclick="confirmDelete(<?php echo $diary['id']; ?>)" class="btn btn-danger">🗑️ 刪除日記</a>
+            <?php else: ?>
+                <div style="display:inline-block; margin-left:0.5rem; color:#f55;">需登入並為作者才能刪除或編輯此篇日記</div>
+            <?php endif; ?>
+            <!-- <a href="#" class="btn btn-secondary">編輯日記</a> -->
+        </div>
 </div>
 
 <script>
