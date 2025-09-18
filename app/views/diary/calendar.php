@@ -113,12 +113,21 @@ if (isset($diaries)) {
                                 $currentDate = sprintf('%04d-%02d-%02d', $year, $month, $currentDay);
 
                                 if ($diaryCount === 1) {
-                                    // 只有一篇日記，直接顯示
+                                    // 只有一篇日記，若有 image_path 顯示縮圖，否則顯示 mood emoji
                                     $diary = $dayDiaries[0];
                                     $moodEmoji = htmlspecialchars($diary['mood'] ?? '📝');
-                                    echo "<a href='index.php?action=diary_detail&id={$diary['id']}' class='diary-entry' title='" . htmlspecialchars($diary['title']) . "'>";
-                                    echo "<span class='mood-emoji'>{$moodEmoji}</span>";
-                                    echo "</a>";
+                                    $imagePath = $diary['image_path'] ?? '';
+                                    if (!empty($imagePath)) {
+                                        // 構建圖片 URL（如果是相對路徑則補上 public）
+                                        $imgUrl = (strpos($imagePath, 'http') === 0) ? $imagePath : (strpos($imagePath, 'public/') === 0 ? APP_URL . '/' . $imagePath : APP_URL . '/public/' . $imagePath);
+                                        echo "<a href='index.php?action=diary_detail&id={$diary['id']}' class='diary-entry' title='" . htmlspecialchars($diary['title']) . "'>";
+                                        echo "<img class='diary-thumb' loading='lazy' src='" . htmlspecialchars($imgUrl) . "' alt='" . htmlspecialchars($diary['title']) . "'/>";
+                                        echo "</a>";
+                                    } else {
+                                        echo "<a href='index.php?action=diary_detail&id={$diary['id']}' class='diary-entry' title='" . htmlspecialchars($diary['title']) . "'>";
+                                        echo "<span class='mood-emoji'>{$moodEmoji}</span>";
+                                        echo "</a>";
+                                    }
                                 } else {
                                     // 多篇日記，點擊查看日期列表
                                     echo "<a href='index.php?action=diary_by_date&date={$currentDate}' class='multiple-diaries' title='查看該日的 {$diaryCount} 篇日記'>";

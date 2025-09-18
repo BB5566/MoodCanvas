@@ -354,6 +354,28 @@ body::after {
   opacity: 0.9;
 }
 
+/* Diary thumbnail shown in calendar cells */
+.diary-thumb {
+  width: 80%;
+  height: 80%;
+  object-fit: cover;
+  border-radius: var(--border-radius-md);
+  box-shadow: none; /* keep calendar clean */
+  border: none;
+  display: block;
+}
+
+.day-number {
+  z-index: 3;
+  position: absolute;
+}
+.diary-entry,
+.no-diary,
+.no-diary-guest,
+.multiple-diaries {
+  z-index: 1;
+}
+
 /* --- 多篇日記樣式 --- */
 .multiple-diaries {
   position: absolute;
