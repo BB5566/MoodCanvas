@@ -82,17 +82,23 @@ class PerplexityAdapter
      */
     private function getSimplifiedSystemPrompt(): string
     {
-        return "You are an expert prompt engineer for text-to-image AI. Your task is to convert a user's diary entry into a clear, focused English prompt.
+        return <<<'PROMPT'
+You are an expert prompt engineer for text-to-image models. Convert the user's diary entry into a single, focused English prompt suitable for image generation.
 
-GUIDELINES:
-1. Focus on the main subject and activity from the diary
-2. Keep the scene simple and clear - avoid multiple people unless explicitly mentioned
-3. If a person is mentioned, use neutral descriptors unless specific traits are clearly stated
-4. Integrate the artistic style naturally
-5. Output a single, comma-separated paragraph
-6. No explanations or quotation marks
+RULES:
+1) Output only one single, comma-separated prompt string and nothing else (no explanation, no quotes).
+2) Prioritize the main subject and its action (who/what and doing). Keep the scene concise.
+3) Include setting details (indoor/outdoor, desk, cafe), and time/lighting if mentioned (e.g., warm golden afternoon light).
+4) If the diary mentions '日曆', 'calendar' or '日曆功能', ensure the prompt explicitly mentions a device showing a calendar UI (e.g., laptop displaying calendar UI with diary entries).
+5) Add the emotional tone succinctly (accomplished, joyful, relieved, contemplative) when present.
+6) Append style keywords from the provided Style Keywords (photorealistic, impressionist, etc.) at the end.
+7) Optionally include camera/view shorthand when useful (close-up, medium shot, wide shot) and 1-2 small props (coffee cup, notebook) if referenced.
+8) Avoid listing many unrelated elements; keep prompt length moderate (approx. 10-40 words).
+9) Do not invent people names, brands, or on-screen readable text. Avoid watermarks.
 
-IMPORTANT: Keep prompts focused and avoid overcomplicating with too many elements.";
+FORMAT EXAMPLE:
+Diary Entry: <user text> -> Prompt: person coding on laptop, close-up, warm golden afternoon light, laptop displaying calendar UI with diary entries, smiling with a sense of accomplishment, photorealistic, high detail
+PROMPT;
     }
 
     /**
@@ -135,6 +141,11 @@ IMPORTANT: Keep prompts focused and avoid overcomplicating with too many element
 
         if (strpos($content, '程式設計') !== false || strpos($content, '開發') !== false || strpos($content, '程式') !== false) {
             return "Focus on a developer/programmer in the scene.";
+        }
+
+        // 偵測日曆/日曆功能等關鍵字，給出更具體的上下文
+        if (strpos($content, '日曆') !== false || strpos($content, '日曆功能') !== false || stripos($content, 'calendar') !== false) {
+            return "Focus on a laptop displaying a calendar UI with diary entries.";
         }
 
         return "Focus on the main activity described in the diary.";
@@ -208,11 +219,21 @@ IMPORTANT: Keep prompts focused and avoid overcomplicating with too many element
      */
     private function getStrictQuoteSystemPrompt(): string
     {
-        return "你是引言專家。規則：
-1. 絕對禁止使用「智慧觀察」風格
-2. 只能使用「世界名言」或「電影/書籍語錄」
-3. 格式必須是：「引文內容」— 作者名 或 「引文內容」— 《作品名》
-4. 直接輸出引言，不要任何解釋";
+        return <<<'SYS'
+你是短句/引言寫作專家（Quote Writer）。任務：根據日記內容與情緒，產出一行簡短、原創且具溫度的短句，適合作為日記的 ai_generated_text。
+
+規則：
+1) 僅輸出一行文字（single line），不要多行、不要多餘說明、不要引號或額外標點。只要句子本身。
+2) 輸出語言請與日記語言一致（若內容包含中文漢字則輸出中文，否則輸出英文）。
+3) 長度限制：中文請控制在 8–40 字；英文請控制在 6–30 個詞（words）。
+4) 語氣要呼應情緒（emoji 或內容關鍵字），例如：成就感 -> uplifting, 挑戰 -> encouraging, 傷感 -> gentle/comforting。
+5) 優先產出原創短句；若輸入要求一定要使用「世界名言」，回傳必須標明作者並且不得超過 120 字，但預設情況下請不要回傳長名言或歌詞等可能受版權保護的長引文。
+6) 禁止暴力、仇恨、色情或個資（PII）輸出。
+7) 不包含 emoji（除非特別要求），不包含 URL、程式碼或可識別的個人名稱。
+
+輸出範例（中文）：午後金光裡，看見努力變成了成果
+輸出範例（英文）：After an afternoon of focus, the calendar finally showed the payoff
+SYS;
     }
 
     /**
@@ -226,7 +247,13 @@ IMPORTANT: Keep prompts focused and avoid overcomplicating with too many element
         // 強制指定風格
         $forceStyle = $this->determineQuoteStyle($content);
 
-        return "日記內容：'{$content}'\n情緒：{$emoji}\n\n必須使用：{$forceStyle}\n直接輸出引言：";
+        // 決定輸出語言（中文或英文）
+        $langHint = (preg_match('/[\x{4e00}-\x{9fff}]/u', $content)) ? 'zh' : 'en';
+
+        // 長度提示
+        $lengthHint = ($langHint === 'zh') ? '請輸出 8-40 字的中文短句。' : 'Please output a short sentence of 6-30 words in English.';
+
+        return "日記內容：'{$content}'\n情緒：{$emoji}\n\n必須使用：{$forceStyle}\n語言提示：{$langHint}\n長度提示：{$lengthHint}\n直接輸出一行短句：";
     }
 
     /**
@@ -260,52 +287,130 @@ IMPORTANT: Keep prompts focused and avoid overcomplicating with too many element
      */
     private function enhancedFallbackQuote(array $data): string
     {
-        $content = $data['content'] ?? '';
+        $content = trim($data['content'] ?? '');
         $emoji = $data['emoji'] ?? '😊';
 
-        // 根據內容強制選擇合適的世界名言
-        if (strpos($content, '媽媽') !== false || strpos($content, '寶寶') !== false) {
-            $quotes = [
-                "「母愛是世間最偉大的力量。」— 米爾",
-                "「家庭是我們最初的學校，母親是我們最初的老師。」— 富蘭克林",
-                "「成為母親，是學會把以前不知道自己具備的力量發掘出來。」— 林達·沃爾夫"
-            ];
-            return $quotes[array_rand($quotes)];
-        }
+        // 決定語言：若內容包含 CJK，輸出中文；否則輸出英文
+        $isCJK = preg_match('/[\x{4e00}-\x{9fff}]/u', $content);
 
-        if (strpos($content, '程式') !== false || strpos($content, '學習') !== false) {
-            $quotes = [
-                "「學而時習之，不亦說乎。」— 孔子",
-                "「知識就是力量。」— 培根",
-                "「成功不是終點，失敗不是末日，繼續前進的勇氣才最可貴。」— 邱吉爾"
-            ];
-            return $quotes[array_rand($quotes)];
-        }
-
-        if (strpos($content, '挑戰') !== false || strpos($content, '困難') !== false) {
-            $quotes = [
-                "「困難像彈簧，你弱它就強。」— 葉挺",
-                "「山重水複疑無路，柳暗花明又一村。」— 陸游",
-                "「寶劍鋒從磨礪出，梅花香自苦寒來。」— 古詩"
-            ];
-            return $quotes[array_rand($quotes)];
-        }
-
-        // 預設世界名言 - 只包含前台支援的 emoji
-        $defaultQuotes = [
-            '😊' => "「今天是你餘生的第一天。」— 阿比·霍夫曼",
-            '😢' => "「眼淚是靈魂的彩虹。」— 珀西·雪萊",
-            '😡' => "「憤怒是懲罰自己的毒藥。」— 佛陀",
-            '😍' => "「愛是生命的靈魂。」— 羅曼·羅蘭",
-            '😴' => "「休息是為了走更長遠的路。」— 古諺",
-            '🤔' => "「思考是人類最大的樂趣。」— 亞里斯多德",
-            '😂' => "「笑是兩個人之間最短的距離。」— 維克多·博格",
-            '😰' => "「勇氣不是沒有恐懼，而是面對恐懼依然前行。」— 尼爾森·曼德拉",
-            '🥰' => "「愛是生命的靈魂。」— 羅曼·羅蘭",
-            '🙄' => "「生活就像一杯茶，不會苦一輩子，但總會苦一陣子。」— 佚名"
+        // 簡單抽取主題關鍵詞
+        $topic = '';
+        $topicMapZh = [
+            '媽媽' => '為人母',
+            '母親' => '為人母',
+            '爸爸' => '為人父',
+            '程式' => '程式開發',
+            '開發' => '程式開發',
+            '日曆' => '日曆功能',
+            '專案' => '專案',
+            '挑戰' => '挑戰',
+            '學習' => '學習',
+            '咖啡' => '咖啡時光'
+        ];
+        $topicMapEn = [
+            'mother' => 'motherhood',
+            'father' => 'fatherhood',
+            'code' => 'coding',
+            'develop' => 'development',
+            'calendar' => 'calendar feature',
+            'project' => 'project',
+            'challenge' => 'challenge',
+            'learning' => 'learning',
+            'coffee' => 'coffee moment'
         ];
 
-        return $defaultQuotes[$emoji] ?? "「生活就像一杯茶，不會苦一輩子，但總會苦一陣子。」— 佚名";
+        foreach ($topicMapZh as $k => $v) {
+            if (!$isCJK) break;
+            if (strpos($content, $k) !== false) {
+                $topic = $v;
+                break;
+            }
+        }
+        if (!$isCJK) {
+            foreach ($topicMapEn as $k => $v) {
+                if (stripos($content, $k) !== false) {
+                    $topic = $v;
+                    break;
+                }
+            }
+        }
+
+        // 時間或光線關鍵字
+        $timePhrase = '';
+        if ($isCJK) {
+            if (strpos($content, '午後') !== false || strpos($content, '下午') !== false) $timePhrase = '午後金光中';
+        } else {
+            if (stripos($content, 'afternoon') !== false) $timePhrase = 'this afternoon';
+        }
+
+        // 情緒對應的關鍵詞
+        $moodPhrasesZh = [
+            '😊' => ['成就感溢於言表', '心裡暖暖的'],
+            '😢' => ['溫柔地療癒自己', '靜靜感受情緒'],
+            '😡' => ['把能量化為前進的力量', '激昂且堅定'],
+            '😍' => ['被小確幸包圍', '心頭暖暖的愛意'],
+            '😴' => ['給自己一個喘息', '放慢腳步休息一下'],
+            '🤔' => ['思索與成長的片刻', '沉澱中前進'],
+            '😂' => ['笑著翻過一頁', '輕快的喜悅'],
+            '😰' => ['仍然在面對，但沒有放棄', '帶著不安繼續前行'],
+            '🥰' => ['溫柔地被疼愛包圍', '愛與溫暖同行'],
+            '🙄' => ['帶點無奈但仍然前行', '冷眼看世界，自己繼續做事']
+        ];
+        $moodPhrasesEn = [
+            '😊' => ['a warm sense of accomplishment', 'a quiet satisfaction'],
+            '😢' => ['a gentle healing moment', 'soft reflection'],
+            '😡' => ['channeling energy into progress', 'fired up and determined'],
+            '😍' => ['surrounded by small joys', 'heartfelt warmth'],
+            '😴' => ['giving oneself a rest', 'slowing down to breathe'],
+            '🤔' => ['a moment of thought and growth', 'quiet contemplation'],
+            '😂' => ['smiling through it', 'lighthearted joy'],
+            '😰' => ['still facing it, not giving up', 'uneasy but moving forward'],
+            '🥰' => ['gently embraced by warmth', 'love and warmth accompany me'],
+            '🙄' => ['slightly exasperated but moving on', 'wry acceptance and onward']
+        ];
+
+        // 選擇情緒片語
+        if ($isCJK) {
+            $moods = $moodPhrasesZh[$emoji] ?? [$emoji];
+            $moodPhrase = $moods[array_rand($moods)];
+        } else {
+            $moods = $moodPhrasesEn[$emoji] ?? [$emoji];
+            $moodPhrase = $moods[array_rand($moods)];
+        }
+
+        // 組合句子樣式（使用多種樣式以避免每次相同）
+        if ($isCJK) {
+            $patterns = [];
+            if ($topic) $patterns[] = "%s，%s"; // e.g. "日曆功能，成就感溢於言表"
+            if ($timePhrase) $patterns[] = "%s，%s"; // time + mood
+            $patterns[] = "%s後，%s"; // after X, Y
+            $patterns[] = "%s，%s"; // default: content summary + mood
+
+            // 抽取一句簡短主題摘要（第一句或前 12 個字）
+            $summary = mb_substr($content, 0, 12);
+            $components = [$topic ?: $summary, $timePhrase ?: $topic ?: $summary, $moodPhrase];
+            $pattern = $patterns[array_rand($patterns)];
+            $result = sprintf($pattern, $components[0], $components[2]);
+            // 最後修飾：保證 8-40 字
+            $result = trim(preg_replace('/\s+/', ' ', $result));
+            if (mb_strlen($result) > 40) $result = mb_substr($result, 0, 40);
+            return $result;
+        } else {
+            $patterns = [
+                "%s, %s", // topic, mood
+                "After %s, %s", // after topic, mood
+                "%s — %s", // topic — mood
+                "%s with %s"
+            ];
+            $summary = mb_substr($content, 0, 60);
+            $topicPart = $topic ?: $summary;
+            $pattern = $patterns[array_rand($patterns)];
+            $result = sprintf($pattern, $topicPart, $moodPhrase);
+            // 截斷至 30 個詞
+            $words = preg_split('/\s+/', trim($result));
+            if (count($words) > 30) $result = implode(' ', array_slice($words, 0, 30));
+            return trim($result);
+        }
     }
 
     /**
@@ -370,19 +475,32 @@ IMPORTANT: Keep prompts focused and avoid overcomplicating with too many element
      */
     private function getSimpleSceneDescription(string $content): string
     {
+        // 建構更細緻的場景描述，並加入時間/情緒修飾
+        $scene = '';
+
         if (strpos($content, '媽媽') !== false && strpos($content, '程式') !== false) {
-            return 'mother working on computer with baby nearby';
+            $scene = 'mother working on computer with baby nearby';
+        } elseif (strpos($content, '日曆') !== false || strpos($content, '日曆功能') !== false || stripos($content, 'calendar') !== false) {
+            $scene = 'laptop displaying calendar UI with diary entries';
+        } elseif (strpos($content, '程式') !== false || strpos($content, '開發') !== false || strpos($content, '程式設計') !== false) {
+            $scene = 'person coding on computer';
+        } elseif (strpos($content, '咖啡') !== false) {
+            $scene = 'person in cozy cafe setting';
+        } else {
+            $scene = 'peaceful everyday scene';
         }
 
-        if (strpos($content, '程式') !== false) {
-            return 'person coding on computer';
+        // 時間與光影情緒修飾
+        if (strpos($content, '午後') !== false || strpos($content, '下午') !== false) {
+            $scene .= ', warm golden afternoon light';
         }
 
-        if (strpos($content, '咖啡') !== false) {
-            return 'person in cozy cafe setting';
+        // 成就感 / 開心 等情緒修飾
+        if (strpos($content, '成就') !== false || strpos($content, '成就感') !== false || strpos($content, '開心') !== false || strpos($content, '很開心') !== false || strpos($content, '超開心') !== false) {
+            $scene .= ', smiling with a sense of accomplishment';
         }
 
-        return 'peaceful everyday scene';
+        return $scene;
     }
 
     /**
@@ -390,10 +508,31 @@ IMPORTANT: Keep prompts focused and avoid overcomplicating with too many element
      */
     private function cleanQuoteResponse(string $response): string
     {
-        $cleaned = preg_replace('/^(以下是|這是|根據)/u', '', $response);
-        $cleaned = preg_replace('/^[\d\.\-\*\s]+/u', '', $cleaned);
-        $cleaned = trim($cleaned);
+        // 移除常見前綴與多行，保留單行
+        $cleaned = preg_replace('/^(以下是|這是|根據)[:：\s]*/u', '', $response);
+        // 移除編號或列點
+        $cleaned = preg_replace('/^[\d\-\*\.\s]+/u', '', $cleaned);
+        // 只取第一行
+        $lines = preg_split('/\r?\n/', trim($cleaned));
+        $cleaned = trim($lines[0] ?? '');
+        // 移除方括號註記與多餘中英標點
         $cleaned = preg_replace('/\[\d+\]/', '', $cleaned);
+        $cleaned = trim($cleaned, " \"'.,;:!?。！？、　\t\n\r");
+
+        // 強制字數/詞數限制（簡單截斷保護）
+        if (preg_match('/[\x{4e00}-\x{9fff}]/u', $cleaned)) {
+            // 中文：限制 40 字
+            if (mb_strlen($cleaned) > 40) {
+                $cleaned = mb_substr($cleaned, 0, 40);
+            }
+        } else {
+            // 英文：限制 30 詞
+            $words = preg_split('/\s+/', $cleaned);
+            if (count($words) > 30) {
+                $cleaned = implode(' ', array_slice($words, 0, 30));
+            }
+        }
+
         return $cleaned;
     }
 

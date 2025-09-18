@@ -77,22 +77,62 @@ class GeminiTextAdapter
     $response = $this->makeApiCall($url, $payload);
 
     // Normalize response: attempt to extract text from common fields
+    $rawText = '';
     if (is_array($response)) {
-      // If SDK-style response with 'candidates' or 'output' fields
       if (isset($response['candidates']) && is_array($response['candidates']) && !empty($response['candidates'][0]['content'])) {
-        return trim($response['candidates'][0]['content']);
+        $rawText = $response['candidates'][0]['content'];
+      } elseif (isset($response['output']) && is_string($response['output'])) {
+        $rawText = $response['output'];
+      } elseif (isset($response['text'])) {
+        $rawText = $response['text'];
+      } else {
+        $rawText = json_encode($response);
       }
-      if (isset($response['output']) && is_string($response['output'])) {
-        return trim($response['output']);
-      }
-      if (isset($response['text'])) {
-        return trim($response['text']);
-      }
-      // Try to stringify
-      return trim(json_encode($response));
+    } elseif (is_string($response)) {
+      $rawText = $response;
     }
 
-    throw new Exception('Invalid response from Gemini');
+    if (empty($rawText)) {
+      throw new Exception('Invalid response from Gemini');
+    }
+
+    // Clean and enforce single-line, language and length constraints
+    return $this->cleanGeneratedQuote($rawText, $content);
+  }
+
+  /**
+   * Clean generated quote to be single-line, language-aware and length-limited.
+   */
+  private function cleanGeneratedQuote(string $response, string $originalContent = ''): string
+  {
+    // Remove common leading phrases
+    $cleaned = preg_replace('/^(Here is|Here\'s|以下是|這是|根據)[:：\s]*/iu', '', $response);
+    // Remove numbering or bullets
+    $cleaned = preg_replace('/^[\d\-\*\.\s]+/u', '', $cleaned);
+    // Only keep first line
+    $lines = preg_split('/\r?\n/', trim($cleaned));
+    $cleaned = trim($lines[0] ?? '');
+    // Remove bracket annotations
+    $cleaned = preg_replace('/\[\d+\]/', '', $cleaned);
+    // Trim surrounding quotes and punctuation
+    $cleaned = trim($cleaned, " \t\n\r\0\x0B\"'.,;:!?。！？、");
+
+    // Determine language: if original content has CJK, prefer Chinese
+    $isCJK = preg_match('/[\x{4e00}-\x{9fff}]/u', $originalContent) || preg_match('/[\x{4e00}-\x{9fff}]/u', $cleaned);
+
+    // Enforce length limits
+    if ($isCJK) {
+      if (mb_strlen($cleaned) > 40) {
+        $cleaned = mb_substr($cleaned, 0, 40);
+      }
+    } else {
+      $words = preg_split('/\s+/', $cleaned);
+      if (count($words) > 30) {
+        $cleaned = implode(' ', array_slice($words, 0, 30));
+      }
+    }
+
+    return $cleaned;
   }
 
   /**
