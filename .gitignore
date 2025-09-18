@@ -1,0 +1,72 @@
+# 環境設定檔案 (包含敏感資訊)
+.env
+.env.local
+.env.production
+
+# 日誌檔案
+logs/
+*.log
+
+# 快取檔案
+cache/
+temp/
+logs/cache/
+
+# 上傳的檔案
+public/storage/generated_images/*.png
+public/storage/generated_images/*.jpg
+public/storage/generated_images/*.jpeg
+public/storage/generated_images/*.gif
+public/storage/generated_images/*.webp
+
+# 備份檔案
+*.bak
+*.backup
+*~
+
+# 臨時檔案
+*.tmp
+*.temp
+
+# 系統檔案
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE/編輯器檔案
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# 備份檔案
+*.backup.*
+*.bak
+
+# Composer
+vendor/
+composer.lock
+
+# Node.js (如果用到)
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Ignore env files but keep example
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# Ignore generated images and uploads
+public/storage/
+storage/
+
+# Ignore temporary PHP test files
+tmp_*.php
+
+# Ignore secrets and keys
+*.pem
+*.key
+
