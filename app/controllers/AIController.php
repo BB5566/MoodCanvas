@@ -9,14 +9,16 @@ use App\Models\GeminiTextAdapter;
 use App\Models\GeminiImageAdapter;
 use Exception;
 
-class AIController {
+class AIController
+{
 
     private $perplexityAdapter;
     private $stabilityAI;
     private $geminiImageAdapter;
     private $geminiTextAdapter;
 
-    public function __construct() {
+    public function __construct()
+    {
         // 確保使用者已登入，防止未經授權的 API 呼叫
         if (!isset($_SESSION['user_id'])) {
             header('Content-Type: application/json');
@@ -64,7 +66,8 @@ class AIController {
     /**
      * 根據文字提示生成圖片，並在生成前優化提示詞
      */
-    public function generateImage() {
+    public function generateImage()
+    {
         header('Content-Type: application/json');
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -92,13 +95,13 @@ class AIController {
         $requestHash = md5($baseText . $style . $mood);
         $sessionKey = 'last_image_request_' . $requestHash;
         $now = time();
-        
+
         if (isset($_SESSION[$sessionKey]) && ($now - $_SESSION[$sessionKey]) < 30) {
             // 30秒內的相同請求視為重複
             echo json_encode(['success' => false, 'message' => '請稍等片刻再生成新圖片']);
             return;
         }
-        
+
         // 記錄當前請求時間
         $_SESSION[$sessionKey] = $now;
 
@@ -138,7 +141,7 @@ class AIController {
             if ($imageUrl) {
                 // 返回成功訊息、圖片 URL 和使用的提示詞，方便偵錯和顯示
                 echo json_encode([
-                    'success' => true, 
+                    'success' => true,
                     'imageUrl' => $imageUrl,
                     'prompt' => $optimizedPrompt,
                     'imageId' => basename($imageUrl, '.png') // 從 URL 中提取圖片 ID
@@ -156,7 +159,8 @@ class AIController {
     /**
      * 根據情緒或文字生成詩句/名言 (using PerplexityAdapter)
      */
-    public function generateText() {
+    public function generateText()
+    {
         header('Content-Type: application/json');
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -202,7 +206,8 @@ class AIController {
     /**
      * 分析日記資料並提供 AI 洞察
      */
-    public function getDashboardInsight() {
+    public function getDashboardInsight()
+    {
         header('Content-Type: application/json');
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -226,25 +231,24 @@ class AIController {
             foreach ($diaries as $diary) {
                 $diaryText .= "日期: " . ($diary['date'] ?? 'N/A') . ", 心情分數: " . ($diary['mood_score'] ?? 'N/A') . ", 內容: " . ($diary['content'] ?? 'N/A') . "\n\n";
             }
-            
+
             // 建立一個複雜的提示，要求 AI 扮演特定角色
-            $prompt = "請扮演一位專業且富有同理心的心理諮商師或心靈導師。".
-                      "以下是一位使用者最近的日記，記錄了他的心情和想法：\n\n" .
-                      $diaryText .
-                      "\n\n請根據以上所有日記內容，提供一段溫暖、正面且富有洞察力的分析與總結。".
-                      "你的分析應該：\n".
-                      "1. 綜合評估使用者近期的整體情緒趨勢。\n".
-                      "2. 指出任何可能的情緒波動模式或重複出現的主題。\n".
-                      "3. 根據內容給予一些具體、正面且可行的心理學建議，例如正念練習、感恩練習或認知行為療法(CBT)的簡單技巧。\n".
-                      "4. 語言風格需溫暖、鼓勵，像朋友一樣，但要保持專業性。\n".
-                      "5. 最後用一句鼓舞人心的話作結。\n".
-                      "請將你的分析總結在 200-300 字之間。";
+            $prompt = "請扮演一位專業且富有同理心的心理諮商師或心靈導師。" .
+                "以下是一位使用者最近的日記，記錄了他的心情和想法：\n\n" .
+                $diaryText .
+                "\n\n請根據以上所有日記內容，提供一段溫暖、正面且富有洞察力的分析與總結。" .
+                "你的分析應該：\n" .
+                "1. 綜合評估使用者近期的整體情緒趨勢。\n" .
+                "2. 指出任何可能的情緒波動模式或重複出現的主題。\n" .
+                "3. 根據內容給予一些具體、正面且可行的心理學建議，例如正念練習、感恩練習或認知行為療法(CBT)的簡單技巧。\n" .
+                "4. 語言風格需溫暖、鼓勵，像朋友一樣，但要保持專業性。\n" .
+                "5. 最後用一句鼓舞人心的話作結。\n" .
+                "請將你的分析總結在 200-300 字之間。";
 
             // 使用 PerplexityAdapter 產生分析
             $insight = $this->perplexityAdapter->generateQuote(['content' => $prompt]);
 
             echo json_encode(['success' => true, 'insight' => $insight]);
-
         } catch (Exception $e) {
             error_log("AI Dashboard Insight Failed: " . $e->getMessage());
             http_response_code(500);
@@ -252,4 +256,3 @@ class AIController {
         }
     }
 }
-?>

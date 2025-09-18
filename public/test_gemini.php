@@ -13,18 +13,16 @@ $_SESSION['user_id'] = $_SESSION['user_id'] ?? 1;
 
 // Create controller and invoke generateImage which reads POST body
 try {
-    $controllerClass = '\\App\\Controllers\\AIController';
-    if (!class_exists($controllerClass)) {
-        // attempt to require the file directly as a last resort
-        require_once APP_PATH . '/controllers/AIController.php';
-    }
+  $controllerClass = '\\App\\Controllers\\AIController';
+  if (!class_exists($controllerClass)) {
+    // attempt to require the file directly as a last resort
+    require_once APP_PATH . '/controllers/AIController.php';
+  }
 
-    $c = new $controllerClass();
-    $c->generateImage();
+  $c = new $controllerClass();
+  $c->generateImage();
 } catch (Exception $e) {
-    http_response_code(500);
-    header('Content-Type: application/json');
-    echo json_encode(['success' => false, 'message' => 'Test endpoint error: ' . $e->getMessage()]);
+  http_response_code(500);
+  header('Content-Type: application/json');
+  echo json_encode(['success' => false, 'message' => 'Test endpoint error: ' . $e->getMessage()]);
 }
-
-?>
