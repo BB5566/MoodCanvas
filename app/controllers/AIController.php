@@ -5,12 +5,16 @@ namespace App\Controllers;
 
 use App\Models\PerplexityAdapter;
 use App\Models\StabilityAI;
+use App\Models\GeminiTextAdapter;
+use App\Models\GeminiImageAdapter;
 use Exception;
 
 class AIController {
 
     private $perplexityAdapter;
     private $stabilityAI;
+    private $geminiImageAdapter;
+    private $geminiTextAdapter;
 
     public function __construct() {
         // 確保使用者已登入，防止未經授權的 API 呼叫
@@ -23,6 +27,38 @@ class AIController {
         // Instantiate the necessary models
         $this->perplexityAdapter = new PerplexityAdapter();
         $this->stabilityAI = new StabilityAI();
+
+        // Optionally initialize Gemini text adapter
+        try {
+            if (defined('GEMINI_ENABLED') && GEMINI_ENABLED) {
+                $this->geminiTextAdapter = new GeminiTextAdapter();
+            } else {
+                $gTextModel = getenv('GEMINI_TEXT_MODEL') ?: (defined('GEMINI_TEXT_MODEL') ? constant('GEMINI_TEXT_MODEL') : null);
+                if (!empty($gTextModel)) {
+                    $this->geminiTextAdapter = new GeminiTextAdapter();
+                }
+            }
+        } catch (Exception $e) {
+            error_log('GeminiTextAdapter init error: ' . $e->getMessage());
+            $this->geminiTextAdapter = null;
+        }
+
+        // Optionally initialize Gemini image adapter if enabled or model configured
+        try {
+            if (defined('GEMINI_ENABLED') && GEMINI_ENABLED) {
+                $this->geminiImageAdapter = new GeminiImageAdapter();
+            } else {
+                // If a Gemini image model is explicitly set in env, still try to initialize
+                $gModel = getenv('GEMINI_IMAGE_MODEL') ?: (defined('GEMINI_IMAGE_MODEL') ? constant('GEMINI_IMAGE_MODEL') : null);
+                if (!empty($gModel)) {
+                    $this->geminiImageAdapter = new GeminiImageAdapter();
+                }
+            }
+        } catch (Exception $e) {
+            // Initialization errors should not break the controller; log and continue with StabilityAI
+            error_log('GeminiImageAdapter init error: ' . $e->getMessage());
+            $this->geminiImageAdapter = null;
+        }
     }
 
     /**
@@ -76,7 +112,28 @@ class AIController {
 
             // 步驟 2: 使用優化後的提示詞和指定的風格來生成圖片
             $options = ['style_preset' => $this->stabilityAI->getStylePreset($style)];
-            $imageUrl = $this->stabilityAI->generateImageWithRetry($optimizedPrompt, $options);
+
+            // Try GeminiImageAdapter first if available
+            $imageUrl = null;
+            if (!empty($this->geminiImageAdapter)) {
+                try {
+                    $gOptions = [
+                        'thinkingBudget' => 0, // disable thinking to save tokens
+                        'width' => 512,
+                        'height' => 512,
+                        'samples' => 1
+                    ];
+                    $imageUrl = $this->geminiImageAdapter->generateImageWithRetry($optimizedPrompt, $gOptions);
+                } catch (Exception $e) {
+                    error_log('Gemini generation failed: ' . $e->getMessage());
+                    $imageUrl = null;
+                }
+            }
+
+            // Fallback to StabilityAI if Gemini not available or generation failed
+            if (empty($imageUrl)) {
+                $imageUrl = $this->stabilityAI->generateImageWithRetry($optimizedPrompt, $options);
+            }
 
             if ($imageUrl) {
                 // 返回成功訊息、圖片 URL 和使用的提示詞，方便偵錯和顯示
@@ -119,8 +176,21 @@ class AIController {
         }
 
         try {
-            // Use PerplexityAdapter to generate a quote
-            $generatedText = $this->perplexityAdapter->generateQuote(['content' => $content, 'emoji' => $mood]);
+            // Prefer GeminiTextAdapter if available, otherwise use PerplexityAdapter
+            $generatedText = null;
+            if (!empty($this->geminiTextAdapter)) {
+                try {
+                    $generatedText = $this->geminiTextAdapter->generateQuote(['content' => $content, 'emoji' => $mood, 'thinking_budget' => 0]);
+                } catch (Exception $e) {
+                    error_log('Gemini text generation failed: ' . $e->getMessage());
+                    $generatedText = null;
+                }
+            }
+
+            if (empty($generatedText)) {
+                $generatedText = $this->perplexityAdapter->generateQuote(['content' => $content, 'emoji' => $mood]);
+            }
+
             echo json_encode(['success' => true, 'quote' => $generatedText]); // 修正回應欄位名稱
         } catch (Exception $e) {
             error_log("AI Text Generation Failed: " . $e->getMessage());

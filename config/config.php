@@ -190,6 +190,23 @@ if (!defined('STABILITY_IMAGE_MODEL')) {
     define('STABILITY_IMAGE_MODEL', getenv('STABILITY_MODEL') ?: 'stable-diffusion-xl-1024-v1-0');
 }
 
+// Gemini config (optional)
+if (!defined('GEMINI_API_KEY')) {
+    define('GEMINI_API_KEY', getenv('GEMINI_API_KEY') ?: 'your_gemini_api_key_here');
+}
+if (!defined('GEMINI_API_URL')) {
+    define('GEMINI_API_URL', getenv('GEMINI_API_URL') ?: 'https://generativelanguage.googleapis.com/v1beta');
+}
+if (!defined('GEMINI_TEXT_MODEL')) {
+    define('GEMINI_TEXT_MODEL', getenv('GEMINI_TEXT_MODEL') ?: 'gemini-2.5-flash');
+}
+if (!defined('GEMINI_IMAGE_MODEL')) {
+    define('GEMINI_IMAGE_MODEL', getenv('GEMINI_IMAGE_MODEL') ?: 'gemini-2.5-flash-image');
+}
+if (!defined('GEMINI_ENABLED')) {
+    define('GEMINI_ENABLED', getenv('GEMINI_ENABLED') === 'true' ? true : false);
+}
+
 // 未來 Perplexity 圖像功能準備
 define('PERPLEXITY_IMAGE_ENABLED', getenv('PERPLEXITY_IMAGE_ENABLED') === 'true' ? true : false);
 if (!defined('PERPLEXITY_IMAGE_MODEL')) {
