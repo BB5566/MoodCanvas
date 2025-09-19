@@ -30,12 +30,8 @@ class PerplexityAdapter
         $this->styleKeywords = [
             'photographic' => 'photorealistic, realistic, masterpiece, evocative, poetic, 8K, sharp focus, detailed, professional photography',
             'van-gogh' => 'in the style of Vincent van Gogh, expressive brushstrokes, swirling, thick impasto, vibrant colors, post-impressionist, poetic, masterpiece, evocative',
-            'monet' => 'in the style of Claude Monet, impressionist, soft light, pastel colors, poetic, masterpiece, evocative',
-            'picasso' => 'in the style of Pablo Picasso, abstract, cubism, bold shapes, poetic, masterpiece, evocative',
-            'hokusai' => 'in the style of Hokusai, ukiyo-e, Japanese art, woodblock print, poetic, masterpiece, evocative',
-            'dali' => 'in the style of Salvador Dalí, surreal, dreamlike, poetic, masterpiece, evocative',
-            'kandinsky' => 'in the style of Kandinsky, abstract, vibrant colors, poetic, masterpiece, evocative',
-            'pollock' => 'in the style of Jackson Pollock, abstract expressionism, energetic, poetic, masterpiece, evocative',
+            'ghibli' => 'Studio Ghibli style, hand-drawn animation, whimsical, fantastical, vibrant colors, lush landscapes, dreamy, poetic, masterpiece, evocative',
+            'kandinsky' => 'in the style of Wassily Kandinsky, abstract, vibrant colors, geometric shapes, spiritual, poetic, masterpiece, evocative',
             'default' => 'high quality, detailed, visually stunning, poetic, evocative, masterpiece'
         ];
     }
@@ -83,21 +79,21 @@ class PerplexityAdapter
     private function getSimplifiedSystemPrompt(): string
     {
         return <<<'PROMPT'
-You are an expert prompt engineer for text-to-image models. Convert the user's diary entry into a single, focused English prompt suitable for image generation.
+You are an expert prompt engineer for text-to-image models. Convert the user's diary entry and their chosen mood into a single, focused English prompt suitable for image generation.
 
 RULES:
 1) Output only one single, comma-separated prompt string and nothing else (no explanation, no quotes).
 2) Prioritize the main subject and its action (who/what and doing). Keep the scene concise.
 3) Include setting details (indoor/outdoor, desk, cafe), and time/lighting if mentioned (e.g., warm golden afternoon light).
 4) If the diary mentions '日曆', 'calendar' or '日曆功能', ensure the prompt explicitly mentions a device showing a calendar UI (e.g., laptop displaying calendar UI with diary entries).
-5) Add the emotional tone succinctly (accomplished, joyful, relieved, contemplative) when present.
-6) Append style keywords from the provided Style Keywords (photorealistic, impressionist, etc.) at the end.
+5) **Crucially, integrate the emotional tone conveyed by the mood emoji (e.g., 😊 for joyful, 😢 for melancholic, 😡 for intense) into the scene description.**
+6) Append style keywords from the provided Style Keywords (photorealistic, Ghibli style, etc.) at the end.
 7) Optionally include camera/view shorthand when useful (close-up, medium shot, wide shot) and 1-2 small props (coffee cup, notebook) if referenced.
 8) Avoid listing many unrelated elements; keep prompt length moderate (approx. 10-40 words).
 9) Do not invent people names, brands, or on-screen readable text. Avoid watermarks.
 
 FORMAT EXAMPLE:
-Diary Entry: <user text> -> Prompt: person coding on laptop, close-up, warm golden afternoon light, laptop displaying calendar UI with diary entries, smiling with a sense of accomplishment, photorealistic, high detail
+Diary Entry: <user text>, Mood: 😊 -> Prompt: person coding on laptop, close-up, warm golden afternoon light, laptop displaying calendar UI with diary entries, smiling with a sense of accomplishment, joyful atmosphere, photorealistic, high detail
 PROMPT;
     }
 
@@ -108,14 +104,16 @@ PROMPT;
     {
         $content = $data['content'] ?? 'A peaceful day';
         $style = $data['style'] ?? 'default';
+        $mood = $data['mood'] ?? '😊'; // Get the mood emoji
         $keywords = $this->styleKeywords[$style] ?? $this->styleKeywords['default'];
 
         // 分析內容，提取關鍵信息
         $personContext = $this->extractPersonContext($content);
 
         return sprintf(
-            "Diary Entry: \"%s\"\n\nStyle Keywords: \"%s\"\n\nFocus: Create a simple, clear scene. %s",
+            "Diary Entry: \"%s\", Mood: %s\n\nStyle Keywords: \"%s\"\n\nFocus: Create a simple, clear scene. %s",
             $content,
+            $mood, // Pass mood to the prompt
             $keywords,
             $personContext
         );
@@ -422,12 +420,8 @@ SYS;
             $availableStyles = [
                 'photographic',
                 'van-gogh',
-                'monet',
-                'picasso',
-                'hokusai',
-                'dali',
-                'kandinsky',
-                'pollock'
+                'ghibli',
+                'kandinsky'
             ];
             $data['style'] = $availableStyles[array_rand($availableStyles)];
             $data['original_style'] = 'random';
@@ -465,7 +459,7 @@ SYS;
         $mood = $moodMap[$emoji] ?? 'balanced harmonious lighting';
 
         // 簡化的場景描述
-        $sceneDescription = $this->getSimpleSceneDescription($content);
+        $sceneDescription = $this->getSimpleSceneDescription($content, $emoji);
 
         return "{$sceneDescription}, {$mood}, {$styleKeywords}, masterpiece, high quality, detailed artwork";
     }
@@ -473,7 +467,7 @@ SYS;
     /**
      * 獲取簡單場景描述
      */
-    private function getSimpleSceneDescription(string $content): string
+    private function getSimpleSceneDescription(string $content, string $emoji): string
     {
         // 建構更細緻的場景描述，並加入時間/情緒修飾
         $scene = '';
@@ -495,9 +489,32 @@ SYS;
             $scene .= ', warm golden afternoon light';
         }
 
-        // 成就感 / 開心 等情緒修飾
-        if (strpos($content, '成就') !== false || strpos($content, '成就感') !== false || strpos($content, '開心') !== false || strpos($content, '很開心') !== false || strpos($content, '超開心') !== false) {
-            $scene .= ', smiling with a sense of accomplishment';
+        // 根據 emoji 添加情緒修飾
+        switch ($emoji) {
+            case '😊':
+            case '😂':
+            case '🥰':
+                $scene .= ', joyful atmosphere';
+                break;
+            case '😢':
+            case '😰':
+                $scene .= ', melancholic atmosphere';
+                break;
+            case '😡':
+                $scene .= ', intense atmosphere';
+                break;
+            case '😍':
+                $scene .= ', romantic atmosphere';
+                break;
+            case '😴':
+                $scene .= ', serene atmosphere';
+                break;
+            case '🤔':
+                $scene .= ', contemplative atmosphere';
+                break;
+            case '🙄':
+                $scene .= ', wry and detached atmosphere';
+                break;
         }
 
         return $scene;

@@ -1,105 +1,86 @@
 /* public/assets/css/style.css */
 
 /* --- Google Fonts --- */
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Inter:wght@300;400;500;600;700&display=swap');
 
-/* --- CSS 變數與全域設定 --- */
+/* --- CSS Variables & Global Settings (Muji/Minimalist Style) --- */
 :root {
-  --font-main: 'Noto Sans TC', sans-serif;
-  --color-text: #e0e0e0;
-  --color-text-muted: #a0a0a0;
-  --color-primary: #8a9bff;
-  --color-accent: #4dd0e1;
-  --border-radius-lg: 20px;
-  --border-radius-md: 12px;
-  --border-radius-sm: 8px;
-  --shadow-light: 0 4px 15px rgba(0, 0, 0, 0.1);
-  --shadow-strong: 0 8px 30px rgba(0, 0, 0, 0.2);
-  --glass-bg: rgba(255, 255, 255, 0.1);
-  --glass-border: 1px solid rgba(255, 255, 255, 0.2);
-  --backdrop-blur: blur(15px);
-  --text-primary: #ffffff;
-  --text-secondary: #a0a0a0;
-  --accent-color: #4dd0e1;
-  --accent-color-rgb: 77, 208, 225;
-  --border-color: rgba(255, 255, 255, 0.3);
-  --border-color-hover: rgba(255, 255, 255, 0.5);
-  --bg-hover: rgba(255, 255, 255, 0.2);
+  --font-main: 'Noto Sans TC', 'Inter', sans-serif;
+  
+  --color-background: #F8F8F8; /* Very light, warm grey */
+  --color-surface: #FFFFFF;   /* Pure white for cards */
+  --color-text-primary: #333333; /* Dark grey for main text */
+  --color-text-secondary: #666666; /* Medium grey for secondary text */
+  --color-text-muted: #999999;   /* Light grey for muted text */
+  
+  --color-border-light: #EEEEEE; /* Very light border */
+  --color-border-medium: #DDDDDD; /* Slightly darker border */
+  
+  --color-accent: #8B9A89; /* Muted sage green */
+  --color-accent-light: #A0B09E; /* Lighter accent */
+  --color-accent-dark: #7A8B78; /* Darker accent */
+  
+  --color-primary-btn: #6B7A8F; /* Muted blue-grey for primary actions */
+  --color-primary-btn-dark: #5A6B7E;
+  
+  --color-danger: #E57373; /* Soft red */
+  --color-success: #81C784; /* Soft green */
+
+  --shadow-subtle: 0 2px 8px rgba(0, 0, 0, 0.05); /* Very subtle shadow */
+  --shadow-medium: 0 4px 15px rgba(0, 0, 0, 0.08);
+
+  --border-radius-lg: 12px;
+  --border-radius-md: 8px;
+  --border-radius-sm: 4px;
+
+  --transition-speed: 0.2s;
 }
 
+/* --- Base Styles --- */
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   font-family: var(--font-main);
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-  color: var(--color-text);
+  background-color: var(--color-background);
+  color: var(--color-text-primary);
   line-height: 1.6;
   min-height: 100vh;
   overflow-x: hidden;
-  padding-top: 80px; /* 為懸浮 header 預留空間 */
+  padding-top: 80px; /* Space for fixed header */
+  position: relative;
 }
 
-/* --- 動態背景 --- */
+/* --- No Dynamic Background Shapes for Minimalist Style --- */
 body::before,
 body::after {
-  content: '';
-  position: fixed;
-  border-radius: 50%;
-  background: linear-gradient(45deg, var(--color-primary), var(--color-accent));
-  filter: blur(100px);
-  opacity: 0.3;
-  z-index: -1;
-  pointer-events: none;
+  display: none;
 }
 
-body::before {
-  width: 400px;
-  height: 400px;
-  top: 10%;
-  left: 10%;
-  animation: moveShape 25s infinite alternate;
-}
-
-body::after {
-  width: 500px;
-  height: 500px;
-  bottom: 5%;
-  right: 5%;
-  animation: moveShape 30s infinite alternate-reverse;
-}
-
-@keyframes moveShape {
-  from {
-    transform: translate(0, 0) rotate(0deg) scale(1);
-  }
-  to {
-    transform: translate(100px, -50px) rotate(180deg) scale(1.2);
-  }
-}
-
-/* --- 懸浮導覽列 --- */
+/* --- Clean Header --- */
 .glass-header {
   position: fixed;
-  top: 15px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 95%;
-  max-width: 1200px;
+  top: 0;
+  left: 0;
+  width: 100%;
   z-index: 1000;
-  background: var(--glass-bg);
-  border: var(--glass-border);
-  backdrop-filter: var(--backdrop-blur);
-  -webkit-backdrop-filter: var(--backdrop-blur);
-  border-radius: var(--border-radius-md);
-  box-shadow: var(--shadow-strong);
-  padding: 0.75rem 1.5rem;
+  background-color: var(--color-surface); /* Solid background */
+  border-bottom: 1px solid var(--color-border-light);
+  box-shadow: var(--shadow-subtle);
+  padding: 0.8rem 2rem;
+  transition: all var(--transition-speed) ease;
 }
 
 .navbar {
+  max-width: 1400px;
+  margin: 0 auto;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -107,79 +88,118 @@ body::after {
 
 .navbar-brand {
   font-size: 1.5rem;
-  font-weight: 700;
-  color: #fff;
+  font-weight: 600;
+  color: var(--color-text-primary);
   text-decoration: none;
+  letter-spacing: 0.2px;
 }
 
 .navbar-nav {
   list-style: none;
   display: flex;
-  gap: 1rem;
+  gap: 1.5rem;
   align-items: center;
 }
 
 .nav-link {
-  color: var(--color-text);
+  color: var(--color-text-secondary);
   text-decoration: none;
   padding: 0.5rem 1rem;
   border-radius: var(--border-radius-sm);
-  transition: background 0.3s ease, color 0.3s ease;
+  transition: background var(--transition-speed) ease, color var(--transition-speed) ease;
+  font-weight: 400;
 }
 
 .nav-link:hover,
 .nav-link.active {
-  background: rgba(255, 255, 255, 0.2);
-  color: #fff;
+  background-color: var(--color-border-light);
+  color: var(--color-text-primary);
 }
 
 .nav-user-greeting {
   color: var(--color-text-muted);
+  font-size: 0.9rem;
 }
 
-/* --- 主內容與便當盒網格 --- */
+/* --- Main Content Container --- */
 .main-container {
   max-width: 1400px;
   margin: 2rem auto;
-  padding: 0 1rem;
+  padding: 0 1.5rem;
 }
 
-.bento-grid {
-  display: grid;
-  grid-template-columns: repeat(12, 1fr);
-  grid-auto-rows: minmax(100px, auto);
-  gap: 20px;
-}
-
+/* --- Bento Card General Styles (Minimalist) --- */
 .bento-card {
-  background: var(--glass-bg);
-  border: var(--glass-border);
-  backdrop-filter: var(--backdrop-blur);
-  -webkit-backdrop-filter: var(--backdrop-blur);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border-light);
   border-radius: var(--border-radius-lg);
-  padding: 1.5rem;
-  box-shadow: var(--shadow-light);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  padding: 2rem;
+  box-shadow: var(--shadow-subtle);
+  transition: transform var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
+  position: relative;
 }
 
 .bento-card:hover {
-  transform: translateY(-5px);
-  box-shadow: var(--shadow-strong);
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-medium);
 }
 
-/* --- 特定卡片佈局 --- */
+/* --- Bento Grid Layout --- */
+.bento-grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 20px;
+}
+
+/* --- Specific Card Layout (Dashboard) --- */
+.dashboard-grid {
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+#heatmap-container {
+  grid-column: span 12;
+  min-height: 300px;
+}
+
+#mood-chart-container {
+  grid-column: span 6;
+  min-height: 350px;
+}
+
+#mood-wordcloud-container {
+  grid-column: span 6;
+  min-height: 350px;
+}
+
+#ai-insights-container {
+  grid-column: span 12;
+  min-height: 150px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.bento-card h3 {
+  font-size: 1.4rem;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  margin-bottom: 1.2rem;
+  padding-bottom: 0.8rem;
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+/* --- Calendar Styles --- */
 .bento-calendar {
   grid-column: span 12;
-  grid-row: span 5;
 }
 @media (min-width: 992px) {
   .bento-calendar {
     grid-column: span 8;
-    grid-row: span 5;
   }
   .bento-sidebar {
     grid-column: span 4;
-    grid-row: span 5;
     display: flex;
     flex-direction: column;
     gap: 20px;
@@ -190,7 +210,6 @@ body::after {
   flex-grow: 1;
 }
 
-/* --- 日曆樣式 --- */
 .calendar-container {
   height: 100%;
   display: flex;
@@ -206,9 +225,10 @@ body::after {
 }
 
 .calendar-header h2 {
-  color: #fff;
-  font-weight: 700;
+  color: var(--color-text-primary);
+  font-weight: 600;
   margin: 0;
+  font-size: 1.7rem;
 }
 
 .calendar-nav {
@@ -219,25 +239,27 @@ body::after {
 
 .nav-arrow {
   font-size: 2rem;
-  color: var(--color-text);
+  color: var(--color-text-secondary);
   text-decoration: none;
-  transition: color 0.3s ease;
+  transition: color var(--transition-speed) ease, transform var(--transition-speed) ease;
 }
 .nav-arrow:hover {
-  color: #fff;
+  color: var(--color-accent);
+  transform: scale(1.1);
 }
 
 .today-link {
-  background: rgba(255, 255, 255, 0.2);
-  color: #fff;
-  padding: 0.3rem 0.8rem;
+  background-color: var(--color-border-light);
+  color: var(--color-text-secondary);
+  padding: 0.4rem 0.9rem;
   border-radius: var(--border-radius-sm);
   text-decoration: none;
   font-size: 0.9rem;
-  transition: background 0.3s ease;
+  font-weight: 500;
+  transition: background var(--transition-speed) ease;
 }
 .today-link:hover {
-  background: rgba(255, 255, 255, 0.3);
+  background-color: var(--color-border-medium);
 }
 
 .calendar {
@@ -245,6 +267,8 @@ body::after {
   border-collapse: collapse;
   table-layout: fixed;
   flex-grow: 1;
+  border-radius: var(--border-radius-md);
+  overflow: hidden;
 }
 
 .calendar th {
@@ -252,26 +276,20 @@ body::after {
   text-align: center;
   font-weight: 500;
   color: var(--color-text-muted);
+  font-size: 0.85rem;
 }
 
 .calendar td {
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--color-border-light);
   vertical-align: top;
   height: 120px;
-  transition: background-color 0.3s ease;
+  transition: background-color var(--transition-speed) ease;
   position: relative;
+  padding: 8px;
 }
-.calendar td:first-child {
-  border-left: none;
-}
-.calendar td:last-child {
-  border-right: none;
-}
-.calendar tr:first-child td {
-  border-top: none;
-}
-.calendar tr:last-child td {
-  border-bottom: none;
+
+.calendar td:hover {
+  background-color: var(--color-border-light);
 }
 
 .day-number {
@@ -280,6 +298,8 @@ body::after {
   left: 8px;
   font-size: 0.9rem;
   color: var(--color-text-muted);
+  font-weight: 500;
+  z-index: 3;
 }
 
 .calendar td.today .day-number {
@@ -295,88 +315,70 @@ body::after {
   width: 100%;
   height: 100%;
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
   cursor: pointer;
-  border-radius: var(--border-radius-md); /* Match cell rounding */
+  border-radius: var(--border-radius-md);
+  text-decoration: none;
+  color: inherit;
+  z-index: 1;
+  padding-top: 25px;
 }
 
 .diary-entry:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.02);
 }
 
 .mood-emoji {
   font-size: 2.5rem;
-  transition: transform 0.3s ease;
+  transition: transform var(--transition-speed) ease;
 }
 
 .diary-entry:hover .mood-emoji {
-  transform: scale(1.2);
+  transform: scale(1.1);
 }
 
 .add-diary-btn {
   font-size: 2rem;
   color: var(--color-text-muted);
-  transition: color 0.3s ease, transform 0.3s ease;
+  transition: color var(--transition-speed) ease, transform var(--transition-speed) ease;
 }
 
 .no-diary:hover .add-diary-btn {
-  color: #fff;
-  transform: scale(1.3);
-}
-
-.no-diary {
-  text-decoration: none;
+  color: var(--color-accent);
+  transform: scale(1.2);
 }
 
 .no-diary:focus {
-  outline: 2px solid var(--accent-color);
+  outline: 2px solid var(--color-accent);
   outline-offset: 2px;
 }
 
 /* Guest placeholder for add button (visual only) */
 .no-diary-guest {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  border-radius: var(--border-radius-md);
-  pointer-events: none; /* visual only, not interactive */
+  pointer-events: none;
+  background: rgba(0, 0, 0, 0.01);
 }
 
-.no-diary-guest .add-diary-btn {
-  font-size: 2rem;
+.no-diary-guest span {
+  font-size: 0.8em;
   color: var(--color-text-muted);
-  opacity: 0.9;
+  margin-top: 5px;
 }
 
 /* Diary thumbnail shown in calendar cells */
 .diary-thumb {
-  width: 80%;
-  height: 80%;
+  max-width: 80%;
+  max-height: 80%;
   object-fit: cover;
-  border-radius: var(--border-radius-md);
-  box-shadow: none; /* keep calendar clean */
-  border: none;
+  border-radius: var(--border-radius-sm);
+  border: 1px solid var(--color-border-light);
   display: block;
+  margin-top: 5px;
 }
 
-.day-number {
-  z-index: 3;
-  position: absolute;
-}
-.diary-entry,
-.no-diary,
-.no-diary-guest,
-.multiple-diaries {
-  z-index: 1;
-}
-
-/* --- 多篇日記樣式 --- */
+/* --- Multiple Diaries Styles --- */
 .multiple-diaries {
   position: absolute;
   top: 0;
@@ -387,81 +389,86 @@ body::after {
   flex-wrap: wrap;
   justify-content: center;
   align-items: center;
-  gap: 2px;
+  gap: 3px;
   padding: 8px;
   text-decoration: none;
   border-radius: var(--border-radius-md);
-  transition: background-color 0.3s ease;
+  transition: background-color var(--transition-speed) ease;
+  z-index: 1;
+  padding-top: 25px;
 }
 
 .multiple-diaries:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.02);
 }
 
 .diary-entry-small {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 30px;
-  min-height: 30px;
+  min-width: 32px;
+  min-height: 32px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.1);
-  transition: all 0.3s ease;
+  background: var(--color-border-light);
+  transition: all var(--transition-speed) ease;
 }
 
 .multiple-diaries:hover .diary-entry-small {
-  background: rgba(255, 255, 255, 0.2);
-  transform: scale(1.1);
+  background: var(--color-border-medium);
+  transform: scale(1.05);
 }
 
 .mood-emoji-small {
-  font-size: 1.2rem;
+  font-size: 1.3rem;
 }
 
 .more-diaries {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 30px;
-  min-height: 30px;
+  min-width: 32px;
+  min-height: 32px;
   border-radius: 50%;
-  background: rgba(138, 155, 255, 0.3);
-  color: var(--color-accent);
-  font-size: 0.8rem;
-  font-weight: bold;
+  background: var(--color-accent);
+  color: white;
+  font-size: 0.85rem;
+  font-weight: 500;
 }
 
-/* --- 側邊欄卡片 --- */
+/* --- Sidebar Card Styles --- */
 .sidebar-card h3 {
-  color: #fff;
+  color: var(--color-text-primary);
   margin-bottom: 1rem;
-  border-bottom: 1px solid var(--glass-border);
-  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--color-border-light);
+  padding-bottom: 0.7rem;
+  font-size: 1.3rem;
 }
 
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
-  gap: 1rem;
+  gap: 1.2rem;
   text-align: center;
 }
 
 .stat-number {
   font-size: 2rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--color-accent);
+  line-height: 1;
 }
 
 .stat-label {
   font-size: 0.8rem;
   color: var(--color-text-muted);
+  margin-top: 3px;
 }
 
 .mood-distribution .mood-item {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  margin-bottom: 0.75rem;
+  gap: 0.8rem;
+  margin-bottom: 0.8rem;
 }
 
 .mood-emoji-large {
@@ -473,115 +480,119 @@ body::after {
 }
 
 .mood-bar {
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 5px;
+  background: var(--color-border-light);
+  border-radius: 4px;
   height: 10px;
   overflow: hidden;
 }
 
 .mood-fill {
-  background: linear-gradient(90deg, var(--color-primary), var(--color-accent));
+  background: linear-gradient(90deg, var(--color-accent-light), var(--color-accent-dark));
   height: 100%;
-  border-radius: 5px;
+  border-radius: 4px;
 }
 
 .quick-actions {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.8rem;
 }
 
 .quick-btn {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem;
-  background: rgba(255, 255, 255, 0.1);
+  gap: 0.8rem;
+  padding: 0.7rem 1rem;
+  background-color: var(--color-border-light);
   border-radius: var(--border-radius-md);
-  color: var(--color-text);
+  color: var(--color-text-secondary);
   text-decoration: none;
-  transition: background 0.3s ease;
+  transition: background var(--transition-speed) ease, transform var(--transition-speed) ease;
+  font-weight: 400;
 }
 
 .quick-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background-color: var(--color-border-medium);
+  transform: translateX(3px);
 }
 
 .quick-btn-icon {
   font-size: 1.2rem;
+  color: var(--color-accent);
 }
 
-/* --- 按鈕 --- */
+/* --- Buttons --- */
 .btn {
-  padding: 0.75rem 1.5rem;
-  border: none;
+  padding: 0.7rem 1.5rem;
+  border: 1px solid transparent; /* Default transparent border */
   border-radius: var(--border-radius-md);
   text-decoration: none;
-  font-weight: 700;
-  transition: all 0.3s ease;
+  font-weight: 500;
+  transition: all var(--transition-speed) ease;
   cursor: pointer;
+  font-size: 0.95rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
 }
 
 .btn-primary {
-  background: var(--color-primary);
+  background-color: var(--color-primary-btn);
   color: white;
-  box-shadow: 0 4px 15px rgba(138, 155, 255, 0.3);
 }
 
 .btn-primary:hover {
-  background: #7a8bff;
+  background-color: var(--color-primary-btn-dark);
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(138, 155, 255, 0.4);
-}
-
-.btn.btn-tertiary {
-  background-color: transparent;
-  border: 1px solid var(--border-color);
-  color: var(--text-secondary);
-}
-
-.btn.btn-tertiary:hover {
-  background-color: var(--bg-hover);
-  border-color: var(--border-color-hover);
-  color: var(--text-primary);
+  box-shadow: var(--shadow-subtle);
 }
 
 .btn-secondary {
-  background: var(--color-accent);
+  background-color: var(--color-accent);
   color: white;
-  box-shadow: 0 4px 15px rgba(77, 208, 225, 0.3);
 }
 
 .btn-secondary:hover {
-  background: #3bc0d1;
+  background-color: var(--color-accent-dark);
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(77, 208, 225, 0.4);
+  box-shadow: var(--shadow-subtle);
+}
+
+.btn-tertiary {
+  background-color: transparent;
+  border-color: var(--color-border-medium);
+  color: var(--color-text-secondary);
+}
+
+.btn-tertiary:hover {
+  background-color: var(--color-border-light);
+  color: var(--color-text-primary);
 }
 
 .btn-danger {
-  background: linear-gradient(135deg, #ff6b6b, #ff5722);
+  background-color: var(--color-danger);
   color: white;
-  box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
 }
 
 .btn-danger:hover {
-  background: linear-gradient(135deg, #ff5252, #f44336);
+  background-color: #D35454;
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+  box-shadow: var(--shadow-subtle);
 }
 
-/* --- 表單樣式 (create.php) --- */
+/* --- Form Styles --- */
 .form-container {
-  max-width: 768px;
+  max-width: 700px;
   margin: 2rem auto;
-  padding: 2rem;
+  padding: 2.5rem;
 }
 
 .form-title {
   text-align: center;
-  font-size: 1.75rem;
+  font-size: 1.8rem;
   font-weight: 600;
-  color: var(--text-primary);
+  color: var(--color-text-primary);
   margin-bottom: 2rem;
 }
 
@@ -598,79 +609,70 @@ body::after {
 .form-group label {
   display: block;
   font-weight: 500;
-  margin-bottom: 0.5rem;
-  color: var(--text-secondary);
+  margin-bottom: 0.6rem;
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
 }
 
 .form-group input[type='text'],
+.form-group input[type='email'],
+.form-group input[type='password'],
 .form-group input[type='date'],
 .form-group textarea,
 .form-group select {
   width: 100%;
-  padding: 0.75rem 1rem;
-  background-color: rgba(255, 255, 255, 0.1);
-  border: 1px solid var(--border-color);
-  border-radius: var(--border-radius);
-  color: var(--text-primary);
-  font-size: 1rem;
-  transition: all 0.2s ease-in-out;
+  padding: 0.8rem 1rem;
+  background-color: var(--color-background);
+  border: 1px solid var(--color-border-medium);
+  border-radius: var(--border-radius-sm);
+  color: var(--color-text-primary);
+  font-size: 0.95rem;
+  transition: all var(--transition-speed) ease;
 }
 
-.form-group input[type='password'] {
-  width: 100%;
-  padding: 0.75rem 1rem;
-  background-color: rgba(255, 255, 255, 0.1);
-  border: 1px solid var(--border-color);
-  border-radius: var(--border-radius);
-  color: var(--text-primary);
-  font-size: 1rem;
-  transition: all 0.2s ease-in-out;
-}
-
-/* 修正下拉選單可讀性與互動色彩 */
-.form-group select {
-  background-color: rgba(30, 30, 40, 0.9);
-  color: #fff;
-  border: 1px solid var(--border-color);
-  border-radius: var(--border-radius);
-  font-size: 1rem;
-  transition: all 0.2s;
-}
-
-.form-group select:focus,
-.form-group select:hover {
-  background-color: rgba(77, 208, 225, 0.15);
-  color: #222;
-  border-color: var(--accent-color);
+.form-group input::placeholder,
+.form-group textarea::placeholder {
+  color: var(--color-text-muted);
+  opacity: 0.8;
 }
 
 .form-group input:focus,
 .form-group textarea:focus,
 .form-group select:focus {
   outline: none;
-  border-color: var(--accent-color);
-  box-shadow: 0 0 0 3px rgba(var(--accent-color-rgb), 0.3);
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 2px rgba(139, 154, 137, 0.3); /* Accent color shadow */
+}
+
+.form-group select {
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23666666%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13.2-5.4H18.6c-5%200-9.3%201.8-13.2%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2013.2l128%20128c3.9%203.9%208.7%205.8%2013.2%205.8s9.3-1.9%2013.2-5.8l128-128c3.6-3.9%205.4-8.7%205.4-13.2%200-5-1.8-9.3-5.4-13.2z%22%2F%3E%3C%2Fsvg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.7em top 50%;
+  background-size: 0.65em auto;
+  padding-right: 2.5em;
 }
 
 textarea {
   resize: vertical;
-  min-height: 120px;
+  min-height: 100px;
 }
 
 .ai-section {
-  border: 1px solid var(--border-color);
-  border-radius: var(--border-radius);
-  padding: 1.5rem;
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--border-radius-lg);
+  padding: 2rem;
   margin-top: 2rem;
   margin-bottom: 2rem;
-  background: rgba(0, 0, 0, 0.1);
+  background-color: var(--color-surface);
 }
 
 .ai-section legend {
-  padding: 0 0.5rem;
-  margin-left: 1rem;
-  font-weight: 600;
-  color: var(--text-primary);
+  padding: 0 0.8rem;
+  margin-left: 0.5rem;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  font-size: 1.1rem;
 }
 
 .spinner-container {
@@ -681,62 +683,89 @@ textarea {
   margin: 1rem 0;
 }
 
+.loading-spinner {
+  border: 4px solid var(--color-border-medium);
+  border-top: 4px solid var(--color-accent);
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
 .image-preview-container {
-  margin-top: 1rem;
+  margin-top: 1.5rem;
   text-align: center;
 }
 
 #image-preview {
   max-width: 100%;
-  border-radius: var(--border-radius);
-  border: 1px solid var(--border-color);
+  height: auto;
+  border-radius: var(--border-radius-md);
+  border: 1px solid var(--color-border-medium);
+  box-shadow: var(--shadow-subtle);
 }
 
 .text-result-container {
-  margin-top: 1rem;
+  margin-top: 1.5rem;
   padding: 1rem;
-  background-color: rgba(0, 0, 0, 0.15);
-  border-radius: var(--border-radius);
+  background-color: var(--color-background);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--border-radius-md);
   min-height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#generated-text {
+  font-style: italic;
+  color: var(--color-text-secondary);
+  font-size: 1rem;
+  text-align: center;
 }
 
 .form-actions {
   display: flex;
   justify-content: center;
   gap: 1rem;
-  margin-top: 2rem;
+  margin-top: 2.5rem;
 }
 
-/* --- 日記詳情樣式 (detail.php) --- */
+/* --- Diary Detail Styles --- */
 .diary-detail {
   max-width: 800px;
   margin: 2rem auto;
-  padding: 2rem 2.5rem;
+  padding: 2.5rem;
 }
 
 .diary-detail-header {
   text-align: center;
   margin-bottom: 2rem;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--color-border-light);
   padding-bottom: 1.5rem;
 }
 
 .diary-mood {
-  font-size: 2.5rem;
+  font-size: 2.8rem;
   display: block;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.6rem;
 }
 
 .diary-title {
   font-size: 2rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-bottom: 0.6rem;
 }
 
 .diary-date {
   font-size: 1rem;
-  color: var(--text-secondary);
+  color: var(--color-text-secondary);
 }
 
 .diary-image-container {
@@ -746,94 +775,197 @@ textarea {
 
 .diary-image {
   max-width: 100%;
-  border-radius: var(--border-radius);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  height: auto;
+  border-radius: var(--border-radius-md);
+  border: 1px solid var(--color-border-medium);
+  box-shadow: var(--shadow-subtle);
 }
 
 .ai-credit {
-  font-size: 0.8rem;
-  color: var(--text-secondary);
-  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  margin-top: 0.6rem;
   text-align: center;
 }
 
 .diary-content-wrapper {
-  padding: 1rem 0;
+  padding: 1.2rem 0;
 }
 
 .diary-content {
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   line-height: 1.8;
-  color: var(--text-primary);
-  white-space: pre-wrap; /* This is important */
+  color: var(--color-text-primary);
+  white-space: pre-wrap;
 }
 
 .ai-generated-text {
-  margin-top: 2rem;
+  margin-top: 2.5rem;
   padding-top: 1.5rem;
-  border-top: 1px solid var(--border-color);
+  border-top: 1px solid var(--color-border-light);
 }
 
 .ai-generated-text h4 {
-  font-weight: 600;
+  font-weight: 500;
   margin-bottom: 1rem;
-  color: var(--text-primary);
+  color: var(--color-text-primary);
+  font-size: 1.2rem;
 }
 
 .ai-generated-text blockquote {
-  border-left: 3px solid var(--accent-color);
+  border-left: 3px solid var(--color-accent);
   padding-left: 1.5rem;
   margin: 0;
   font-style: italic;
-  color: var(--text-secondary);
+  color: var(--color-text-secondary);
+  font-size: 1rem;
 }
 
 .diary-actions {
   text-align: center;
-  margin-top: 2rem;
+  margin-top: 2.5rem;
 }
 
-/* --- 多篇日記列表樣式 --- */
+/* --- Multiple Diaries List Styles --- */
 .diary-list-ul {
   list-style: none;
   padding: 0;
   margin: 1.5rem 0;
 }
 .diary-list-ul li {
-  margin-bottom: 1rem;
-  background: rgba(255, 255, 255, 0.04);
-  border-radius: 8px;
-  transition: background 0.2s;
+  margin-bottom: 0.8rem;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--border-radius-md);
+  transition: background var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
+}
+.diary-list-ul li:hover {
+  background-color: var(--color-background);
+  box-shadow: var(--shadow-subtle);
 }
 .diary-list-ul li a {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 1rem 1.5rem;
-  color: var(--text-primary);
+  color: var(--color-text-primary);
   text-decoration: none;
-  font-size: 1.08em;
-}
-.diary-list-ul li a:hover {
-  background: var(--bg-hover);
+  font-size: 1rem;
 }
 .diary-list-title {
-  font-weight: 600;
+  font-weight: 500;
   flex: 1;
 }
 .diary-list-time {
-  color: var(--text-secondary);
-  margin-left: 1.5rem;
+  color: var(--color-text-muted);
+  margin-left: 1rem;
   min-width: 60px;
   text-align: right;
 }
 .diary-list-emoji {
-  font-size: 1.5em;
-  margin-left: 1.5rem;
+  font-size: 1.4em;
+  margin-left: 1rem;
 }
 
-/* --- RWD --- */
+/* --- Alert Messages --- */
+.alert {
+  padding: 0.8rem 1.2rem;
+  border-radius: var(--border-radius-md);
+  margin-bottom: 1.5rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  opacity: 1;
+  transition: opacity 0.5s ease-out;
+  font-size: 0.95rem;
+}
+
+.alert-success {
+  background-color: rgba(129, 199, 132, 0.1);
+  color: var(--color-success);
+  border: 1px solid var(--color-success);
+}
+
+.alert-error {
+  background-color: rgba(229, 115, 115, 0.1);
+  color: var(--color-danger);
+  border: 1px solid var(--color-danger);
+}
+
+/* --- Placeholder Text --- */
+.placeholder-text {
+  color: var(--color-text-muted);
+  text-align: center;
+  padding: 1.5rem;
+  font-style: italic;
+  font-size: 0.95rem;
+}
+
+/* --- Demo Banner --- */
+#demo-banner {
+  background-color: #FFFBE6; /* Light yellow */
+  border: 1px solid #FFE0B2; /* Light orange border */
+  color: #795548; /* Brown text */
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 0.9rem;
+  border-radius: var(--border-radius-sm);
+  margin-bottom: 20px; /* Add some space below it */
+}
+
+#demo-banner strong {
+  font-weight: 600;
+}
+
+#demo-banner span {
+  color: #8D6E63; /* Slightly darker brown */
+}
+
+#demo-banner-dismiss {
+  background: transparent;
+  border: 1px solid #795548;
+  color: #795548;
+  padding: 6px 10px;
+  border-radius: var(--border-radius-sm);
+  cursor: pointer;
+  transition: all var(--transition-speed) ease;
+}
+
+#demo-banner-dismiss:hover {
+  background-color: #795548;
+  color: white;
+}
+
+/* --- Responsive Design --- */
+@media (max-width: 1200px) {
+  .navbar {
+    padding: 0 1rem;
+  }
+  .main-container {
+    padding: 0 1rem;
+  }
+}
+
 @media (max-width: 991px) {
+  body {
+    padding-top: 70px;
+  }
+  .glass-header {
+    padding: 0.6rem 1rem;
+  }
+  .navbar-nav {
+    gap: 1rem;
+  }
+  .nav-link {
+    padding: 0.4rem 0.8rem;
+  }
+  .nav-user-greeting {
+    display: none;
+  }
   .bento-grid {
     grid-template-columns: 1fr;
   }
@@ -842,34 +974,195 @@ textarea {
     grid-column: span 1;
   }
   .bento-sidebar {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr 1fr; /* Two columns for sidebar cards on medium screens */
+  }
+  #mood-chart-container,
+  #mood-wordcloud-container {
+    grid-column: span 1; /* Full width on smaller screens */
+  }
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+  .diary-detail {
+    padding: 2rem;
   }
 }
 
 @media (max-width: 768px) {
   body {
-    padding-top: 70px;
+    padding-top: 60px;
   }
   .glass-header {
-    padding: 0.5rem 1rem;
+    padding: 0.5rem 0.8rem;
+  }
+  .navbar-brand {
+    font-size: 1.3rem;
   }
   .navbar-nav {
-    gap: 0.5rem;
+    gap: 0.8rem;
   }
   .nav-link {
-    padding: 0.5rem;
-  }
-  .nav-user-greeting {
-    display: none;
-  }
-  .bento-sidebar {
-    grid-template-columns: 1fr;
+    font-size: 0.85rem;
+    padding: 0.3rem 0.6rem;
   }
   .calendar td {
     height: 100px;
+    padding: 6px;
   }
   .mood-emoji {
-    font-size: 2rem;
+    font-size: 2.2rem;
+  }
+  .add-diary-btn {
+    font-size: 1.8rem;
+  }
+  .multiple-diaries {
+    padding: 6px;
+    padding-top: 20px;
+  }
+  .diary-entry-small,
+  .more-diaries {
+    min-width: 28px;
+    min-height: 28px;
+    font-size: 0.75rem;
+  }
+  .mood-emoji-small {
+    font-size: 1.1rem;
+  }
+  .form-title {
+    font-size: 1.6rem;
+  }
+  .form-container {
+    padding: 1.5rem;
+  }
+  .form-group label {
+    font-size: 0.85rem;
+  }
+  .form-group input,
+  .form-group textarea,
+  .form-group select {
+    padding: 0.7rem 1rem;
+    font-size: 0.9rem;
+  }
+  .ai-section {
+    padding: 1.5rem;
+  }
+  .ai-section legend {
+    font-size: 1rem;
+  }
+  .btn {
+    padding: 0.6rem 1.2rem;
+    font-size: 0.9rem;
+  }
+  .diary-detail {
+    padding: 1.5rem;
+  }
+  .diary-title {
+    font-size: 1.8rem;
+  }
+  .diary-mood {
+    font-size: 2.2rem;
+  }
+  .diary-content {
+    font-size: 0.95rem;
+  }
+  .ai-generated-text h4 {
+    font-size: 1.1rem;
+  }
+  .ai-generated-text blockquote {
+    font-size: 0.95rem;
+  }
+  .diary-list-ul li a {
+    padding: 0.8rem 1.2rem;
+    font-size: 0.95rem;
+  }
+  .diary-list-emoji {
+    font-size: 1.2em;
+  }
+}
+
+@media (max-width: 480px) {
+  body {
+    padding-top: 50px;
+  }
+  .glass-header {
+    padding: 0.4rem 0.6rem;
+  }
+  .navbar-brand {
+    font-size: 1.1rem;
+  }
+  .navbar-nav {
+    gap: 0.6rem;
+  }
+  .nav-link {
+    font-size: 0.75rem;
+    padding: 0.2rem 0.4rem;
+  }
+  .calendar td {
+    height: 80px;
+    padding: 3px;
+  }
+  .day-number {
+    font-size: 0.75rem;
+    top: 4px;
+    left: 4px;
+  }
+  .mood-emoji {
+    font-size: 1.8rem;
+  }
+  .add-diary-btn {
+    font-size: 1.5rem;
+  }
+  .bento-sidebar {
+    grid-template-columns: 1fr; /* Single column on extra small screens */
+  }
+  .form-title {
+    font-size: 1.4rem;
+  }
+  .form-container {
+    padding: 1rem;
+  }
+  .form-group label {
+    font-size: 0.8rem;
+  }
+  .form-group input,
+  .form-group textarea,
+  .form-group select {
+    padding: 0.6rem 0.8rem;
+    font-size: 0.85rem;
+  }
+  .ai-section {
+    padding: 1rem;
+  }
+  .ai-section legend {
+    font-size: 0.95rem;
+  }
+  .btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.8rem;
+  }
+  .diary-detail {
+    padding: 1rem;
+  }
+  .diary-title {
+    font-size: 1.6rem;
+  }
+  .diary-mood {
+    font-size: 1.8rem;
+  }
+  .diary-content {
+    font-size: 0.9rem;
+  }
+  .ai-generated-text h4 {
+    font-size: 1rem;
+  }
+  .ai-generated-text blockquote {
+    font-size: 0.9rem;
+  }
+  .diary-list-ul li a {
+    padding: 0.7rem 1rem;
+    font-size: 0.9rem;
+  }
+  .diary-list-emoji {
+    font-size: 1.1em;
   }
 }

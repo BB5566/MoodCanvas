@@ -40,7 +40,7 @@ class GeminiImageAdapter
           ]
         ]
       ],
-      'config' => [
+      'generationConfig' => [
         'thinkingConfig' => [
           'thinkingBudget' => $thinkingBudget
         ],

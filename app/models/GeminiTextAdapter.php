@@ -65,7 +65,7 @@ class GeminiTextAdapter
           ]
         ]
       ],
-      'config' => [
+      'generationConfig' => [
         'thinkingConfig' => [
           'thinkingBudget' => $thinkingBudget
         ]
