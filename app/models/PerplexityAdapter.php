@@ -49,7 +49,7 @@ class PerplexityAdapter
         try {
             $query = $this->buildSimplifiedImagePromptQuery($data);
             $postData = [
-                'model' => defined('PERPLEXITY_MODEL') ? PERPLEXITY_MODEL : 'llama-3.1-sonar-large-128k-online',
+                'model' => PERPLEXITY_MODEL,
                 'messages' => [
                     ['role' => 'system', 'content' => $this->getSimplifiedSystemPrompt()],
                     ['role' => 'user', 'content' => $query]
@@ -180,7 +180,7 @@ PROMPT;
         try {
             $query = $this->buildEnhancedQuoteQuery($data);
             $postData = [
-                'model' => 'llama-3.1-sonar-large-128k-online',
+                'model' => PERPLEXITY_MODEL,
                 'messages' => [
                     [
                         'role' => 'system',
@@ -608,7 +608,7 @@ SYS;
 
         try {
             $testData = [
-                'model' => defined('PERPLEXITY_MODEL') ? PERPLEXITY_MODEL : 'llama-3.1-sonar-large-128k-online',
+                'model' => PERPLEXITY_MODEL,
                 'messages' => [
                     [
                         'role' => 'user',
@@ -622,14 +622,14 @@ SYS;
             return [
                 'success' => true,
                 'message' => 'Connection successful',
-                'model' => defined('PERPLEXITY_MODEL') ? PERPLEXITY_MODEL : 'llama-3.1-sonar-large-128k-online',
+                'model' => PERPLEXITY_MODEL,
                 'response' => $response
             ];
         } catch (Exception $e) {
             return [
                 'success' => false,
                 'message' => $e->getMessage(),
-                'model' => defined('PERPLEXITY_MODEL') ? PERPLEXITY_MODEL : 'llama-3.1-sonar-large-128k-online'
+                'model' => PERPLEXITY_MODEL
             ];
         }
     }
