@@ -182,16 +182,25 @@ if (!defined('STABILITY_MODEL')) {
 
 // AI 模型設定 (可透過環境變數覆蓋)
 if (!defined('PERPLEXITY_MODEL')) {
-    define('PERPLEXITY_MODEL', getenv('PERPLEXITY_MODEL') ?: 'llama-3.1-sonar-large-128k-online'); // 經過驗證的高性能模型
+    define('PERPLEXITY_MODEL', getenv('PERPLEXITY_MODEL') ?: 'sonar'); // Updated to a known valid model
 }
 if (!defined('PERPLEXITY_FALLBACK_MODEL')) {
-    define('PERPLEXITY_FALLBACK_MODEL', getenv('PERPLEXITY_FALLBACK_MODEL') ?: 'llama-3.1-sonar-small-128k-online'); // 經濟型備用模型
+    define('PERPLEXITY_FALLBACK_MODEL', getenv('PERPLEXITY_FALLBACK_MODEL') ?: 'sonar'); // 經濟型備用模型
 }
 if (!defined('STABILITY_IMAGE_MODEL')) {
     define('STABILITY_IMAGE_MODEL', getenv('STABILITY_MODEL') ?: 'stable-diffusion-xl-1024-v1-0');
 }
 
 // Gemini config (optional)
+if (!defined('GCP_PROJECT_ID')) {
+    define('GCP_PROJECT_ID', getenv('GCP_PROJECT_ID') ?: 'moodcanvas-472705');
+}
+if (!defined('GCP_REGION')) {
+    define('GCP_REGION', getenv('GCP_REGION') ?: 'global');
+}
+if (!defined('GCP_SERVICE_ACCOUNT_KEY_PATH')) {
+    define('GCP_SERVICE_ACCOUNT_KEY_PATH', CONFIG_PATH . '/gcp-service-account.json');
+}
 if (!defined('GEMINI_API_KEY')) {
     define('GEMINI_API_KEY', getenv('GEMINI_API_KEY') ?: 'your_gemini_api_key_here');
 }

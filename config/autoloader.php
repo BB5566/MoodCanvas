@@ -1,4 +1,6 @@
 <?php
+
+require_once __DIR__ . '/../vendor/autoload.php';
 /**
  * 簡易 PSR-4 自動載入器
  *

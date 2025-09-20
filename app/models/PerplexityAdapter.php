@@ -37,24 +37,23 @@ class PerplexityAdapter
     }
 
     /**
-     * 生成圖像提示詞 - 簡化多樣性處理
+     * 生成圖像提示詞
      */
     public function generateImagePrompt(array $data): string
     {
         if (!$this->apiKey) {
-            error_log("Perplexity API key not available, using fallback prompt.");
-            return $this->fallbackPrompt($data);
+            throw new Exception("Perplexity API key not configured, cannot generate prompt.");
         }
 
         try {
-            $query = $this->buildSimplifiedImagePromptQuery($data);
+            $query = $this->buildImagePromptQuery($data);
             $postData = [
-                'model' => PERPLEXITY_MODEL,
+                'model' => defined('PERPLEXITY_MODEL') ? PERPLEXITY_MODEL : 'llama-3.1-sonar-large-128k-online',
                 'messages' => [
-                    ['role' => 'system', 'content' => $this->getSimplifiedSystemPrompt()],
+                    ['role' => 'system', 'content' => $this->getImagePromptSystemPrompt()],
                     ['role' => 'user', 'content' => $query]
                 ],
-                'max_tokens' => 200,
+                'max_tokens' => 250,
                 'temperature' => 0.7,
                 'top_p' => 0.8,
                 'stream' => false
@@ -62,109 +61,143 @@ class PerplexityAdapter
 
             $response = $this->makeApiCall($postData);
             if ($response) {
-                return $this->cleanAndSimplifyPrompt(trim($response, '" \n\r\t\v\x00'));
+                return $this->cleanAndSimplifyPrompt($response);
             } else {
-                error_log("Perplexity API call failed, using fallback prompt.");
-                return $this->fallbackPrompt($data);
+                throw new Exception("Perplexity API call did not return a valid response.");
             }
         } catch (Exception $e) {
             error_log("Perplexity API error for image prompt: " . $e->getMessage());
-            return $this->fallbackPrompt($data);
+            // Re-throw the exception to be caught by the controller
+            throw $e;
         }
     }
 
     /**
-     * 簡化的系統提示詞 - 避免過度複雜化
+     * 增強版圖片提示詞系統提示 - 專為日記內容優化
      */
-    private function getSimplifiedSystemPrompt(): string
+    private function getImagePromptSystemPrompt(): string
     {
         return <<<'PROMPT'
-You are an expert prompt engineer for text-to-image models. Convert the user's diary entry and their chosen mood into a single, focused English prompt suitable for image generation.
+You are an expert AI prompt engineer specializing in transforming diary entries into cinematic, emotionally resonant image prompts. Your goal is to create prompts that generate images capturing both the narrative essence and emotional depth of personal diary moments.
 
-RULES:
-1) Output only one single, comma-separated prompt string and nothing else (no explanation, no quotes).
-2) Prioritize the main subject and its action (who/what and doing). Keep the scene concise.
-3) Include setting details (indoor/outdoor, desk, cafe), and time/lighting if mentioned (e.g., warm golden afternoon light).
-4) If the diary mentions '日曆', 'calendar' or '日曆功能', ensure the prompt explicitly mentions a device showing a calendar UI (e.g., laptop displaying calendar UI with diary entries).
-5) **Crucially, integrate the emotional tone conveyed by the mood emoji (e.g., 😊 for joyful, 😢 for melancholic, 😡 for intense) into the scene description.**
-6) Append style keywords from the provided Style Keywords (photorealistic, Ghibli style, etc.) at the end.
-7) Optionally include camera/view shorthand when useful (close-up, medium shot, wide shot) and 1-2 small props (coffee cup, notebook) if referenced.
-8) Avoid listing many unrelated elements; keep prompt length moderate (approx. 10-40 words).
-9) Do not invent people names, brands, or on-screen readable text. Avoid watermarks.
+**MISSION:** Transform diary text into vivid, specific visual scenes that feel authentic and emotionally connected to the writer's experience.
 
-FORMAT EXAMPLE:
-Diary Entry: <user text>, Mood: 😊 -> Prompt: person coding on laptop, close-up, warm golden afternoon light, laptop displaying calendar UI with diary entries, smiling with a sense of accomplishment, joyful atmosphere, photorealistic, high detail
+**OPTIMIZATION STRATEGY:**
+
+1. **EMOTIONAL INTELLIGENCE MAPPING:**
+   - 😊😄😆 (Joy/Achievement): golden hour lighting, warm glowing screens, triumphant gestures, bright environments
+   - 😢😔😞 (Sadness/Melancholy): soft blue-grey tones, rain textures, contemplative poses, muted environments
+   - 😤😠😡 (Frustration/Anger): dramatic shadows, red accents, tense body language, chaotic elements
+   - 🤔😐😑 (Neutral/Thoughtful): balanced lighting, focused expressions, clean compositions
+   - 😴😪🥱 (Tired/Exhausted): dim warm lighting, relaxed postures, cozy environments
+   - 🥰😍☺️ (Love/Affection): soft romantic lighting, warm colors, intimate settings
+
+2. **SCENE CONSTRUCTION FORMULA:**
+   Subject + Action + Environment + Emotion + Lighting + Style
+
+3. **DIARY-SPECIFIC ELEMENTS:**
+   - Personal moments: "person writing at desk", "someone looking thoughtful by window"
+   - Work/Study: "focused individual at computer", "student with books and notes"
+   - Daily life: "person cooking in kitchen", "someone walking in park"
+   - Relationships: "friends laughing together", "family gathering around table"
+
+4. **TECHNICAL REQUIREMENTS:**
+   - Output: Single line, comma-separated English
+   - Length: 20-60 words for rich detail
+   - NO quotes, explanations, or meta-text
+   - Always end with provided art style keywords
+
+5. **ENHANCED EXAMPLES:**
+   - Work Achievement: "a developer celebrating at their desk, multiple monitors showing completed code, warm golden light from window, sense of accomplishment, coffee cup nearby, modern office"
+   - Family Time: "a mother reading bedtime story to child, soft warm lamp light, cozy bedroom, peaceful atmosphere, gentle expressions"
+   - Personal Reflection: "person journaling by window, soft natural light, rain drops on glass, contemplative mood, notebooks and pen scattered on table"
+
+**OUTPUT FORMAT:** [subject with emotion] + [specific action] + [detailed environment] + [lighting/atmosphere] + [relevant objects] + [art style keywords]
 PROMPT;
     }
 
     /**
-     * 建立簡化的圖片提示詞查詢
+     * 增強版圖片提示詞查詢建構 - 包含內容分析
      */
-    private function buildSimplifiedImagePromptQuery(array $data): string
+    private function buildImagePromptQuery(array $data): string
     {
         $content = $data['content'] ?? 'A peaceful day';
         $style = $data['style'] ?? 'default';
-        $mood = $data['mood'] ?? '😊'; // Get the mood emoji
-        $keywords = $this->styleKeywords[$style] ?? $this->styleKeywords['default'];
+        $mood = $data['mood'] ?? '😊';
+        $styleKeywords = $this->styleKeywords[$style] ?? $this->styleKeywords['default'];
 
-        // 分析內容，提取關鍵信息
-        $personContext = $this->extractPersonContext($content);
+        // 分析日記內容類別，提供額外上下文
+        $contentAnalysis = $this->analyzeContentContext($content);
 
         return sprintf(
-            "Diary Entry: \"%s\", Mood: %s\n\nStyle Keywords: \"%s\"\n\nFocus: Create a simple, clear scene. %s",
+            "**DIARY ANALYSIS:**\nContent: \"%s\"\nMood Emoji: %s\nContent Type: %s\nArt Style Required: %s\n\n**TASK:** Create a cinematic image prompt that captures this diary moment.",
             $content,
-            $mood, // Pass mood to the prompt
-            $keywords,
-            $personContext
+            $mood,
+            $contentAnalysis,
+            $styleKeywords
         );
     }
 
     /**
-     * 提取人物上下文 - 簡化版
+     * 分析日記內容類型，提供更好的提示詞上下文
      */
-    private function extractPersonContext(string $content): string
+    private function analyzeContentContext(string $content): string
     {
-        // 檢測明確的人物描述
-        if (strpos($content, '媽媽') !== false || strpos($content, '母親') !== false) {
-            return "Focus on a mother figure in the scene.";
+        $content = strtolower($content);
+
+        // 工作相關關鍵詞
+        $workKeywords = ['bug', '程式', '代碼', 'code', 'debug', '開發', 'project', '專案', '完成', 'finished', '工作', 'work', 'meeting', '會議'];
+
+        // 生活相關關鍵詞
+        $lifeKeywords = ['咖啡', 'coffee', '散步', 'walk', '公園', 'park', '家', 'home', '朋友', 'friend', '家人', 'family', '吃', 'eat', '做飯', 'cook'];
+
+        // 學習相關關鍵詞
+        $studyKeywords = ['學習', 'study', 'learn', '讀書', 'read', 'book', '課程', 'course', '考試', 'exam', '筆記', 'notes'];
+
+        // 情感相關關鍵詞
+        $emotionalKeywords = ['想念', 'miss', '愛', 'love', '難過', 'sad', '開心', 'happy', '擁抱', 'hug', '想', 'think', '感受', 'feel'];
+
+        foreach ($workKeywords as $keyword) {
+            if (strpos($content, $keyword) !== false) {
+                return "Work/Professional Achievement";
+            }
         }
 
-        if (strpos($content, '爸爸') !== false || strpos($content, '父親') !== false) {
-            return "Focus on a father figure in the scene.";
+        foreach ($studyKeywords as $keyword) {
+            if (strpos($content, $keyword) !== false) {
+                return "Learning/Study Session";
+            }
         }
 
-        if (strpos($content, '寶寶') !== false || strpos($content, '嬰兒') !== false) {
-            return "Include a baby in the scene.";
+        foreach ($lifeKeywords as $keyword) {
+            if (strpos($content, $keyword) !== false) {
+                return "Daily Life/Leisure Activity";
+            }
         }
 
-        if (strpos($content, '程式設計') !== false || strpos($content, '開發') !== false || strpos($content, '程式') !== false) {
-            return "Focus on a developer/programmer in the scene.";
+        foreach ($emotionalKeywords as $keyword) {
+            if (strpos($content, $keyword) !== false) {
+                return "Personal Reflection/Emotional Moment";
+            }
         }
 
-        // 偵測日曆/日曆功能等關鍵字，給出更具體的上下文
-        if (strpos($content, '日曆') !== false || strpos($content, '日曆功能') !== false || stripos($content, 'calendar') !== false) {
-            return "Focus on a laptop displaying a calendar UI with diary entries.";
-        }
-
-        return "Focus on the main activity described in the diary.";
+        return "General Life Experience";
     }
 
     /**
-     * 清理和簡化提示詞
+     * 清理和簡化提示詞 (Corrected version)
      */
     private function cleanAndSimplifyPrompt(string $prompt): string
     {
-        // 移除過度複雜的描述
-        $prompt = preg_replace('/diverse group of[^,]*,?/i', '', $prompt);
-        $prompt = preg_replace('/including[^,]*,?/i', '', $prompt);
-        $prompt = preg_replace('/various[^,]*,?/i', '', $prompt);
-
-        // 清理多餘空白和逗號
-        $prompt = preg_replace('/,\s*,+/', ',', $prompt);
-        $prompt = preg_replace('/\s*,\s*/', ', ', $prompt);
-        $prompt = trim($prompt, ', ');
-
-        return $prompt;
+        // Step 1: Remove leading/trailing whitespace
+        $cleaned = trim($prompt);
+        // Step 2: Remove leading/trailing quotes (single or double)
+        $cleaned = trim($cleaned, '\'"');
+        // Step 3: Normalize internal whitespace
+        $cleaned = preg_replace('/\s+/s', ' ', $cleaned);
+        // Step 4: Normalize comma spacing
+        $cleaned = preg_replace('/\s*,\s*/', ', ', $cleaned);
+        return $cleaned;
     }
 
     /**
@@ -180,7 +213,7 @@ PROMPT;
         try {
             $query = $this->buildEnhancedQuoteQuery($data);
             $postData = [
-                'model' => PERPLEXITY_MODEL,
+                'model' => defined('PERPLEXITY_MODEL') ? PERPLEXITY_MODEL : 'llama-3.1-sonar-large-128k-online',
                 'messages' => [
                     [
                         'role' => 'system',
@@ -409,148 +442,6 @@ SYS;
             if (count($words) > 30) $result = implode(' ', array_slice($words, 0, 30));
             return trim($result);
         }
-    }
-
-    /**
-     * 處理隨機風格選擇
-     */
-    private function handleRandomStyle(array $data): array
-    {
-        if (($data['style'] ?? null) === 'random') {
-            $availableStyles = [
-                'photographic',
-                'van-gogh',
-                'ghibli',
-                'kandinsky'
-            ];
-            $data['style'] = $availableStyles[array_rand($availableStyles)];
-            $data['original_style'] = 'random';
-            error_log("Random style selected: " . $data['style']);
-        }
-
-        return $data;
-    }
-
-    /**
-     * 本地備案提示詞 - 統一前台 emoji
-     */
-    private function fallbackPrompt(array $data): string
-    {
-        $data = $this->handleRandomStyle($data);
-        $style = $data['style'];
-        $emoji = $data['emoji'] ?? '😊';
-        $content = $data['content'] ?? '';
-
-        // 只包含前台支援的 emoji
-        $moodMap = [
-            '😊' => 'warm golden lighting, uplifting atmosphere, joyful energy',
-            '😢' => 'melancholic blue tones, soft shadows, emotional depth',
-            '😡' => 'dramatic contrast, intense colors, powerful expression',
-            '😍' => 'romantic soft lighting, dreamy atmosphere, loving warmth',
-            '😴' => 'peaceful pastels, serene mood, tranquil feeling',
-            '🤔' => 'thoughtful composition, balanced lighting, contemplative mood',
-            '😂' => 'vibrant energetic colors, dynamic composition, joyful lighting',
-            '😰' => 'muted anxious colors, uncertain lighting, tense atmosphere',
-            '🥰' => 'warm loving colors, soft romantic lighting, affectionate atmosphere',
-            '🙄' => 'ironic detached mood, neutral tones, subtle expression'
-        ];
-
-        $styleKeywords = $this->styleKeywords[$style] ?? $this->styleKeywords['default'];
-        $mood = $moodMap[$emoji] ?? 'balanced harmonious lighting';
-
-        // 簡化的場景描述
-        $sceneDescription = $this->getSimpleSceneDescription($content, $emoji);
-
-        return "{$sceneDescription}, {$mood}, {$styleKeywords}, masterpiece, high quality, detailed artwork";
-    }
-
-    /**
-     * 獲取簡單場景描述
-     */
-    private function getSimpleSceneDescription(string $content, string $emoji): string
-    {
-        // 建構更細緻的場景描述，並加入時間/情緒修飾
-        $scene = '';
-
-        if (strpos($content, '媽媽') !== false && strpos($content, '程式') !== false) {
-            $scene = 'mother working on computer with baby nearby';
-        } elseif (strpos($content, '日曆') !== false || strpos($content, '日曆功能') !== false || stripos($content, 'calendar') !== false) {
-            $scene = 'laptop displaying calendar UI with diary entries';
-        } elseif (strpos($content, '程式') !== false || strpos($content, '開發') !== false || strpos($content, '程式設計') !== false) {
-            $scene = 'person coding on computer';
-        } elseif (strpos($content, '咖啡') !== false) {
-            $scene = 'person in cozy cafe setting';
-        } else {
-            $scene = 'peaceful everyday scene';
-        }
-
-        // 時間與光影情緒修飾
-        if (strpos($content, '午後') !== false || strpos($content, '下午') !== false) {
-            $scene .= ', warm golden afternoon light';
-        }
-
-        // 根據 emoji 添加情緒修飾
-        switch ($emoji) {
-            case '😊':
-            case '😂':
-            case '🥰':
-                $scene .= ', joyful atmosphere';
-                break;
-            case '😢':
-            case '😰':
-                $scene .= ', melancholic atmosphere';
-                break;
-            case '😡':
-                $scene .= ', intense atmosphere';
-                break;
-            case '😍':
-                $scene .= ', romantic atmosphere';
-                break;
-            case '😴':
-                $scene .= ', serene atmosphere';
-                break;
-            case '🤔':
-                $scene .= ', contemplative atmosphere';
-                break;
-            case '🙄':
-                $scene .= ', wry and detached atmosphere';
-                break;
-        }
-
-        return $scene;
-    }
-
-    /**
-     * 清理註解回應
-     */
-    private function cleanQuoteResponse(string $response): string
-    {
-        // 移除常見前綴與多行，保留單行
-        $cleaned = preg_replace('/^(以下是|這是|根據)[:：\s]*/u', '', $response);
-        // 移除編號或列點
-        $cleaned = preg_replace('/^[\d\-\*\.\s]+/u', '', $cleaned);
-        // 只取第一行
-        $lines = preg_split('/\r?\n/', trim($cleaned));
-        $cleaned = trim($lines[0] ?? '');
-        // 移除方括號註記與多餘中英標點
-        $cleaned = preg_replace('/\[\d+\]/', '', $cleaned);
-        $cleaned = trim($cleaned, " \"'.,;:!?。！？、　\t\n\r");
-
-        // 強制字數/詞數限制（簡單截斷保護）
-        if (preg_match('/[\x{4e00}-\x{9fff}]/u', $cleaned)) {
-            // 中文：限制 40 字
-            if (mb_strlen($cleaned) > 40) {
-                $cleaned = mb_substr($cleaned, 0, 40);
-            }
-        } else {
-            // 英文：限制 30 詞
-            $words = preg_split('/\s+/', $cleaned);
-            if (count($words) > 30) {
-                $cleaned = implode(' ', array_slice($words, 0, 30));
-            }
-        }
-
-        return $cleaned;
     }
 
     /**

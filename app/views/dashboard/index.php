@@ -55,7 +55,7 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('wordcloud').innerHTML = '<p class="placeholder-text">沒有足夠的日記資料來產生詞雲</p>';
         document.getElementById('ai-insight-text').innerHTML = '沒有足夠的日記資料來產生 AI 洞察。';
     }
-    console.log('儀表板已載入，日記數量:', diaries.length);
+    // 儀表板初始化完成
 });
 
 // 心情顏色對應

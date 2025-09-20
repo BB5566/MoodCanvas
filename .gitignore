@@ -45,8 +45,8 @@ desktop.ini
 *.bak
 
 # Composer
-vendor/
-composer.lock
+# vendor/  # 註解掉以便部署時包含依賴
+# composer.lock  # 保留 lock 檔案以確保版本一致性
 
 # Node.js (如果用到)
 node_modules/
@@ -69,4 +69,8 @@ tmp_*.php
 # Ignore secrets and keys
 *.pem
 *.key
+
+# Google Cloud Platform service account keys
+config/gcp-service-account.json
+gcp-service-account.json
 

@@ -19,7 +19,6 @@ $metaDescription = '瀏覽 ' . $dateFormatted . ' 所有心情日記，快速檢
 
     <?php if (empty($diaries)): ?>
         <div class="alert alert-warning">此日期沒有日記。</div>
-        <pre style="color:#f55;background:#222;padding:1em;">DEBUG: <?php var_dump($diaries); ?></pre>
     <?php else: ?>
     <div class="diaries-list">
         <?php foreach ($diaries as $index => $diary): ?>
