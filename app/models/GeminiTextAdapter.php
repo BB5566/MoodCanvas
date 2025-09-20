@@ -4,151 +4,131 @@ namespace App\Models;
 
 use Exception;
 
-/**
- * GeminiTextAdapter
- *
- * A lightweight PHP adapter that calls a Gemini 2.5 (GenAI) REST endpoint.
- * It demonstrates how to pass a thinking_config (thinking_budget) to enable/disable "thinking".
- *
- * NOTES:
- * - Configure GEMINI_API_KEY and GEMINI_API_URL in your .env or config/config.php.
- * - The exact REST path and payload shape can vary by GenAI version; adjust GEMINI_API_URL if needed.
- */
 class GeminiTextAdapter
 {
+  // --- 新增：使用常數管理設定 ---
+  private const DEFAULT_MODEL = 'gemini-1.5-flash-latest';
+  private const BASE_API_URL = 'https://generativelanguage.googleapis.com/v1beta';
+
   private $apiKey;
-  private $baseUrl; // e.g. https://api.gen.ai/v1 or https://generativelanguage.googleapis.com/v1
+  private $baseUrl;
   private $model;
 
   public function __construct()
   {
-    // Prefer environment variables; fall back to defined global constants if present.
     $this->apiKey = getenv('GEMINI_API_KEY') ?: (defined('GEMINI_API_KEY') ? constant('GEMINI_API_KEY') : null);
-    $this->baseUrl = getenv('GEMINI_API_URL') ?: (defined('GEMINI_API_URL') ? constant('GEMINI_API_URL') : 'https://generativelanguage.googleapis.com/v1beta');
-    $this->model = getenv('GEMINI_TEXT_MODEL') ?: (defined('GEMINI_TEXT_MODEL') ? constant('GEMINI_TEXT_MODEL') : 'gemini-2.5-flash');
+    $this->baseUrl = getenv('GEMINI_API_URL') ?: self::BASE_API_URL;
+    $this->model = getenv('GEMINI_TEXT_MODEL') ?: (defined('GEMINI_TEXT_MODEL') ? constant('GEMINI_TEXT_MODEL') : self::DEFAULT_MODEL);
 
     if (empty($this->apiKey) || $this->apiKey === 'your_gemini_api_key_here') {
-      error_log("Gemini API key is not configured.");
+      error_log("Gemini Text API key is not configured.");
     }
   }
 
   /**
-   * Generate a short quote / text using Gemini.
-   *
-   * $data can include:
-   * - content: string (required)
-   * - emoji: string (optional)
-   * - thinking_budget: int (optional) -> set 0 to disable thinking
+   * --- 核心優化：新增系統提示詞，指導 AI 行為 ---
+   * 這會告訴 AI 它的角色和必須遵守的規則，是生成高品質內容的關鍵。
    */
+  private function getSystemPrompt(): string
+  {
+    return <<<'SYS'
+You are a creative and empathetic Quote Writer. Your task is to read a user's diary entry and their mood, then write a single, short, original, and warm sentence that can be used as an `ai_generated_text` for the diary.
+
+RULES:
+1.  **Output only one single line of text.** No extra explanations, no quotes, no markdown. Just the sentence itself.
+2.  **Match the language of the diary.** If the diary contains Chinese characters, output in Traditional Chinese. Otherwise, output in English.
+3.  **Strict Length Limit:** For Chinese, keep it between 8 and 40 characters. For English, keep it between 6 and 30 words.
+4.  **Match the Tone:** The tone must reflect the user's mood (from emoji or content). For accomplishment -> uplifting; for challenges -> encouraging; for sadness -> gentle and comforting.
+5.  **Be Original:** Do NOT use famous quotes or proverbs unless the user's text explicitly asks for it. Create a unique sentence that fits the context.
+6.  **Safety First:** Do not generate violent, hateful, explicit, or personally identifiable information.
+7.  **No Extras:** Do not include emojis, URLs, or code in the output.
+SYS;
+  }
+
   public function generateQuote(array $data): string
   {
     $content = $data['content'] ?? '';
     $emoji = $data['emoji'] ?? '';
-    $thinkingBudget = isset($data['thinking_budget']) ? (int)$data['thinking_budget'] : 0; // default disable thinking
 
     if (empty($content)) {
       throw new Exception('Missing content for Gemini text generation');
     }
 
-    // Build a compact prompt similar to existing PerplexityAdapter expectations
-    $userText = "Diary Entry: " . $content;
-    if (!empty($emoji)) {
-      $userText .= "\nMood: " . $emoji;
-    }
+    // 簡潔的使用者提示
+    $userPrompt = "Diary Content: \"{$content}\"\nMood Emoji: {$emoji}";
 
-    // Build payload following Gemini REST examples: contents -> parts -> { text }
+    // --- 優化：建構包含系統提示詞的 Payload ---
     $payload = [
+      // Gemini 透過 contents 陣列來處理多輪對話或系統指令
       'contents' => [
-        [
-          'parts' => [
-            ['text' => $userText]
-          ]
-        ]
+        // 第一部分是我們的系統指令
+        ['role' => 'user', 'parts' => [['text' => $this->getSystemPrompt()]]],
+        // 第二部分是 "模型" 的回應，表示它已理解指令
+        ['role' => 'model', 'parts' => [['text' => 'Okay, I am ready to be a Quote Writer. Please provide the diary entry and mood.']]],
+        // 第三部分是真正的使用者輸入
+        ['role' => 'user', 'parts' => [['text' => $userPrompt]]],
       ],
+      // 使用標準的 generationConfig 參數
       'generationConfig' => [
-        'thinkingConfig' => [
-          'thinkingBudget' => $thinkingBudget
-        ]
+        'temperature' => 0.7,
+        'topP' => 0.8,
+        'maxOutputTokens' => 100,
+      ],
+      // 建議加入安全設定
+      'safetySettings' => [
+        ['category' => 'HARM_CATEGORY_HARASSMENT', 'threshold' => 'BLOCK_MEDIUM_AND_ABOVE'],
+        ['category' => 'HARM_CATEGORY_HATE_SPEECH', 'threshold' => 'BLOCK_MEDIUM_AND_ABOVE'],
       ]
     ];
 
-    $url = rtrim($this->baseUrl, '/') . '/models/' . $this->model . ':generateContent';
+    $url = rtrim($this->baseUrl, '/') . '/models/' . $this->model . ':generateContent?key=' . $this->apiKey;
 
     $response = $this->makeApiCall($url, $payload);
 
-    // Normalize response: attempt to extract text from common fields
+    // --- 優化：更可靠地從標準 API 回應結構中提取文字 ---
     $rawText = '';
-    if (is_array($response)) {
-      if (isset($response['candidates']) && is_array($response['candidates']) && !empty($response['candidates'][0]['content'])) {
-        $rawText = $response['candidates'][0]['content'];
-      } elseif (isset($response['output']) && is_string($response['output'])) {
-        $rawText = $response['output'];
-      } elseif (isset($response['text'])) {
-        $rawText = $response['text'];
-      } else {
-        $rawText = json_encode($response);
-      }
-    } elseif (is_string($response)) {
-      $rawText = $response;
+    if (isset($response['candidates'][0]['content']['parts'][0]['text'])) {
+      $rawText = $response['candidates'][0]['content']['parts'][0]['text'];
+    } else {
+      // 如果找不到預期的文字，記錄錯誤並拋出異常
+      $error_detail = json_encode($response);
+      error_log("GeminiTextAdapter: Could not find text in response: " . $error_detail);
+      throw new Exception('Invalid or empty response from Gemini API.');
     }
 
-    if (empty($rawText)) {
-      throw new Exception('Invalid response from Gemini');
-    }
-
-    // Clean and enforce single-line, language and length constraints
+    // 清理並返回結果
     return $this->cleanGeneratedQuote($rawText, $content);
   }
 
-  /**
-   * Clean generated quote to be single-line, language-aware and length-limited.
-   */
+  // (cleanGeneratedQuote, makeApiCall 方法與您原有的版本相似，此處省略以求簡潔)
+  // ... 您可以將原有的 cleanGeneratedQuote 和 makeApiCall 方法貼到此處 ...
+  // ... 為求完整，下方提供參考實作 ...
+
   private function cleanGeneratedQuote(string $response, string $originalContent = ''): string
   {
-    // Remove common leading phrases
     $cleaned = preg_replace('/^(Here is|Here\'s|以下是|這是|根據)[:：\s]*/iu', '', $response);
-    // Remove numbering or bullets
     $cleaned = preg_replace('/^[\d\-\*\.\s]+/u', '', $cleaned);
-    // Only keep first line
     $lines = preg_split('/\r?\n/', trim($cleaned));
     $cleaned = trim($lines[0] ?? '');
-    // Remove bracket annotations
     $cleaned = preg_replace('/\[\d+\]/', '', $cleaned);
-    // Trim surrounding quotes and punctuation
     $cleaned = trim($cleaned, " \t\n\r\0\x0B\"'.,;:!?。！？、");
 
-    // Determine language: if original content has CJK, prefer Chinese
     $isCJK = preg_match('/[\x{4e00}-\x{9fff}]/u', $originalContent) || preg_match('/[\x{4e00}-\x{9fff}]/u', $cleaned);
 
-    // Enforce length limits
     if ($isCJK) {
-      if (mb_strlen($cleaned) > 40) {
-        $cleaned = mb_substr($cleaned, 0, 40);
-      }
+      if (mb_strlen($cleaned) > 40) $cleaned = mb_substr($cleaned, 0, 40);
     } else {
       $words = preg_split('/\s+/', $cleaned);
-      if (count($words) > 30) {
-        $cleaned = implode(' ', array_slice($words, 0, 30));
-      }
+      if (count($words) > 30) $cleaned = implode(' ', array_slice($words, 0, 30));
     }
-
     return $cleaned;
   }
 
-  /**
-   * Low-level HTTP POST to Gemini endpoint using curl
-   */
   private function makeApiCall(string $url, array $payload)
   {
     $ch = curl_init();
     $json = json_encode($payload);
-
-    // Gemini REST requires x-goog-api-key header per docs
-    $headers = [
-      'x-goog-api-key: ' . ($this->apiKey ?: ''),
-      'Content-Type: application/json',
-      'Accept: application/json'
-    ];
+    $headers = ['Content-Type: application/json'];
 
     curl_setopt_array($ch, [
       CURLOPT_URL => $url,
@@ -156,7 +136,7 @@ class GeminiTextAdapter
       CURLOPT_POST => true,
       CURLOPT_POSTFIELDS => $json,
       CURLOPT_HTTPHEADER => $headers,
-      CURLOPT_TIMEOUT => 30,
+      CURLOPT_TIMEOUT => 45,
       CURLOPT_SSL_VERIFYPEER => true,
     ]);
 
@@ -166,20 +146,13 @@ class GeminiTextAdapter
     curl_close($ch);
 
     if ($err) {
-      error_log('Gemini API curl error: ' . $err);
-      throw new Exception('Network error while calling Gemini API: ' . $err);
+      throw new Exception('cURL Error: ' . $err);
     }
-
     if ($httpCode < 200 || $httpCode >= 300) {
-      error_log('Gemini API HTTP ' . $httpCode . ' - response: ' . $resp);
+      $errorDetails = "HTTP Error: {$httpCode}. URL: {$url}. Payload: {$json}. Response: " . substr($resp, 0, 500);
+      error_log('Gemini API Error: ' . $errorDetails);
       throw new Exception('Gemini API returned HTTP ' . $httpCode);
     }
-
-    $decoded = json_decode($resp, true);
-    if ($decoded === null) {
-      // Return raw text if cannot decode
-      return $resp;
-    }
-    return $decoded;
+    return json_decode($resp, true);
   }
 }
