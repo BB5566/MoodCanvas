@@ -172,13 +172,6 @@ if (!defined('PERPLEXITY_API_KEY')) {
     define('PERPLEXITY_API_KEY', getenv('PERPLEXITY_API_KEY') ?: 'your_perplexity_api_key_here');
 }
 define('PERPLEXITY_API_URL', 'https://api.perplexity.ai');
-if (!defined('STABILITY_API_KEY')) {
-    define('STABILITY_API_KEY', getenv('STABILITY_API_KEY') ?: 'your_stability_api_key_here');
-}
-define('STABILITY_API_URL', 'https://api.stability.ai');
-if (!defined('STABILITY_MODEL')) {
-    define('STABILITY_MODEL', getenv('STABILITY_MODEL') ?: 'stable-diffusion-xl-1024-v1-0'); // 修正模型名稱
-}
 
 // AI 模型設定 (可透過環境變數覆蓋)
 if (!defined('PERPLEXITY_MODEL')) {
@@ -186,9 +179,6 @@ if (!defined('PERPLEXITY_MODEL')) {
 }
 if (!defined('PERPLEXITY_FALLBACK_MODEL')) {
     define('PERPLEXITY_FALLBACK_MODEL', getenv('PERPLEXITY_FALLBACK_MODEL') ?: 'sonar'); // 經濟型備用模型
-}
-if (!defined('STABILITY_IMAGE_MODEL')) {
-    define('STABILITY_IMAGE_MODEL', getenv('STABILITY_MODEL') ?: 'stable-diffusion-xl-1024-v1-0');
 }
 
 // Gemini config (optional)

@@ -4,7 +4,6 @@
 namespace App\Controllers;
 
 use App\Models\PerplexityAdapter;
-use App\Models\StabilityAI;
 use App\Models\GeminiTextAdapter;
 use App\Models\GeminiImageAdapter;
 use Exception;
@@ -13,7 +12,6 @@ class AIController
 {
 
     private $perplexityAdapter;
-    private $stabilityAI;
     private $geminiTextAdapter;
     private $geminiImageAdapter;
 
@@ -29,7 +27,6 @@ class AIController
         
         // Instantiate all AI models
         $this->perplexityAdapter = new PerplexityAdapter();
-        $this->stabilityAI = new StabilityAI();
 
         // Initialize Gemini Text Adapter
         try {
@@ -156,18 +153,6 @@ class AIController
             }
         }
 
-        if (empty($imageUrl)) {
-            try {
-                error_log("Falling back to StabilityAI for image generation.");
-                $options = ['style_preset' => $this->stabilityAI->getStylePreset($style)];
-                $imageUrl = $this->stabilityAI->generateImageWithRetry($prompt, $options);
-                if ($imageUrl) {
-                    $generatedBy = 'StabilityAI';
-                }
-            } catch (Exception $e) {
-                 error_log("StabilityAI image generation also failed: " . $e->getMessage());
-            }
-        }
 
         if (empty($imageUrl)) {
             throw new Exception("Image generation failed from all providers.");

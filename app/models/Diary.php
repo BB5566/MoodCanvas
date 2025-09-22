@@ -144,6 +144,50 @@ class Diary
         }
     }
 
+    /**
+     * 獲取圖片檔案的實際路徑
+     * @param string $imagePath 從資料庫取得的 image_path
+     * @return string|null 實際檔案路徑，如果檔案不存在則返回 null
+     */
+    public static function getActualImagePath($imagePath)
+    {
+        if (empty($imagePath)) {
+            return null;
+        }
+
+        // 首先嘗試標準路徑
+        $fullPath = BASE_PATH . '/public/' . $imagePath;
+        if (file_exists($fullPath)) {
+            return $fullPath;
+        }
+
+        // 如果標準路徑不存在，嘗試修正路徑
+        if (strpos($imagePath, 'storage/generated_images/') !== 0) {
+            // 可能是舊格式或其他格式，嘗試修正
+            $filename = basename($imagePath);
+            $correctedPath = BASE_PATH . '/public/storage/generated_images/' . $filename;
+            if (file_exists($correctedPath)) {
+                return $correctedPath;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * 刪除圖片檔案
+     * @param string $imagePath 從資料庫取得的 image_path
+     * @return bool 是否成功刪除
+     */
+    public static function deleteImageFile($imagePath)
+    {
+        $actualPath = self::getActualImagePath($imagePath);
+        if ($actualPath && file_exists($actualPath)) {
+            return unlink($actualPath);
+        }
+        return false;
+    }
+
     public function __destruct()
     {
         $this->db = null; // PDO 會自動關閉連線

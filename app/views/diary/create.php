@@ -58,10 +58,13 @@ $metaDescription = '在這裡新增你的心情日記，支援 Emoji、AI 圖文
                 <label for="image-style">藝術風格</label>
                 <select id="image-style" name="image_style">
                     <option value="random">🎲 隨機風格 (AI 自選)</option>
-                    <option value="photographic">📷 寫實攝影</option>
-                    <option value="van-gogh">🌻 梵谷風格</option>
-                    <option value="ghibli">🌸 吉卜力風格</option>
-                    <option value="kandinsky">🎨 康丁斯基</option>
+                    <option value="photographic">📷 真實攝影</option>
+                    <option value="ghibli">🌸 宮崎駿風格</option>
+                    <option value="pixel-art">👾 像素風格</option>
+                    <option value="3d-render">🧸 皮克斯風格</option>
+                    <option value="flat-illustration">🎨 扁平設計</option>
+                    <option value="sketch">✏️ 手繪素描</option>
+                    <option value="ink-wash">🖌️ 中國水墨</option>
                 </select>
             </div>
             

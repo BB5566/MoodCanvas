@@ -5,7 +5,6 @@ namespace App\Controllers;
 
 use App\Models\Diary;
 use App\Models\PerplexityAdapter;
-use App\Models\StabilityAI;
 use App\Models\GeminiImageAdapter;
 use App\Models\GeminiTextAdapter;
 use Exception;
@@ -16,7 +15,6 @@ class DiaryController
 
     private $diaryModel;
     private $perplexityAdapter;
-    private $stabilityAI;
     private $geminiImageAdapter;
     private $geminiTextAdapter;
 
@@ -30,7 +28,6 @@ class DiaryController
         }
         $this->diaryModel = new Diary();
         $this->perplexityAdapter = new PerplexityAdapter();
-        $this->stabilityAI = new StabilityAI();
 
         // Initialize Gemini Image Adapter (Vertex AI)
         try {
@@ -350,7 +347,7 @@ class DiaryController
             $response = [
                 'success' => true,
                 'prompt' => $prompt,
-                'imageUrl' => $imageUrl ?: $this->stabilityAI->getPlaceholderImage(),
+                'imageUrl' => $imageUrl,
                 'annotation' => $annotation,
                 'fallback' => !$imageUrl, // 標記是否使用了佔位圖
                 'selectedStyle' => $style,
@@ -392,23 +389,7 @@ class DiaryController
             logMessage("Vertex AI 未初始化，跳過", 'INFO');
         }
 
-        // 回退到 Stability AI
-        try {
-            logMessage("回退到 StabilityAI 生成圖片", 'INFO');
-            $stylePreset = $this->stabilityAI->getStylePreset($style);
-            $options = [];
-            if ($stylePreset) {
-                $options['style_preset'] = $stylePreset;
-            }
-
-            $imageUrl = $this->stabilityAI->generateImageWithRetry($prompt, $options);
-            if ($imageUrl) {
-                logMessage("StabilityAI 圖片生成成功", 'INFO');
-                return $imageUrl;
-            }
-        } catch (Exception $e) {
-            logMessage("StabilityAI 圖片生成失敗: " . $e->getMessage(), 'ERROR');
-        }
+        // StabilityAI 已移除，無其他備用方案
 
         // 如果都失敗，返回 null
         logMessage("所有圖片生成服務都失敗", 'ERROR');
@@ -626,10 +607,15 @@ class DiaryController
 
             // 刪除關聯的圖片檔案
             if (!empty($diary['image_path'])) {
-                $imagePath = BASE_PATH . '/public/' . $diary['image_path'];
-                if (file_exists($imagePath)) {
-                    unlink($imagePath);
-                    logMessage("已刪除圖片檔案: {$imagePath}", 'INFO');
+                $imagePath = Diary::getActualImagePath($diary['image_path']);
+                if ($imagePath) {
+                    if (Diary::deleteImageFile($diary['image_path'])) {
+                        logMessage("已成功刪除圖片檔案: {$imagePath}", 'INFO');
+                    } else {
+                        logMessage("無法刪除圖片檔案: {$imagePath}", 'ERROR');
+                    }
+                } else {
+                    logMessage("圖片檔案不存在，無需刪除: {$diary['image_path']}", 'INFO');
                 }
             }
 

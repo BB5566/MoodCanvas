@@ -33,9 +33,12 @@ class GeminiTextAdapter
     {
         $this->styleKeywords = [
             'photographic' => 'photorealistic, realistic, masterpiece, evocative, poetic, 8K, sharp focus, detailed, professional photography',
-            'van-gogh' => 'in the style of Vincent van Gogh, expressive brushstrokes, swirling, thick impasto, vibrant colors, post-impressionist, poetic, masterpiece, evocative',
             'ghibli' => 'Studio Ghibli style, hand-drawn animation, whimsical, fantastical, vibrant colors, lush landscapes, dreamy, poetic, masterpiece, evocative',
-            'kandinsky' => 'in the style of Wassily Kandinsky, abstract, vibrant colors, geometric shapes, spiritual, poetic, masterpiece, evocative',
+            'pixel-art' => 'pixel art style, 8-bit, retro gaming, pixelated, crisp edges, limited color palette, nostalgic, detailed pixel work, masterpiece',
+            '3d-render' => 'Pixar style, 3D rendered, CGI animation, soft lighting, vibrant colors, smooth textures, family-friendly, whimsical, high quality, masterpiece',
+            'flat-illustration' => 'flat design, minimal illustration, clean lines, bold colors, geometric shapes, modern design, simple, elegant, vector art style',
+            'sketch' => 'hand-drawn sketch, pencil drawing, artistic lines, rough sketches, expressive strokes, monochrome or light colors, artistic, detailed',
+            'ink-wash' => 'Chinese ink wash painting, traditional watercolor, flowing brushstrokes, monochromatic, artistic gradients, serene, poetic, masterpiece',
             'default' => 'high quality, detailed, visually stunning, poetic, evocative, masterpiece'
         ];
     }

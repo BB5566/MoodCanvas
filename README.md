@@ -57,7 +57,6 @@ MoodCanvas 是一個創新的情緒日記應用程式，結合傳統日記寫作
 - **Google Vertex AI** - 企業級圖像生成
 - **Perplexity AI** - 智慧文字生成
 - **Google Gemini** - 多模態 AI 支援
-- **Stability AI** - 備用圖像服務
 
 ## 🏗️ 系統架構圖
 
@@ -251,14 +250,6 @@ GEMINI_API_KEY="your-gemini-api-key"
 GEMINI_TEXT_MODEL="gemini-2.5-flash"
 ```
 
-### Stability AI (選用)
-1. 前往 [Stability AI](https://platform.stability.ai/account/keys)
-2. 取得 API Key
-3. 在 `.env` 中設定：
-```bash
-STABILITY_API_KEY="sk-your-stability-key"
-STABILITY_MODEL="stable-diffusion-xl-1024-v1-0"
-```
 
 ## 🎯 .env 完整配置範例
 
