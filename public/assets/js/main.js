@@ -89,6 +89,21 @@ document.addEventListener('DOMContentLoaded', function () {
       document.getElementById('image-prompt').value =
         'AI 正在為您生成提示詞...';
 
+      // 更新按鈕文字顯示進度
+      imageBtn.textContent = '🤖 AI 思考中...';
+
+      // 設定定時器更新進度提示
+      let progressTimer = setInterval(() => {
+        const currentText = imageBtn.textContent;
+        if (currentText.includes('思考中')) {
+          imageBtn.textContent = '🎨 正在畫圖...';
+        } else if (currentText.includes('畫圖')) {
+          imageBtn.textContent = '📥 處理中...';
+        } else {
+          imageBtn.textContent = '🤖 AI 思考中...';
+        }
+      }, 8000);
+
       try {
         const response = await fetch('index.php?action=generate_image', {
           method: 'POST',
@@ -135,9 +150,15 @@ document.addEventListener('DOMContentLoaded', function () {
         showToast(`圖片生成失敗：${error.message}`, 'error');
         document.getElementById('image-prompt').value = '生成失敗，請重試。';
       } finally {
+        // 清除進度定時器
+        if (progressTimer) {
+          clearInterval(progressTimer);
+        }
+
         // 隱藏載入動畫，恢復按鈕
         imageSpinner.style.display = 'none';
         setButtonLoading(imageBtn, false);
+        imageBtn.textContent = '生成預覽圖'; // 恢復原始按鈕文字
         imageGenerating = false; // 重置生成狀態
 
         // 延遲重置請求記錄，避免過快的重複請求
