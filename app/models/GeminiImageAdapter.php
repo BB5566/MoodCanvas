@@ -13,7 +13,7 @@ class GeminiImageAdapter
 {
     private $projectId;
     private $region;
-    private $model = 'imagegeneration@006'; // Back to working Imagen model (until Nano Banana is available)
+    private $model = 'imagen-4.0-generate-001'; // Upgraded to Imagen 4 with resolution control
     private $apiEndpoint;
 
     public function __construct()
@@ -25,7 +25,7 @@ class GeminiImageAdapter
             throw new Exception("GCP_PROJECT_ID and GCP_REGION must be configured for Vertex AI.");
         }
 
-        // Back to Imagen model endpoint
+        // Imagen 4 model endpoint
         $this->apiEndpoint = "https://{$this->region}-aiplatform.googleapis.com/v1/projects/{$this->projectId}/locations/{$this->region}/publishers/google/models/{$this->model}:predict";
     }
 
@@ -81,7 +81,7 @@ class GeminiImageAdapter
     {
         $token = $this->getAuthToken();
 
-        // Back to Imagen model payload structure
+        // Imagen 4 model payload structure with resolution control
         $payload = [
             'instances' => [
                 ['prompt' => $prompt]
@@ -89,13 +89,14 @@ class GeminiImageAdapter
             'parameters' => [
                 'sampleCount' => $options['samples'] ?? 1,
                 'aspectRatio' => $options['aspectRatio'] ?? '1:1',
+                'sampleImageSize' => $options['resolution'] ?? '1K', // 1K 或 2K，1K 更小省 token
                 'negativePrompt' => $options['negativePrompt'] ?? 'blurry, deformed, watermark, text, signature',
             ]
         ];
 
         $response = $this->makeApiCall($token, $payload);
 
-        // Back to Imagen model response parsing
+        // Imagen 4 model response parsing
         if (isset($response['predictions'][0]['bytesBase64Encoded'])) {
             $b64 = $response['predictions'][0]['bytesBase64Encoded'];
             $filename = $this->saveBase64Image($b64, 'png');
@@ -126,21 +127,76 @@ class GeminiImageAdapter
 
     private function saveBase64Image(string $b64, string $ext): ?string
     {
-        $data = base64_decode($b64);
-        if ($data === false) return null;
+        try {
+            $imageData = base64_decode($b64);
+            if ($imageData === false) return null;
 
-        $filename = 'ai_vertex_' . time() . '_' . uniqid() . '.' . $ext;
-        $storageDir = defined('IMAGE_STORAGE_PATH') ? IMAGE_STORAGE_PATH : (BASE_PATH . '/public/storage/generated_images');
-        
-        if (!is_dir($storageDir)) {
-            @mkdir($storageDir, 0775, true);
-        }
+            $storageDir = defined('IMAGE_STORAGE_PATH') ? IMAGE_STORAGE_PATH : (BASE_PATH . '/public/storage/generated_images');
 
-        $filepath = $storageDir . '/' . $filename;
-        if (file_put_contents($filepath, $data)) {
-            return $filename;
+            if (!is_dir($storageDir)) {
+                @mkdir($storageDir, 0775, true);
+            }
+
+            // 建立臨時 PNG 檔案
+            $tempPng = tempnam(sys_get_temp_dir(), 'ai_vertex_temp_') . '.png';
+            file_put_contents($tempPng, $imageData);
+
+            // 壓縮並轉換為 JPEG
+            $filename = 'ai_vertex_' . time() . '_' . uniqid() . '.jpg';
+            $filepath = $storageDir . '/' . $filename;
+
+            if ($this->convertAndCompress($tempPng, $filepath)) {
+                unlink($tempPng); // 刪除臨時檔案
+                return $filename;
+            }
+
+            // 如果壓縮失敗，保存原始 PNG
+            unlink($tempPng);
+            $filename = 'ai_vertex_' . time() . '_' . uniqid() . '.png';
+            $filepath = $storageDir . '/' . $filename;
+
+            if (file_put_contents($filepath, $imageData)) {
+                return $filename;
+            }
+
+            return null;
+        } catch (Exception $e) {
+            error_log("Vertex AI save image error: " . $e->getMessage());
+            return null;
         }
-        return null;
+    }
+
+    /**
+     * 壓縮圖片並轉換格式
+     */
+    private function convertAndCompress(string $sourcePath, string $outputPath): bool {
+        try {
+            // 使用 GD 擴展進行壓縮
+            if (extension_loaded('gd')) {
+                $image = imagecreatefrompng($sourcePath);
+                if ($image) {
+                    // 設定 JPEG 品質為 75%，大幅減少檔案大小
+                    $result = imagejpeg($image, $outputPath, 75);
+                    imagedestroy($image);
+                    return $result;
+                }
+            }
+
+            // 如果 GD 不可用，檢查 Imagick
+            if (extension_loaded('imagick') && class_exists('Imagick')) {
+                $imagick = new \Imagick($sourcePath);
+                $imagick->setImageFormat('jpeg');
+                $imagick->setImageCompressionQuality(75);
+                $result = $imagick->writeImage($outputPath);
+                $imagick->destroy();
+                return $result;
+            }
+
+            return false;
+        } catch (Exception $e) {
+            error_log("Vertex AI image compression error: " . $e->getMessage());
+            return false;
+        }
     }
 
     private function makeApiCall(string $token, array $payload)

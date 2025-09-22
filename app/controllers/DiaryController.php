@@ -6,6 +6,8 @@ namespace App\Controllers;
 use App\Models\Diary;
 use App\Models\PerplexityAdapter;
 use App\Models\StabilityAI;
+use App\Models\GeminiImageAdapter;
+use App\Models\GeminiTextAdapter;
 use Exception;
 use ReflectionClass;
 
@@ -15,6 +17,8 @@ class DiaryController
     private $diaryModel;
     private $perplexityAdapter;
     private $stabilityAI;
+    private $geminiImageAdapter;
+    private $geminiTextAdapter;
 
     public function __construct()
     {
@@ -27,6 +31,36 @@ class DiaryController
         $this->diaryModel = new Diary();
         $this->perplexityAdapter = new PerplexityAdapter();
         $this->stabilityAI = new StabilityAI();
+
+        // Initialize Gemini Image Adapter (Vertex AI)
+        try {
+            $gcpProjectId = getenv('GCP_PROJECT_ID') ?: (defined('GCP_PROJECT_ID') ? GCP_PROJECT_ID : null);
+            if ($gcpProjectId) {
+                $this->geminiImageAdapter = new GeminiImageAdapter();
+                logMessage("GeminiImageAdapter 在 DiaryController 中初始化成功", 'INFO');
+            } else {
+                $this->geminiImageAdapter = null;
+                logMessage("GCP_PROJECT_ID 未設定，跳過 GeminiImageAdapter 初始化", 'INFO');
+            }
+        } catch (Exception $e) {
+            error_log('GeminiImageAdapter init error in DiaryController: ' . $e->getMessage());
+            $this->geminiImageAdapter = null;
+        }
+
+        // Initialize Gemini Text Adapter
+        try {
+            $geminiApiKey = getenv('GEMINI_API_KEY') ?: (defined('GEMINI_API_KEY') ? GEMINI_API_KEY : null);
+            if ($geminiApiKey && $geminiApiKey !== 'your_gemini_api_key_here') {
+                $this->geminiTextAdapter = new GeminiTextAdapter();
+                logMessage("GeminiTextAdapter 在 DiaryController 中初始化成功", 'INFO');
+            } else {
+                $this->geminiTextAdapter = null;
+                logMessage("GEMINI_API_KEY 未設定，跳過 GeminiTextAdapter 初始化", 'INFO');
+            }
+        } catch (Exception $e) {
+            error_log('GeminiTextAdapter init error in DiaryController: ' . $e->getMessage());
+            $this->geminiTextAdapter = null;
+        }
     }
     /**
      * 顯示日曆頁面 (首頁)
@@ -289,27 +323,21 @@ class DiaryController
             // 記錄原始風格選擇（用於隨機風格追蹤）
             $originalStyle = $style;
 
-            // 1. 調用 Perplexity API 生成提示詞
+            // 1. 生成提示詞 (Gemini 優先)
             logMessage("開始生成提示詞", 'INFO');
-            $prompt = $this->perplexityAdapter->generatePrompt($data);
+            $prompt = $this->generatePromptWithGeminiFirst($data);
 
             if (empty($prompt)) {
                 throw new Exception('提示詞生成失敗');
             }
 
-            // 2. 調用 Stability AI 生圖
+            // 2. 生成圖片 (Gemini 優先)
             logMessage("開始生成圖片，提示詞長度: " . strlen($prompt), 'INFO');
-            $stylePreset = $this->stabilityAI->getStylePreset($style);
-            $options = [];
-            if ($stylePreset) {
-                $options['style_preset'] = $stylePreset;
-            }
+            $imageUrl = $this->generateImageWithGeminiFirst($prompt, $style);
 
-            $imageUrl = $this->stabilityAI->generateImageWithRetry($prompt, $options);
-
-            // 3. 生成文字註解
+            // 3. 生成文字註解 (Gemini 優先)
             logMessage("開始生成文字註解", 'INFO');
-            $annotation = $this->perplexityAdapter->generateQuote([
+            $annotation = $this->generateQuoteWithGeminiFirst([
                 'content' => $content,
                 'emoji' => $emoji
             ]);
@@ -340,6 +368,127 @@ class DiaryController
             ]);
         }
     }
+
+    /**
+     * 使用 Gemini 優先的圖片生成邏輯
+     */
+    private function generateImageWithGeminiFirst(string $prompt, string $style): ?string
+    {
+        $imageUrl = null;
+
+        // 優先嘗試 Vertex AI (Gemini)
+        if (!empty($this->geminiImageAdapter)) {
+            try {
+                logMessage("嘗試使用 Vertex AI 生成圖片", 'INFO');
+                $imageUrl = $this->geminiImageAdapter->generateImageWithRetry($prompt);
+                if ($imageUrl) {
+                    logMessage("Vertex AI 圖片生成成功", 'INFO');
+                    return $imageUrl;
+                }
+            } catch (Exception $e) {
+                logMessage("Vertex AI 圖片生成失敗: " . $e->getMessage(), 'ERROR');
+            }
+        } else {
+            logMessage("Vertex AI 未初始化，跳過", 'INFO');
+        }
+
+        // 回退到 Stability AI
+        try {
+            logMessage("回退到 StabilityAI 生成圖片", 'INFO');
+            $stylePreset = $this->stabilityAI->getStylePreset($style);
+            $options = [];
+            if ($stylePreset) {
+                $options['style_preset'] = $stylePreset;
+            }
+
+            $imageUrl = $this->stabilityAI->generateImageWithRetry($prompt, $options);
+            if ($imageUrl) {
+                logMessage("StabilityAI 圖片生成成功", 'INFO');
+                return $imageUrl;
+            }
+        } catch (Exception $e) {
+            logMessage("StabilityAI 圖片生成失敗: " . $e->getMessage(), 'ERROR');
+        }
+
+        // 如果都失敗，返回 null
+        logMessage("所有圖片生成服務都失敗", 'ERROR');
+        return null;
+    }
+
+    /**
+     * 使用 Gemini 優先的提示詞生成邏輯
+     */
+    private function generatePromptWithGeminiFirst(array $data): ?string
+    {
+        // 優先嘗試 Gemini Text Adapter
+        if (!empty($this->geminiTextAdapter)) {
+            try {
+                logMessage("嘗試使用 Gemini 生成提示詞", 'INFO');
+                $prompt = $this->geminiTextAdapter->generateImagePrompt($data);
+                if (!empty($prompt)) {
+                    logMessage("Gemini 提示詞生成成功", 'INFO');
+                    return $prompt;
+                }
+            } catch (Exception $e) {
+                logMessage("Gemini 提示詞生成失敗: " . $e->getMessage(), 'ERROR');
+            }
+        } else {
+            logMessage("Gemini Text Adapter 未初始化，跳過", 'INFO');
+        }
+
+        // 回退到 Perplexity
+        try {
+            logMessage("回退到 Perplexity 生成提示詞", 'INFO');
+            $prompt = $this->perplexityAdapter->generatePrompt($data);
+            if (!empty($prompt)) {
+                logMessage("Perplexity 提示詞生成成功", 'INFO');
+                return $prompt;
+            }
+        } catch (Exception $e) {
+            logMessage("Perplexity 提示詞生成失敗: " . $e->getMessage(), 'ERROR');
+        }
+
+        logMessage("所有提示詞生成服務都失敗", 'ERROR');
+        return null;
+    }
+
+    /**
+     * 使用 Gemini 優先的文字註解生成邏輯
+     */
+    private function generateQuoteWithGeminiFirst(array $data): ?string
+    {
+        // 優先嘗試 Gemini Text Adapter
+        if (!empty($this->geminiTextAdapter)) {
+            try {
+                logMessage("嘗試使用 Gemini 生成文字註解", 'INFO');
+                $quote = $this->geminiTextAdapter->generateQuote($data);
+                if (!empty($quote)) {
+                    logMessage("Gemini 文字註解生成成功", 'INFO');
+                    return $quote;
+                }
+            } catch (Exception $e) {
+                logMessage("Gemini 文字註解生成失敗: " . $e->getMessage(), 'ERROR');
+            }
+        } else {
+            logMessage("Gemini Text Adapter 未初始化，跳過", 'INFO');
+        }
+
+        // 回退到 Perplexity
+        try {
+            logMessage("回退到 Perplexity 生成文字註解", 'INFO');
+            $quote = $this->perplexityAdapter->generateQuote($data);
+            if (!empty($quote)) {
+                logMessage("Perplexity 文字註解生成成功", 'INFO');
+                return $quote;
+            }
+        } catch (Exception $e) {
+            logMessage("Perplexity 文字註解生成失敗: " . $e->getMessage(), 'ERROR');
+        }
+
+        logMessage("所有文字註解生成服務都失敗", 'ERROR');
+        return null;
+    }
+
     /**
      * 儲存日記 (更新版本，支援 AI 生成內容)
      */

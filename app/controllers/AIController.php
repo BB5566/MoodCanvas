@@ -256,7 +256,7 @@ class AIController
                 "5. 最後用一句鼓舞人心的話作結。\n" .
                 "請將你的分析總結在 200-300 字之間。";
 
-            $insight = $this->perplexityAdapter->generateQuote(['content' => $prompt]);
+            $insight = $this->generateDashboardInsightText($prompt);
 
             echo json_encode(['success' => true, 'insight' => $insight]);
         } catch (Exception $e) {
@@ -264,5 +264,33 @@ class AIController
             http_response_code(500);
             echo json_encode(['success' => false, 'message' => 'AI 洞察生成失敗，請稍後再試。']);
         }
+    }
+
+    private function generateDashboardInsightText(string $prompt): string
+    {
+        $insight = null;
+        $errorMessages = [];
+
+        try {
+            if (!empty($this->geminiTextAdapter)) {
+                $insight = $this->geminiTextAdapter->generateQuote(['content' => $prompt]);
+            } else {
+                throw new Exception("Gemini TextAdapter not available");
+            }
+        } catch (Exception $e) {
+            $errorMessages[] = "Gemini failed: " . $e->getMessage();
+            try {
+                $insight = $this->perplexityAdapter->generateQuote(['content' => $prompt]);
+            } catch (Exception $pe) {
+                $errorMessages[] = "Perplexity fallback also failed: " . $pe->getMessage();
+            }
+        }
+
+        if (empty($insight)) {
+            $combinedErrors = implode(" | ", $errorMessages);
+            throw new Exception("AI dashboard insight generation failed. Details: [ " . $combinedErrors . " ]");
+        }
+
+        return $insight;
     }
 }

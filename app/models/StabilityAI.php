@@ -127,26 +127,76 @@ class StabilityAI {
     }
 
     /**
-     * 儲存圖像到本地
+     * 儲存圖像到本地並壓縮
      */
     private function saveImage(string $base64Data): ?string {
         try {
             $imageData = base64_decode($base64Data);
-            $filename = 'ai_' . time() . '_' . uniqid() . '.png';
             $storageDir = BASE_PATH . '/public/storage/generated_images';
-            $filepath = $storageDir . '/' . $filename;
-            
+
             if (!is_dir($storageDir)) {
                 mkdir($storageDir, 0775, true);
             }
-            
+
+            // 建立臨時 PNG 檔案
+            $tempPng = tempnam(sys_get_temp_dir(), 'ai_temp_') . '.png';
+            file_put_contents($tempPng, $imageData);
+
+            // 壓縮並轉換為 JPEG
+            $filename = 'ai_' . time() . '_' . uniqid() . '.jpg';
+            $filepath = $storageDir . '/' . $filename;
+
+            if ($this->convertAndCompress($tempPng, $filepath)) {
+                unlink($tempPng); // 刪除臨時檔案
+                return $filename;
+            }
+
+            // 如果壓縮失敗，保存原始 PNG
+            unlink($tempPng);
+            $filename = 'ai_' . time() . '_' . uniqid() . '.png';
+            $filepath = $storageDir . '/' . $filename;
+
             if (file_put_contents($filepath, $imageData)) {
                 return $filename;
-            }            
+            }
+
             return null;
         } catch (Exception $e) {
             error_log("Save image error: " . $e->getMessage());
             return null;
+        }
+    }
+
+    /**
+     * 壓縮圖片並轉換格式
+     */
+    private function convertAndCompress(string $sourcePath, string $outputPath): bool {
+        try {
+            // 使用 GD 擴展進行壓縮
+            if (extension_loaded('gd')) {
+                $image = imagecreatefrompng($sourcePath);
+                if ($image) {
+                    // 設定 JPEG 品質為 75%，大幅減少檔案大小
+                    $result = imagejpeg($image, $outputPath, 75);
+                    imagedestroy($image);
+                    return $result;
+                }
+            }
+
+            // 如果 GD 不可用，檢查 Imagick
+            if (extension_loaded('imagick') && class_exists('Imagick')) {
+                $imagick = new \Imagick($sourcePath);
+                $imagick->setImageFormat('jpeg');
+                $imagick->setImageCompressionQuality(75);
+                $result = $imagick->writeImage($outputPath);
+                $imagick->destroy();
+                return $result;
+            }
+
+            return false;
+        } catch (Exception $e) {
+            error_log("Image compression error: " . $e->getMessage());
+            return false;
         }
     }
 
