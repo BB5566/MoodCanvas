@@ -5,8 +5,8 @@
 
 session_start();
 
-// 安全檢查 - 需要管理員密碼
-$adminPassword = 'moodcanvas2024'; // 可以改成你想要的密碼
+// 安全檢查 - 需要管理員密碼 (從環境變數讀取)
+$adminPassword = getenv('ADMIN_PASSWORD') ?: 'please_change_this_password';
 
 if (!isset($_POST['admin_password']) && !isset($_SESSION['admin_auth'])) {
     // 顯示密碼輸入表單
