@@ -1166,3 +1166,179 @@ textarea {
     font-size: 1.1em;
   }
 }
+
+/* --- Auth Container Styles (Login/Register) --- */
+.auth-container {
+  max-width: 420px;
+  margin: 3rem auto;
+  padding: 2.5rem;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-medium);
+}
+
+.auth-container h2 {
+  text-align: center;
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.auth-container > p {
+  text-align: center;
+  color: var(--color-text-muted);
+  margin-bottom: 2rem;
+  font-size: 0.95rem;
+}
+
+.auth-container .form-group {
+  margin-bottom: 1.2rem;
+}
+
+.auth-container .form-group label {
+  display: block;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
+}
+
+.auth-container .form-group input {
+  width: 100%;
+  padding: 0.85rem 1rem;
+  background-color: var(--color-background);
+  border: 1px solid var(--color-border-medium);
+  border-radius: var(--border-radius-sm);
+  color: var(--color-text-primary);
+  font-size: 1rem;
+  transition: all var(--transition-speed) ease;
+}
+
+.auth-container .form-group input:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px rgba(139, 154, 137, 0.2);
+}
+
+.auth-container .btn-block {
+  width: 100%;
+  margin-top: 0.5rem;
+}
+
+.auth-container .text-center {
+  text-align: center;
+}
+
+.auth-container .mt-3 {
+  margin-top: 1.5rem;
+}
+
+.auth-container .mt-3 p {
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+}
+
+.auth-container .mt-3 a {
+  color: var(--color-accent);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.auth-container .mt-3 a:hover {
+  text-decoration: underline;
+}
+
+.auth-container .alert-info {
+  background-color: rgba(52, 152, 219, 0.1);
+  color: #3498db;
+  border: 1px solid #3498db;
+}
+
+.auth-container .alert-danger {
+  background-color: rgba(229, 115, 115, 0.1);
+  color: var(--color-danger);
+  border: 1px solid var(--color-danger);
+}
+
+/* Card container for register page */
+.container.card {
+  max-width: 480px;
+  margin: 3rem auto;
+  padding: 2.5rem;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-medium);
+}
+
+.container.card h2 {
+  text-align: center;
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.container.card .sub-heading {
+  text-align: center;
+  color: var(--color-text-muted);
+  margin-bottom: 2rem;
+  font-size: 0.9rem;
+}
+
+.container.card .form-control {
+  width: 100%;
+  padding: 0.85rem 1rem;
+  background-color: var(--color-background);
+  border: 1px solid var(--color-border-medium);
+  border-radius: var(--border-radius-sm);
+  color: var(--color-text-primary);
+  font-size: 1rem;
+  transition: all var(--transition-speed) ease;
+}
+
+.container.card .form-control:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px rgba(139, 154, 137, 0.2);
+}
+
+/* --- Footer Styles --- */
+.footer {
+  text-align: center;
+  padding: 2rem 1rem;
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+  margin-top: 3rem;
+  border-top: 1px solid var(--color-border-light);
+}
+
+.footer a {
+  color: var(--color-accent);
+  text-decoration: none;
+}
+
+.footer a:hover {
+  text-decoration: underline;
+}
+
+/* --- Loading Animation Enhancement --- */
+.spinner {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--color-border-medium);
+  border-top-color: var(--color-accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  vertical-align: middle;
+  margin-left: 8px;
+}
+
+/* --- Error Message Style --- */
+.error-message {
+  color: var(--color-danger);
+  font-size: 0.95rem;
+}

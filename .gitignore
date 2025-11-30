@@ -74,3 +74,11 @@ tmp_*.php
 config/gcp-service-account.json
 gcp-service-account.json
 
+# SQLite 資料庫檔案（包含使用者敏感資料）
+database/*.sqlite
+database/*.db
+
+# 但保留 schema 檔案
+!database/schema.sql
+!database/schema.sqlite.sql
+

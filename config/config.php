@@ -132,31 +132,74 @@ if (!defined('DB_CHARSET')) {
 // 建立 PDO 連線函數
 function getDbConnection()
 {
+    // 優先從環境變數讀取資料庫類型，預設使用 SQLite
+    $dbType = getenv('DB_TYPE') ?: 'sqlite';
+
     try {
-        $dsn = "mysql:host=" . DB_HOST . ";port=" . DB_PORT . ";dbname=" . DB_NAME . ";charset=" . DB_CHARSET;
-        $options = [
-            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-            PDO::ATTR_EMULATE_PREPARES => false,
-            PDO::ATTR_TIMEOUT => 5, // 5秒連線超時
-            PDO::ATTR_PERSISTENT => true, // 啟用持久連接
-            PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci",
-        ];
-        return new PDO($dsn, DB_USER, DB_PASS, $options);
+        if ($dbType === 'sqlite') {
+            // SQLite 連線設定
+            $dbPath = getenv('DB_PATH') ?: BASE_PATH . '/database/moodcanvas.sqlite';
+
+            // 確保資料庫目錄存在
+            $dbDir = dirname($dbPath);
+            if (!is_dir($dbDir)) {
+                mkdir($dbDir, 0755, true);
+            }
+
+            // 檢查資料庫是否存在
+            $dbExists = file_exists($dbPath);
+
+            $dsn = "sqlite:$dbPath";
+            $options = [
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                PDO::ATTR_EMULATE_PREPARES => false,
+            ];
+            $pdo = new PDO($dsn, null, null, $options);
+
+            // 啟用外鍵約束（SQLite 預設關閉）
+            $pdo->exec('PRAGMA foreign_keys = ON;');
+
+            // 如果是新資料庫，執行初始化
+            if (!$dbExists) {
+                $schemaFile = BASE_PATH . '/database/schema.sqlite.sql';
+                if (file_exists($schemaFile)) {
+                    $sql = file_get_contents($schemaFile);
+                    $pdo->exec($sql);
+                }
+            }
+
+            return $pdo;
+
+        } else {
+            // MySQL 連線設定（向下相容）
+            $dsn = "mysql:host=" . DB_HOST . ";port=" . DB_PORT . ";dbname=" . DB_NAME . ";charset=" . DB_CHARSET;
+            $options = [
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                PDO::ATTR_EMULATE_PREPARES => false,
+                PDO::ATTR_TIMEOUT => 5,
+                PDO::ATTR_PERSISTENT => true,
+                PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci",
+            ];
+            return new PDO($dsn, DB_USER, DB_PASS, $options);
+        }
     } catch (PDOException $e) {
         if (DEBUG) {
-            // 記錄詳細錯誤訊息以便除錯
             $error_msg = "資料庫連線失敗: " . $e->getMessage();
             @error_log($error_msg);
 
-            // 顯示更詳細的錯誤訊息供除錯
             echo "<div style='background:#ffebee;border:1px solid #f44336;padding:10px;margin:10px;'>";
             echo "<h3>資料庫連線錯誤</h3>";
-            echo "<p><strong>主機:</strong> " . DB_HOST . ":" . DB_PORT . "</p>";
-            echo "<p><strong>資料庫:</strong> " . DB_NAME . "</p>";
-            echo "<p><strong>使用者:</strong> " . DB_USER . "</p>";
+            echo "<p><strong>資料庫類型:</strong> " . $dbType . "</p>";
+            if ($dbType === 'mysql') {
+                echo "<p><strong>主機:</strong> " . DB_HOST . ":" . DB_PORT . "</p>";
+                echo "<p><strong>資料庫:</strong> " . DB_NAME . "</p>";
+                echo "<p><strong>使用者:</strong> " . DB_USER . "</p>";
+            } else {
+                echo "<p><strong>資料庫路徑:</strong> " . ($dbPath ?? 'N/A') . "</p>";
+            }
             echo "<p><strong>錯誤訊息:</strong> " . htmlspecialchars($e->getMessage()) . "</p>";
-            echo "<p><strong>建議:</strong> 請檢查資料庫是否已建立、使用者權限是否正確</p>";
             echo "</div>";
         }
         return null;

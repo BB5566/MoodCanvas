@@ -17,18 +17,10 @@ class User {
      * 建立資料庫連線
      */
     private function connectDB() {
-        try {
-            // The config constants are expected to be loaded globally by the bootstrap process
-            $dsn = "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=utf8mb4";
-            $this->db = new PDO($dsn, DB_USER, DB_PASS, [
-                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-                PDO::ATTR_EMULATE_PREPARES => false,
-            ]);
-        } catch (PDOException $e) {
-            // 記錄錯誤並終止程式
-            error_log("Database Connection Failed: " . $e->getMessage());
-            // 在生產環境中，不應顯示詳細錯誤給使用者
+        // 使用統一的資料庫連線函數（支援 SQLite 和 MySQL）
+        $this->db = getDbConnection();
+        if (!$this->db) {
+            error_log("Database Connection Failed in User model");
             die("資料庫連線時發生嚴重錯誤，請檢查伺服器日誌。");
         }
     }
