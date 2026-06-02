@@ -230,10 +230,11 @@ class DiaryController
         if ($diary_id) {
             // ⚡ 當新日記創建時，失效日曆快取
             $year = date('Y', strtotime($diary_date));
-            $month = date('m', strtotime($diary_date));
-            $cachePattern = sprintf('cal:%d:%d:%d', $user_id, $year, $month);
+            $month = str_pad(date('m', strtotime($diary_date)), 2, '0', STR_PAD_LEFT);
+            // 使用 glob pattern 清除該月份的所有頁面快取
+            $cachePattern = sprintf('cal:%d:%d:%d', $user_id, $year, (int)$month);
             \Cache::invalidate($cachePattern);
-            logMessage("🗑️  Invalidated cache pattern: $cachePattern", 'DEBUG');
+            logMessage("🗑️  Invalidated cache: cal for user $user_id on $year-$month", 'DEBUG');
             
             // 重定向到日記詳情頁面
             header('Location: ' . APP_URL . '/public/index.php?action=diary_detail&id=' . $diary_id);

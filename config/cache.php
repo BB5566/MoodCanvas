@@ -25,11 +25,11 @@ class Cache {
     const TTL_INSIGHT = 86400;   // 1 天
     const TTL_RATE_LIMIT = 30;   // 30 秒
     
-    // 快取鍵模板（支持 sprintf）
-    const KEY_CALENDAR = 'cal:{user_id}:{year}:{month}';
-    const KEY_PROMPT = 'prompt:{hash}';
-    const KEY_INSIGHT = 'insight:{user_id}:{year}:{month}';
-    const KEY_RATE_LIMIT = 'ratelimit:{hash}';
+    // 快取鍵模板（sprintf 格式）
+    const KEY_CALENDAR = 'cal:%d:%d:%d';          // (user_id, year, month)
+    const KEY_PROMPT = 'prompt:%s';               // (hash)
+    const KEY_INSIGHT = 'insight:%d:%d:%d';       // (user_id, year, month)
+    const KEY_RATE_LIMIT = 'ratelimit:%s';        // (hash)
     
     // 統計指標（可選）
     private static $stats = [
@@ -170,13 +170,24 @@ class Cache {
             return;
         }
         
-        // 支持 glob pattern（例：'cal:1:2026:*'）
-        $globPattern = str_replace('*', '*', str_replace(':', '_', $pattern));
-        $files = @glob(self::BASE_PATH . '/' . md5(substr($pattern, 0, strrpos($pattern, ':'))) . '*');
-        
-        if ($files) {
-            foreach ($files as $file) {
-                @unlink($file);
+        // 支持精確鍵或 glob pattern（例：'cal:1:2026:*'）
+        if (strpos($pattern, '*') === false) {
+            // 精確鍵：直接刪除
+            $filename = self::hashKey($pattern);
+            $filepath = self::BASE_PATH . '/' . $filename;
+            @unlink($filepath);
+        } else {
+            // Glob pattern：例如 'cal:1:2026:*' → 找所有 cal:1:2026:* 開頭的鍵
+            // 由於檔名是 md5 hash，無法用 glob 直接匹配原始 pattern
+            // 改用暴力掃描：列出所有快取檔案，解碼後比對
+            $files = @glob(self::BASE_PATH . '/*.cache');
+            if ($files) {
+                foreach ($files as $file) {
+                    $content = @json_decode(file_get_contents($file), true);
+                    if (isset($content['key']) && fnmatch($pattern, $content['key'])) {
+                        @unlink($file);
+                    }
+                }
             }
         }
     }

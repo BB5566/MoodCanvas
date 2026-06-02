@@ -181,17 +181,28 @@ class MonitoringMiddleware {
             $today = date('Y-m-d');
             $month = date('Y-m');
             
-            $where = $provider ? "WHERE provider = '$provider'" : '';
-            
-            $stmt = $db->query(
-                "SELECT 
-                    provider,
-                    (SELECT used_count FROM quota_daily WHERE provider = qd.provider AND date = '$today') as today_usage,
-                    (SELECT used_count FROM quota_monthly WHERE provider = qd.provider AND month = '$month') as month_usage
-                 FROM quota_daily qd
-                 {$where}
-                 GROUP BY provider"
-            );
+            if ($provider) {
+                // 參數化查詢，防止 SQL injection
+                $stmt = $db->prepare(
+                    "SELECT 
+                        provider,
+                        (SELECT used_count FROM quota_daily WHERE provider = ? AND date = ?) as today_usage,
+                        (SELECT used_count FROM quota_monthly WHERE provider = ? AND month = ?) as month_usage
+                     FROM quota_daily qd
+                     WHERE provider = ?
+                     GROUP BY provider"
+                );
+                $stmt->execute([$provider, $today, $provider, $month, $provider]);
+            } else {
+                $stmt = $db->query(
+                    "SELECT 
+                        provider,
+                        (SELECT used_count FROM quota_daily WHERE provider = qd.provider AND date = '$today') as today_usage,
+                        (SELECT used_count FROM quota_monthly WHERE provider = qd.provider AND month = '$month') as month_usage
+                     FROM quota_daily qd
+                     GROUP BY provider"
+                );
+            }
             return $stmt->fetchAll();
         } catch (Exception $e) {
             error_log("Failed to get quota stats: " . $e->getMessage());

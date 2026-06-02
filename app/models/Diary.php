@@ -74,6 +74,10 @@ class Diary
     public function getDiariesByMonth($userId, $year, $month, $limit = 30, $offset = 0)
     {
         try {
+            // 確保年月格式正確
+            $year = (int)$year;
+            $month = str_pad((int)$month, 2, '0', STR_PAD_LEFT);
+            
             $startDate = "$year-$month-01";
             $endDate = date("Y-m-t", strtotime($startDate)); // 獲取該月最後一天
 
@@ -99,6 +103,10 @@ class Diary
     public function getDiariesByMonthCount($userId, $year, $month)
     {
         try {
+            // 確保年月格式正確
+            $year = (int)$year;
+            $month = str_pad((int)$month, 2, '0', STR_PAD_LEFT);
+            
             $startDate = "$year-$month-01";
             $endDate = date("Y-m-t", strtotime($startDate));
 
