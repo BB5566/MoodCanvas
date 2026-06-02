@@ -61,6 +61,7 @@ class DiaryController
     }
     /**
      * 顯示日曆頁面 (首頁)
+     * ⚡ P1 優化：集成快取層 + 分頁支持
      */
     public function index()
     {
@@ -76,15 +77,39 @@ class DiaryController
         // 獲取年月參數，預設為當前月份
         $year = $_GET['year'] ?? date('Y');
         $month = $_GET['month'] ?? date('m');
+        $page = max(1, (int)($_GET['page'] ?? 1));
+        $pageSize = 30;
 
         // 確保年月格式正確
         $year = (int)$year;
         $month = str_pad((int)$month, 2, '0', STR_PAD_LEFT);
 
-        // 獲取指定月份的日記
-        $diaries = $this->diaryModel->getDiariesByMonth($user_id, $year, $month);
+        // ⚡ 快取查詢結果
+        $cacheKey = sprintf(\Cache::KEY_CALENDAR, $user_id, $year, $month);
+        $diaries = \Cache::get($cacheKey);
+        $cacheHit = false;
 
-        logMessage("載入日曆: 用戶 $user_id, 年月 $year-$month, 日記數量 " . count($diaries), 'INFO');
+        if ($diaries === null) {
+            // 快取未命中，查詢數據庫
+            $offset = ($page - 1) * $pageSize;
+            $diaries = $this->diaryModel->getDiariesByMonth($user_id, $year, $month, $pageSize, $offset);
+            \Cache::set($cacheKey, $diaries, \Cache::TTL_CALENDAR);
+            logMessage("📊 Cache MISS for calendar: $cacheKey", 'DEBUG');
+        } else {
+            $cacheHit = true;
+            logMessage("🔥 Cache HIT for calendar: $cacheKey", 'DEBUG');
+        }
+
+        // 獲取日記總數（用於分頁）
+        $totalDiaries = $this->diaryModel->getDiariesByMonthCount($user_id, $year, $month);
+        $totalPages = ceil($totalDiaries / $pageSize);
+
+        logMessage(
+            "載入日曆: 用戶 $user_id, 年月 $year-$month, 頁數 $page/$totalPages, 日記數 " . count($diaries) .
+            ($cacheHit ? ' (快取)' : ''),
+            'INFO'
+        );
+
         // 載入日曆視圖
         $pageTitle = '心情日曆';
         include BASE_PATH . '/app/views/diary/calendar.php';
@@ -203,6 +228,13 @@ class DiaryController
         $diary_id = $this->diaryModel->create($user_id, $title, $content, $mood, $diary_date, null, null);
 
         if ($diary_id) {
+            // ⚡ 當新日記創建時，失效日曆快取
+            $year = date('Y', strtotime($diary_date));
+            $month = date('m', strtotime($diary_date));
+            $cachePattern = sprintf('cal:%d:%d:%d', $user_id, $year, $month);
+            \Cache::invalidate($cachePattern);
+            logMessage("🗑️  Invalidated cache pattern: $cachePattern", 'DEBUG');
+            
             // 重定向到日記詳情頁面
             header('Location: ' . APP_URL . '/public/index.php?action=diary_detail&id=' . $diary_id);
             exit;

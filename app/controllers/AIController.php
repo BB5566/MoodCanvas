@@ -75,13 +75,16 @@ class AIController
             return;
         }
 
-        $requestHash = md5($baseText . $style . $mood);
-        $sessionKey = 'last_image_request_' . $requestHash;
-        if (isset($_SESSION[$sessionKey]) && (time() - $_SESSION[$sessionKey]) < 30) {
+        // ⚡ P1 優化：改進 rate limit（跨 session，基于 content hash）
+        $contentHash = \Cache::hashContent($baseText, $style, $mood);
+        $rateLimitKey = sprintf(\Cache::KEY_RATE_LIMIT, $contentHash);
+        
+        $lastTime = \Cache::get($rateLimitKey);
+        if ($lastTime && (time() - $lastTime) < 30) {
             echo json_encode(['success' => false, 'message' => '請稍等片刻再生成新圖片']);
             return;
         }
-        $_SESSION[$sessionKey] = time();
+        \Cache::set($rateLimitKey, time(), \Cache::TTL_RATE_LIMIT);
 
         try {
             $optimizedPrompt = $this->getOptimizedImagePrompt($baseText, $style, $mood);
@@ -104,10 +107,21 @@ class AIController
             echo json_encode(['success' => false, 'message' => 'AI 圖片生成失敗: ' . $e->getMessage()]);
         }
     }
-
     private function getOptimizedImagePrompt(string $baseText, string $style, string $mood): string
     {
+        // 準備 prompt 數據
         $promptData = ['content' => $baseText, 'style' => $style, 'emoji' => $mood];
+        
+        // ⚡ P1 優化：快取 prompt 結果（相同內容+風格+心情 = 相同 prompt）
+        $promptHash = \Cache::hashContent($baseText, $style, $mood);
+        $cacheKey = sprintf(\Cache::KEY_PROMPT, $promptHash);
+        
+        $cachedPrompt = \Cache::get($cacheKey);
+        if ($cachedPrompt !== null) {
+            error_log("🔥 Prompt cache HIT: $promptHash");
+            return $cachedPrompt;
+        }
+
         $optimizedPrompt = null;
         $errorMessages = [];
 
@@ -133,6 +147,11 @@ class AIController
             $combinedErrors = implode(" | ", $errorMessages);
             throw new Exception("AI prompt optimization failed. Details: [ " . $combinedErrors . " ]");
         }
+        
+        // ⚡ 快取結果（1 天）
+        \Cache::set($cacheKey, $optimizedPrompt, \Cache::TTL_PROMPT);
+        error_log("💾 Prompt cache SET: $promptHash");
+        
         return $optimizedPrompt;
     }
 

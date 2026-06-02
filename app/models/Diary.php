@@ -61,23 +61,57 @@ class Diary
     }
 
     /**
-     * 獲取指定使用者和月份的所有日記
-     * @return array
+     * 獲取指定使用者和月份的日記（分頁）
+     * ⚡ P1 優化：使用 LIMIT/OFFSET 分頁 + 索引查詢
+     * 
+     * @param int $userId
+     * @param string|int $year
+     * @param string|int $month
+     * @param int $limit 每頁記錄數（默認 30）
+     * @param int $offset 偏移量（默認 0）
+     * @return array 日記列表
      */
-    public function getDiariesByMonth($userId, $year, $month)
+    public function getDiariesByMonth($userId, $year, $month, $limit = 30, $offset = 0)
     {
         try {
             $startDate = "$year-$month-01";
             $endDate = date("Y-m-t", strtotime($startDate)); // 獲取該月最後一天
 
             $stmt = $this->db->prepare(
-                "SELECT id, title, mood, diary_date, image_path FROM diaries WHERE user_id = ? AND diary_date BETWEEN ? AND ? ORDER BY diary_date ASC"
+                "SELECT id, title, mood, diary_date, image_path 
+                 FROM diaries 
+                 WHERE user_id = ? AND diary_date BETWEEN ? AND ? 
+                 ORDER BY diary_date DESC
+                 LIMIT ? OFFSET ?"
             );
-            $stmt->execute([$userId, $startDate, $endDate]);
+            $stmt->execute([$userId, $startDate, $endDate, $limit, $offset]);
             return $stmt->fetchAll();
         } catch (PDOException $e) {
             error_log("Failed to get diaries by month: " . $e->getMessage());
             return [];
+        }
+    }
+
+    /**
+     * 獲取指定月份的日記總數（用於分頁）
+     * @return int
+     */
+    public function getDiariesByMonthCount($userId, $year, $month)
+    {
+        try {
+            $startDate = "$year-$month-01";
+            $endDate = date("Y-m-t", strtotime($startDate));
+
+            $stmt = $this->db->prepare(
+                "SELECT COUNT(*) as total FROM diaries 
+                 WHERE user_id = ? AND diary_date BETWEEN ? AND ?"
+            );
+            $stmt->execute([$userId, $startDate, $endDate]);
+            $row = $stmt->fetch();
+            return (int)($row['total'] ?? 0);
+        } catch (PDOException $e) {
+            error_log("Failed to count diaries: " . $e->getMessage());
+            return 0;
         }
     }
 

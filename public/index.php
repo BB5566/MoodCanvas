@@ -4,6 +4,8 @@
 // 載入設定檔案與自訂的自動載入器
 require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../config/autoloader.php';
+require_once __DIR__ . '/../config/cache.php';
+require_once __DIR__ . '/../app/middleware/MonitoringMiddleware.php';
 
 // Basic session validation: if a session user_id exists but not found in DB, clear session and redirect to login
 if (isset($_SESSION['user_id'])) {
@@ -108,3 +110,11 @@ switch ($action) {
         $controller->index(); // 顯示日曆
         break;
 }
+
+// ⚡ P2 優化：記錄請求日誌
+$method = $_SERVER['REQUEST_METHOD'];
+$path = $_SERVER['REQUEST_URI'];
+$userId = $_SESSION['user_id'] ?? null;
+$statusCode = http_response_code() ?: 200;
+MonitoringMiddleware::logRequest($method, $path, $userId, $statusCode);
+
