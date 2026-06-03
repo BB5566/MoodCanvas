@@ -258,7 +258,7 @@ async function fetchAIInsight(diaries) {
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ diaries: diaries.map(d => ({ date: d.date.toISOString().split('T')[0], mood_score: d.mood_score, content: d.content })) }) // 只傳送必要的資料
+            body: JSON.stringify({ diaries: diaries.map(d => ({ date: d.date, mood_score: d.mood_score, content: d.content })) }) // 只傳送必要的資料（d.date 已是 YYYY-MM-DD 字串）
         });
 
         if (!response.ok) {

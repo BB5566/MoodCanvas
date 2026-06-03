@@ -322,8 +322,32 @@ class DiaryController
     {
         $user_id = $_SESSION['user_id'] ?? 1;
         $diaries = $this->diaryModel->findAllByUserId($user_id);
+
+        // 圖表需要 date 與 mood_score，但資料表只存 emoji mood / diary_date，
+        // 在此補上：date = diary_date，mood_score = emoji 對應 1-5 分（1 差、5 優）
+        foreach ($diaries as &$d) {
+            $d['date'] = $d['diary_date'] ?? '';
+            $d['mood_score'] = $this->moodToScore($d['mood'] ?? '');
+        }
+        unset($d);
+
         $pageTitle = '心情觀測儀表板';
         include BASE_PATH . '/app/views/dashboard/index.php';
+    }
+
+    // ============================================================
+    // 內部：心情 emoji 對應 1-5 分數（給儀表板圖表用）
+    // ============================================================
+    private function moodToScore($mood)
+    {
+        $map = [
+            '😂' => 5, '😍' => 5, '🥰' => 5, // 大笑 / 戀愛 / 溫暖
+            '😊' => 4,                        // 開心
+            '🤔' => 3, '🙄' => 3,             // 思考 / 無奈（中性）
+            '😴' => 2, '😰' => 2,             // 疲憊 / 焦慮
+            '😢' => 1, '😡' => 1,             // 傷心 / 憤怒
+        ];
+        return $map[$mood] ?? 3;
     }
 
     // ============================================================
@@ -489,13 +513,14 @@ class DiaryController
     // ============================================================
     private function callAIQuoteGeneration($content, $mood)
     {
-        $apiKey = getenv('DEEPSEEK_API_KEY');
-        if (empty($apiKey)) throw new Exception('DEEPSEEK_API_KEY not configured');
+        // 走 Pioneer API（OpenAI 相容）用 DeepSeek 模型
+        $apiKey = getenv('PIONEER_API_KEY');
+        if (empty($apiKey)) throw new Exception('PIONEER_API_KEY not configured');
 
         $prompt = "請根據以下日記內容，生成一句溫暖、有詩意的心情短語（不超過 40 字）。\n\n"
                 . "日記內容：{$content}\n心情：{$mood}\n\n只需回傳短語本身，不要加任何說明。";
 
-        $ch = curl_init('https://api.deepseek.com/v1/chat/completions');
+        $ch = curl_init('https://api.pioneer.ai/v1/chat/completions');
         curl_setopt_array($ch, [
             CURLOPT_POST => true,
             CURLOPT_RETURNTRANSFER => true,
@@ -509,6 +534,81 @@ class DiaryController
                 'messages' => [['role' => 'user', 'content' => $prompt]],
                 'max_tokens' => 500,
                 'temperature' => 0.9,
+            ]),
+        ]);
+
+        $response = curl_exec($ch);
+        curl_close($ch);
+
+        $data = json_decode($response, true);
+        return trim($data['choices'][0]['message']['content'] ?? '') ?: null;
+    }
+
+    // ============================================================
+    // AI 洞察：根據近期日記摘要產生觀察與鼓勵（JSON 回應）
+    // 路由 action=get_ai_insight，由儀表板以 POST 呼叫
+    // ============================================================
+    public function getAiInsight()
+    {
+        header('Content-Type: application/json; charset=utf-8');
+        try {
+            $payload = json_decode(file_get_contents('php://input'), true);
+            $diaries = $payload['diaries'] ?? [];
+
+            if (empty($diaries) || !is_array($diaries)) {
+                echo json_encode(['success' => false, 'message' => '沒有足夠的日記資料']);
+                return;
+            }
+
+            // 整理近期最多 30 筆餵給 AI，避免 prompt 過長
+            $recent = array_slice($diaries, 0, 30);
+            $summary = '';
+            foreach ($recent as $d) {
+                $date = $d['date'] ?? '';
+                $score = $d['mood_score'] ?? 3;
+                $text = mb_substr((string)($d['content'] ?? ''), 0, 60);
+                $summary .= "- {$date}（心情分數 {$score}/5）：{$text}\n";
+            }
+
+            $insight = $this->callAIInsightGeneration($summary);
+            if ($insight) {
+                echo json_encode(['success' => true, 'insight' => $insight]);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'AI 分析暫時無法使用']);
+            }
+        } catch (Exception $e) {
+            logMessage('AI 洞察失敗: ' . $e->getMessage(), 'ERROR');
+            echo json_encode(['success' => false, 'message' => 'AI 分析失敗，請稍後再試']);
+        }
+    }
+
+    // ============================================================
+    // 內部：呼叫 Pioneer（DeepSeek 模型）產生心情洞察
+    // 沿用語錄相同、已驗證可通的 Pioneer 設定
+    // ============================================================
+    private function callAIInsightGeneration($summary)
+    {
+        $apiKey = getenv('PIONEER_API_KEY');
+        if (empty($apiKey)) throw new Exception('PIONEER_API_KEY not configured');
+
+        $prompt = "你是一位溫暖的心理陪伴者。以下是使用者近期的心情日記摘要，"
+                . "請用繁體中文寫一段 2-3 句、溫暖且具洞察力的觀察與鼓勵（不超過 120 字），"
+                . "點出心情趨勢或值得留意的地方，語氣親切不說教。\n\n摘要：\n{$summary}\n\n只回傳觀察文字本身，不要加任何說明。";
+
+        $ch = curl_init('https://api.pioneer.ai/v1/chat/completions');
+        curl_setopt_array($ch, [
+            CURLOPT_POST => true,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT => 30,
+            CURLOPT_HTTPHEADER => [
+                'Authorization: Bearer ' . $apiKey,
+                'Content-Type: application/json',
+            ],
+            CURLOPT_POSTFIELDS => json_encode([
+                'model' => 'deepseek-v4-pro',
+                'messages' => [['role' => 'user', 'content' => $prompt]],
+                'max_tokens' => 250,
+                'temperature' => 0.8,
             ]),
         ]);
 

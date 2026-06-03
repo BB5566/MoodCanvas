@@ -75,15 +75,15 @@ AI calls are made directly from `DiaryController` via cURL (no adapter classes):
 - Auth via `REPLICATE_API_KEY` env var
 - Flow: create prediction → poll until `succeeded` → download the resulting image to `public/storage/generated_images/`
 
-**Text / quote generation — DeepSeek**
-- Calls `https://api.deepseek.com/v1/chat/completions` (see `DiaryController::callAIQuoteGeneration()`)
-- Generates a short, poetic mood phrase from the diary content
-- Auth via `DEEPSEEK_API_KEY` env var
+**Text generation — Pioneer API (DeepSeek model)**
+- Calls `https://api.pioneer.ai/v1/chat/completions` (OpenAI-compatible), model `deepseek-v4-pro`
+- Used by `DiaryController::callAIQuoteGeneration()` (card mood phrase) and `callAIInsightGeneration()` (dashboard AI insight)
+- Auth via `PIONEER_API_KEY` env var
 
 ### Configuration Management
 Environment variables loaded from `.env` file via custom parser in `config.php`:
 - Database credentials (DB_HOST, DB_NAME, DB_USER, DB_PASS)
-- AI service keys (REPLICATE_API_KEY for images, DEEPSEEK_API_KEY for text)
+- AI service keys (REPLICATE_API_KEY for images, PIONEER_API_KEY for text via DeepSeek model)
 - Admin tooling (ADMIN_PASSWORD — must be set to use `public/image-resize.php`)
 
 ### Authentication Flow
@@ -95,7 +95,7 @@ Environment variables loaded from `.env` file via custom parser in `config.php`:
 1. User writes diary entry
 2. `DiaryController::buildImagePrompt()` builds an English prompt from content, mood, and chosen style
 3. **Replicate** generates the image (model pinned by version hash), polled until complete
-4. **DeepSeek** generates a short mood phrase for the card back
+4. **Pioneer (DeepSeek model)** generates a short mood phrase for the card back
 5. Generated images downloaded and stored in `public/storage/generated_images/`
 
 ### Error Handling and Logging
@@ -108,7 +108,7 @@ Environment variables loaded from `.env` file via custom parser in `config.php`:
 
 ### AI Service Dependencies
 - **Images**: Replicate (model pinned by version hash) via `REPLICATE_API_KEY`
-- **Text/Quotes**: DeepSeek (`api.deepseek.com`) via `DEEPSEEK_API_KEY`
+- **Text/Quotes/Insight**: Pioneer API (`api.pioneer.ai`, DeepSeek `deepseek-v4-pro` model) via `PIONEER_API_KEY`
 - **Authentication**: Bearer API keys for both services
 - **Graceful Degradation**: Failed AI calls return null/empty rather than errors
 

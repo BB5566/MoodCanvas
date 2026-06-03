@@ -32,6 +32,7 @@ switch ($action) {
 
     // AI
     case 'generate_card_content':  (new DiaryController())->generateCardContent(); break;
+    case 'get_ai_insight':         (new DiaryController())->getAiInsight();        break;
 
     // 儀表板
     case 'dashboard':              (new DiaryController())->dashboard();  break;
