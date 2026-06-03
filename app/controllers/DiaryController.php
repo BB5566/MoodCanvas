@@ -438,7 +438,7 @@ class DiaryController
     }
 
     // ============================================================
-    // 內部：AI 心情短語生成（DeepSeek V4 Flash）
+    // 內部：AI 心情短語生成（DeepSeek V4 Pro）
     // ============================================================
     private function callAIQuoteGeneration($content, $mood)
     {
@@ -452,15 +452,15 @@ class DiaryController
         curl_setopt_array($ch, [
             CURLOPT_POST => true,
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_TIMEOUT => 30,
+            CURLOPT_TIMEOUT => 60,
             CURLOPT_HTTPHEADER => [
                 'Authorization: Bearer ' . $apiKey,
                 'Content-Type: application/json',
             ],
             CURLOPT_POSTFIELDS => json_encode([
-                'model' => 'deepseek-v4-flash',
+                'model' => 'deepseek-v4-pro',
                 'messages' => [['role' => 'user', 'content' => $prompt]],
-                'max_tokens' => 100,
+                'max_tokens' => 500,
                 'temperature' => 0.9,
             ]),
         ]);
