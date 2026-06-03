@@ -599,7 +599,7 @@ class DiaryController
         curl_setopt_array($ch, [
             CURLOPT_POST => true,
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_TIMEOUT => 30,
+            CURLOPT_TIMEOUT => 60,
             CURLOPT_HTTPHEADER => [
                 'Authorization: Bearer ' . $apiKey,
                 'Content-Type: application/json',
