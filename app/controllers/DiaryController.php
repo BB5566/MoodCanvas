@@ -511,17 +511,17 @@ class DiaryController
     }
 
     // ============================================================
-    // 內部：AI 心情短語生成（DeepSeek V4 Pro）
+    // 內部：AI 心情短語生成（Pioneer → DeepSeek V4 Pro）
     // ============================================================
     private function callAIQuoteGeneration($content, $mood)
     {
-        $apiKey = getenv('DEEPSEEK_API_KEY');
-        if (empty($apiKey)) throw new Exception('DEEPSEEK_API_KEY not configured');
+        $apiKey = getenv('PIONEER_API_KEY');
+        if (empty($apiKey)) throw new Exception('PIONEER_API_KEY not configured');
 
         $prompt = "請根據以下日記內容，生成一句溫暖、有詩意的心情短語（不超過 40 字）。\n\n"
                 . "日記內容：{$content}\n心情：{$mood}\n\n只需回傳短語本身，不要加任何說明。";
 
-        $ch = curl_init('https://api.deepseek.com/v1/chat/completions');
+        $ch = curl_init('https://api.pioneer.ai/v1/chat/completions');
         curl_setopt_array($ch, [
             CURLOPT_POST => true,
             CURLOPT_RETURNTRANSFER => true,
@@ -531,7 +531,7 @@ class DiaryController
                 'Content-Type: application/json',
             ],
             CURLOPT_POSTFIELDS => json_encode([
-                'model' => 'deepseek-v4-pro',
+                'model' => 'deepseek-ai/DeepSeek-V4-Pro',
                 'messages' => [['role' => 'user', 'content' => $prompt]],
                 'max_tokens' => 500,
                 'temperature' => 0.9,
@@ -584,18 +584,18 @@ class DiaryController
     }
 
     // ============================================================
-    // 內部：呼叫 DeepSeek V4 Pro 產生心情洞察
+    // 內部：透過 Pioneer API 呼叫 DeepSeek V4 Pro 產生心情洞察
     // ============================================================
     private function callAIInsightGeneration($summary)
     {
-        $apiKey = getenv('DEEPSEEK_API_KEY');
-        if (empty($apiKey)) throw new Exception('DEEPSEEK_API_KEY not configured');
+        $apiKey = getenv('PIONEER_API_KEY');
+        if (empty($apiKey)) throw new Exception('PIONEER_API_KEY not configured');
 
         $prompt = "你是一位溫暖的心理陪伴者。以下是使用者近期的心情日記摘要，"
                 . "請用繁體中文寫一段 2-3 句、溫暖且具洞察力的觀察與鼓勵（不超過 120 字），"
                 . "點出心情趨勢或值得留意的地方，語氣親切不說教。\n\n摘要：\n{$summary}\n\n只回傳觀察文字本身，不要加任何說明。";
 
-        $ch = curl_init('https://api.deepseek.com/v1/chat/completions');
+        $ch = curl_init('https://api.pioneer.ai/v1/chat/completions');
         curl_setopt_array($ch, [
             CURLOPT_POST => true,
             CURLOPT_RETURNTRANSFER => true,
@@ -605,7 +605,7 @@ class DiaryController
                 'Content-Type: application/json',
             ],
             CURLOPT_POSTFIELDS => json_encode([
-                'model' => 'deepseek-v4-pro',
+                'model' => 'deepseek-ai/DeepSeek-V4-Pro',
                 'messages' => [['role' => 'user', 'content' => $prompt]],
                 'max_tokens' => 250,
                 'temperature' => 0.8,
