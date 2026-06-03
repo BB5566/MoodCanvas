@@ -206,55 +206,8 @@ function getDbConnection()
     }
 }
 
-// API 設定 - 優先從環境變數讀取
-if (!defined('OPENAI_API_KEY')) {
-    define('OPENAI_API_KEY', getenv('OPENAI_API_KEY') ?: 'your_openai_api_key_here');
-}
-define('OPENAI_API_URL', 'https://api.openai.com/v1');
-if (!defined('PERPLEXITY_API_KEY')) {
-    define('PERPLEXITY_API_KEY', getenv('PERPLEXITY_API_KEY') ?: 'your_perplexity_api_key_here');
-}
-define('PERPLEXITY_API_URL', 'https://api.perplexity.ai');
-
-// AI 模型設定 (可透過環境變數覆蓋)
-if (!defined('PERPLEXITY_MODEL')) {
-    define('PERPLEXITY_MODEL', getenv('PERPLEXITY_MODEL') ?: 'sonar'); // Updated to a known valid model
-}
-if (!defined('PERPLEXITY_FALLBACK_MODEL')) {
-    define('PERPLEXITY_FALLBACK_MODEL', getenv('PERPLEXITY_FALLBACK_MODEL') ?: 'sonar'); // 經濟型備用模型
-}
-
-// Gemini config (optional)
-if (!defined('GCP_PROJECT_ID')) {
-    define('GCP_PROJECT_ID', getenv('GCP_PROJECT_ID') ?: 'moodcanvas-472705');
-}
-if (!defined('GCP_REGION')) {
-    define('GCP_REGION', getenv('GCP_REGION') ?: 'global');
-}
-if (!defined('GCP_SERVICE_ACCOUNT_KEY_PATH')) {
-    define('GCP_SERVICE_ACCOUNT_KEY_PATH', CONFIG_PATH . '/gcp-service-account.json');
-}
-if (!defined('GEMINI_API_KEY')) {
-    define('GEMINI_API_KEY', getenv('GEMINI_API_KEY') ?: 'your_gemini_api_key_here');
-}
-if (!defined('GEMINI_API_URL')) {
-    define('GEMINI_API_URL', getenv('GEMINI_API_URL') ?: 'https://generativelanguage.googleapis.com/v1beta');
-}
-if (!defined('GEMINI_TEXT_MODEL')) {
-    define('GEMINI_TEXT_MODEL', getenv('GEMINI_TEXT_MODEL') ?: 'gemini-2.5-flash');
-}
-if (!defined('GEMINI_IMAGE_MODEL')) {
-    define('GEMINI_IMAGE_MODEL', getenv('GEMINI_IMAGE_MODEL') ?: 'gemini-2.5-flash-image');
-}
-if (!defined('GEMINI_ENABLED')) {
-    define('GEMINI_ENABLED', getenv('GEMINI_ENABLED') === 'true' ? true : false);
-}
-
-// 未來 Perplexity 圖像功能準備
-define('PERPLEXITY_IMAGE_ENABLED', getenv('PERPLEXITY_IMAGE_ENABLED') === 'true' ? true : false);
-if (!defined('PERPLEXITY_IMAGE_MODEL')) {
-    define('PERPLEXITY_IMAGE_MODEL', getenv('PERPLEXITY_IMAGE_MODEL') ?: 'dalle-3');
-}
+// AI 服務金鑰（DEEPSEEK / PIONEER / REPLICATE）由使用處直接 getenv 讀取。
+// OpenAI / Perplexity / Gemini / Vertex 相關常數已隨對應的死代碼一併移除。
 
 // 安全設定
 if (!defined('SECURITY_SALT')) {
