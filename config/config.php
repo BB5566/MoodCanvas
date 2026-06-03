@@ -104,9 +104,9 @@ if (!defined('SESSION_NAME')) {
     define('SESSION_NAME', getenv('SESSION_NAME') ?: 'moodcanvas_session');
 }
 
-// 管理員密碼
+// 管理員密碼：未設定環境變數時不提供任何可用預設值（fail closed）
 if (!defined('ADMIN_PASSWORD')) {
-    define('ADMIN_PASSWORD', getenv('ADMIN_PASSWORD') ?: 'admin@moodcanvas2024');
+    define('ADMIN_PASSWORD', getenv('ADMIN_PASSWORD') ?: '');
 }
 
 // 資料庫設定 (使用環境變數，若無則使用預設值)

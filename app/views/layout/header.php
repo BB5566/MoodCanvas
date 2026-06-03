@@ -25,6 +25,26 @@ if (!defined('APP_URL')) {
 
 <body>
 
+    <style>
+        /* 跳至主要內容連結：平時視覺隱藏，鍵盤聚焦時顯示 */
+        .skip-link {
+            position: absolute;
+            left: -9999px;
+            top: 0;
+            z-index: 1000;
+            padding: 0.6rem 1rem;
+            background: #8B9A89;
+            color: #fff;
+            border-radius: 0 0 6px 0;
+            text-decoration: none;
+        }
+
+        .skip-link:focus {
+            left: 0;
+        }
+    </style>
+    <a href="#main" class="skip-link">跳至主要內容</a>
+
     <header class="glass-header">
         <nav class="navbar">
             <a class="navbar-brand" href="<?php echo APP_URL; ?>/public/index.php?action=home">🎨 MoodCanvas</a>
@@ -51,7 +71,7 @@ if (!defined('APP_URL')) {
         </nav>
     </header>
 
-    <main class="main-container">
+    <main class="main-container" id="main">
         <script>
             window.__IS_LOGGED_IN__ = <?php echo isset($_SESSION['user_id']) ? 'true' : 'false'; ?>;
         </script>

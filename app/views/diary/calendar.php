@@ -125,7 +125,7 @@ if (isset($diaries)) {
                                         echo "</a>";
                                     } else {
                                         echo "<a href='index.php?action=diary_detail&id={$diary['id']}' class='diary-entry' title='" . htmlspecialchars($diary['title']) . "'>";
-                                        echo "<span class='mood-emoji'>{$moodEmoji}</span>";
+                                        echo "<span class='mood-emoji' role='img' aria-label='心情'>{$moodEmoji}</span>";
                                         echo "</a>";
                                     }
                                 } else {
@@ -135,7 +135,7 @@ if (isset($diaries)) {
                                         if ($index >= 3) break; // 最多顯示3個
                                         $moodEmoji = htmlspecialchars($diary['mood'] ?? '📝');
                                         echo "<span class='diary-entry-small'>";
-                                        echo "<span class='mood-emoji-small'>{$moodEmoji}</span>";
+                                        echo "<span class='mood-emoji-small' role='img' aria-label='心情'>{$moodEmoji}</span>";
                                         echo "</span>";
                                     }
                                     if ($diaryCount > 3) {
@@ -220,10 +220,6 @@ if (isset($diaries)) {
                     <a href="index.php?action=diary_create" class="quick-btn">
                         <span class="quick-btn-icon">✏️</span>
                         <span>寫新日記</span>
-                    </a>
-                    <a href="#" class="quick-btn">
-                        <span class="quick-btn-icon">🎲</span>
-                        <span>隨機回憶</span>
                     </a>
                 <?php else: ?>
                     <div class="quick-btn" style="opacity:0.8; padding:0.55rem 1rem; border-radius:8px; display:inline-flex; align-items:center; gap:0.5rem;">

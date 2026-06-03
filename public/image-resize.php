@@ -6,7 +6,8 @@
 session_start();
 
 // 安全檢查 - 需要管理員密碼 (從環境變數讀取)
-$adminPassword = getenv('ADMIN_PASSWORD') ?: 'please_change_this_password';
+// 注意：必須設定 ADMIN_PASSWORD 環境變數才能使用本工具；未設定時一律拒絕存取（fail closed）
+$adminPassword = getenv('ADMIN_PASSWORD') ?: '';
 
 if (!isset($_POST['admin_password']) && !isset($_SESSION['admin_auth'])) {
     // 顯示密碼輸入表單
@@ -23,7 +24,8 @@ if (!isset($_POST['admin_password']) && !isset($_SESSION['admin_auth'])) {
 }
 
 if (isset($_POST['admin_password'])) {
-    if ($_POST['admin_password'] === $adminPassword) {
+    // 若未設定 ADMIN_PASSWORD，一律拒絕（fail closed）；密碼比對使用 hash_equals 防時序攻擊
+    if ($adminPassword !== '' && hash_equals($adminPassword, $_POST['admin_password'] ?? '')) {
         $_SESSION['admin_auth'] = true;
     } else {
         die('<script>alert("密碼錯誤！"); history.back();</script>');

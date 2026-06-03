@@ -42,8 +42,19 @@ $metaDescription = '瀏覽 ' . $dateFormatted . ' 所有心情日記，快速檢
                     <?php endif; ?>
                     
                     <?php if (!empty($diary['image_path']) && file_exists(PUBLIC_PATH . '/' . $diary['image_path'])): ?>
+                        <?php
+                        // 構建圖片 URL（與 detail.php / calendar.php 一致）
+                        $imagePath = $diary['image_path'];
+                        if (strpos($imagePath, 'http') === 0) {
+                            $imgUrl = $imagePath;
+                        } elseif (strpos($imagePath, 'public/') === 0) {
+                            $imgUrl = APP_URL . '/' . $imagePath;
+                        } else {
+                            $imgUrl = APP_URL . '/public/' . ltrim($imagePath, '/');
+                        }
+                        ?>
                         <div class="diary-image-preview">
-                            <img src="<?php echo htmlspecialchars($diary['image_path']); ?>" alt="日記配圖" />
+                            <img src="<?php echo htmlspecialchars($imgUrl); ?>" alt="日記配圖" />
                         </div>
                     <?php endif; ?>
                 </div>

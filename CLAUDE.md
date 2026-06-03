@@ -36,7 +36,7 @@ composer install
 - **Entry Point**: `index.php` redirects to `public/index.php`
 - **MVC Pattern**: Custom implementation with manual routing
 - **Database**: MySQL with PDO, no ORM
-- **AI Integration**: Adapter pattern for multiple AI services
+- **AI Integration**: Direct API calls from `DiaryController` (Replicate for images, DeepSeek for text)
 - **Session Management**: PHP sessions with database validation
 
 ### Key Directories
@@ -58,7 +58,7 @@ logs/              # Application and error logs
 Simple query-parameter based routing in `public/index.php`:
 - `?action=login` → AuthController::login()
 - `?action=dashboard` → DiaryController::dashboard()
-- `?action=api_generate_image` → AIController::generateImage()
+- `?action=generate_card_content` → DiaryController::generateCardContent() (async image + quote generation)
 
 ### Database Schema
 Core tables managed manually:
@@ -67,27 +67,24 @@ Core tables managed manually:
 - No migration system - schema changes require manual SQL
 
 ### AI Service Architecture
-Uses Adapter pattern for AI integration:
+AI calls are made directly from `DiaryController` via cURL (no adapter classes):
 
-**GeminiImageAdapter** (`app/models/GeminiImageAdapter.php`)
-- Google Vertex AI for image generation
-- Requires GCP service account JSON file
-- Primary image generation service
+**Image generation — Replicate**
+- Calls `https://api.replicate.com/v1/predictions` (see `DiaryController::callAIImageGeneration()`)
+- Model is pinned by a specific version hash in the request payload
+- Auth via `REPLICATE_API_KEY` env var
+- Flow: create prediction → poll until `succeeded` → download the resulting image to `public/storage/generated_images/`
 
-**GeminiTextAdapter** (`app/models/GeminiTextAdapter.php`)
-- Google Gemini for text generation and prompt optimization
-- Fallback text processing
-
-**PerplexityAdapter** (`app/models/PerplexityAdapter.php`)
-- Perplexity AI for quote generation and prompt optimization
-- Primary text generation service
+**Text / quote generation — DeepSeek**
+- Calls `https://api.deepseek.com/v1/chat/completions` (see `DiaryController::callAIQuoteGeneration()`)
+- Generates a short, poetic mood phrase from the diary content
+- Auth via `DEEPSEEK_API_KEY` env var
 
 ### Configuration Management
 Environment variables loaded from `.env` file via custom parser in `config.php`:
 - Database credentials (DB_HOST, DB_NAME, DB_USER, DB_PASS)
-- AI service keys (PERPLEXITY_API_KEY, GEMINI_API_KEY)
-- GCP configuration (GCP_PROJECT_ID, GCP_REGION)
-- Model configurations (GEMINI_TEXT_MODEL, etc.)
+- AI service keys (REPLICATE_API_KEY for images, DEEPSEEK_API_KEY for text)
+- Admin tooling (ADMIN_PASSWORD — must be set to use `public/image-resize.php`)
 
 ### Authentication Flow
 1. Session validation in `public/index.php` checks user existence in database
@@ -96,10 +93,10 @@ Environment variables loaded from `.env` file via custom parser in `config.php`:
 
 ### Image Generation Pipeline
 1. User writes diary entry
-2. **GeminiTextAdapter** optimizes prompt based on content and style
-3. **GeminiImageAdapter** generates image via Vertex AI
-4. Fallback: None (StabilityAI was removed)
-5. Images stored in `public/images/` directory
+2. `DiaryController::buildImagePrompt()` builds an English prompt from content, mood, and chosen style
+3. **Replicate** generates the image (model pinned by version hash), polled until complete
+4. **DeepSeek** generates a short mood phrase for the card back
+5. Generated images downloaded and stored in `public/storage/generated_images/`
 
 ### Error Handling and Logging
 - Custom `logMessage()` function writes to `/logs/` directory
@@ -110,8 +107,9 @@ Environment variables loaded from `.env` file via custom parser in `config.php`:
 ## Important Notes
 
 ### AI Service Dependencies
-- **Primary**: Google Vertex AI for images, Gemini for text, Perplexity for quotes
-- **Authentication**: GCP uses service account JSON file, others use API keys
+- **Images**: Replicate (model pinned by version hash) via `REPLICATE_API_KEY`
+- **Text/Quotes**: DeepSeek (`api.deepseek.com`) via `DEEPSEEK_API_KEY`
+- **Authentication**: Bearer API keys for both services
 - **Graceful Degradation**: Failed AI calls return null/empty rather than errors
 
 ### Database Considerations

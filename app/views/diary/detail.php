@@ -108,7 +108,7 @@ $aiGenerating = ($ai_generating ?? false);
                 <!-- 日期與心情標籤 -->
                 <div class="card-front-meta">
                     <span class="card-date"><?php echo $date->format('Y.m.d'); ?></span>
-                    <span class="card-mood-tag"><?php echo $mood; ?></span>
+                    <span class="card-mood-tag" role="img" aria-label="心情"><?php echo $mood; ?></span>
                 </div>
             </div>
             

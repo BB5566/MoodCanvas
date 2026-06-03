@@ -8,15 +8,15 @@ require_once BASE_PATH . '/app/views/layout/header.php';
 <div class="bento-grid dashboard-grid">
     <div class="bento-card" id="heatmap-container">
         <h3>📅 心情熱力圖 (年度)</h3>
-        <div id="heatmap"></div>
+        <div id="heatmap" role="img" aria-label="心情熱力圖"></div>
     </div>
     <div class="bento-card" id="mood-chart-container">
         <h3>📈 心情趨勢</h3>
-        <canvas id="mood-chart"></canvas>
+        <canvas id="mood-chart" role="img" aria-label="心情趨勢圖"></canvas>
     </div>
     <div class="bento-card" id="mood-wordcloud-container">
         <h3>☁️ 心情詞雲</h3>
-        <div id="wordcloud"></div>
+        <div id="wordcloud" role="img" aria-label="關鍵字文字雲"></div>
     </div>
     <div class="bento-card" id="ai-insights-container">
         <h3>🤖 AI 洞察</h3>
@@ -25,9 +25,9 @@ require_once BASE_PATH . '/app/views/layout/header.php';
 </div>
 
 <!-- 引入圖表和詞雲函式庫 -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1"></script>
 <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
-<script src="https://cdn.jsdelivr.net/npm/d3-cloud@1.2.5/build/d3.layout.cloud.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/d3-cloud@1.2.7/build/d3.layout.cloud.js"></script>
 
 
 <script>

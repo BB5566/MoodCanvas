@@ -67,7 +67,7 @@ class DiaryController
         $title = trim($_POST['title'] ?? '');
         $content = trim($_POST['content'] ?? '');
         $mood = $_POST['mood'] ?? '😊';
-        $diary_date = $_POST['diary_date'] ?? date('Y-m-d');
+        $diary_date = $this->validateDiaryDate($_POST['diary_date'] ?? null);
 
         if (empty($content)) {
             $this->showError('日記內容不能為空');
@@ -92,7 +92,7 @@ class DiaryController
             $this->showError('建立日記失敗，請稍後再試');
         } catch (Exception $e) {
             logMessage("建立日記失敗: " . $e->getMessage(), 'ERROR');
-            $this->showError('系統錯誤：' . $e->getMessage());
+            $this->showError('系統發生錯誤，請稍後再試');
         }
     }
 
@@ -190,8 +190,19 @@ class DiaryController
     // ============================================================
     public function delete()
     {
+        // 僅允許 POST，並驗證 CSRF token（與 saveDiary/edit 相同機制）
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->showError('刪除請求方式錯誤');
+            return;
+        }
+        $token = $_POST['csrf_token'] ?? '';
+        if (!verifyCsrfToken($token)) {
+            $this->showError('安全驗證失敗，請重新整理頁面');
+            return;
+        }
+
         $user_id = $_SESSION['user_id'] ?? 1;
-        $diary_id = $_GET['id'] ?? null;
+        $diary_id = $_GET['id'] ?? ($_POST['id'] ?? null);
 
         if (!$diary_id) {
             header('Location: index.php?action=home');
@@ -324,6 +335,41 @@ class DiaryController
         include BASE_PATH . '/app/views/diary/create.php';
     }
 
+    // ============================================================
+    // 內部：驗證日記日期（Y-m-d 格式、合理範圍）
+    // 不符合格式或超出範圍時回傳今日日期
+    // ============================================================
+    private function validateDiaryDate($input)
+    {
+        $today = date('Y-m-d');
+        if (empty($input) || !is_string($input)) {
+            return $today;
+        }
+
+        $dt = \DateTime::createFromFormat('Y-m-d', $input);
+        // 確認格式正確且為真實存在的日期（createFromFormat 會容許溢位，需再比對）
+        if (!$dt || $dt->format('Y-m-d') !== $input) {
+            return $today;
+        }
+
+        $year = (int)$dt->format('Y');
+        $month = (int)$dt->format('m');
+        $day = (int)$dt->format('d');
+        if (!checkdate($month, $day, $year)) {
+            return $today;
+        }
+
+        // 合理範圍：不早於 2000-01-01，不晚於今日 +1 天
+        $min = new \DateTime('2000-01-01');
+        $max = new \DateTime($today);
+        $max->modify('+1 day');
+        if ($dt < $min || $dt > $max) {
+            return $today;
+        }
+
+        return $input;
+    }
+
     private function showError($message, $emoji = '😅', $hint = '')
     {
         $error = $message;
@@ -413,7 +459,8 @@ class DiaryController
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_TIMEOUT => 30,
             CURLOPT_FOLLOWLOCATION => true,
-            CURLOPT_SSL_VERIFYPEER => false,
+            // 啟用 SSL 憑證驗證；若在 CA 憑證庫不完整的主機上下載失敗，這即是原因
+            CURLOPT_SSL_VERIFYPEER => true,
         ]);
         $imageData = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
