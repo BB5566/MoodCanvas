@@ -82,3 +82,4 @@ database/*.db
 !database/schema.sql
 !database/schema.sqlite.sql
 
+.DS_Store\n@eaDir\n*.sqlite\n.env\n/public/storage/generated_images/

@@ -553,122 +553,50 @@ textarea { resize: vertical; min-height: 100px; }
    RESPONSIVE
    ================================================================ */
 
-/* --- Tablet & Small Desktop (≤768px) --- */
 @media (max-width: 768px) {
   .glass-header { padding: 0.6rem 1rem; }
   .navbar-brand { font-size: 1.2rem; }
-  .navbar-nav { gap: 0.5rem; }
-  .nav-link { padding: 0.4rem 0.6rem; font-size: 0.85rem; }
-  .nav-user-greeting { font-size: 0.78rem; }
+  .navbar-nav { gap: 0.8rem; }
+  .nav-link { padding: 0.4rem 0.7rem; font-size: 0.85rem; }
+  .nav-user-greeting { font-size: 0.8rem; }
 
-  .main-container { padding: 0 0.8rem; margin: 1rem auto; }
-  .bento-card { padding: 1.2rem; }
+  .main-container { padding: 0 1rem; margin: 1rem auto; }
   .form-container { padding: 1.5rem; max-width: 100%; }
   .form-title { font-size: 1.4rem; }
-  .form-grid { grid-template-columns: 1fr; gap: 0.8rem; }
-  .form-group { margin-bottom: 1rem; }
-  .form-group label { font-size: 0.85rem; }
-  .form-group input, .form-group textarea, .form-group select { padding: 0.7rem 0.8rem; font-size: 0.9rem; }
+  .form-grid { grid-template-columns: 1fr; gap: 1rem; }
 
-  .diary-card-wrapper { max-width: 100%; padding: 0.3rem; }
-  .flip-card-inner { aspect-ratio: 3 / 4.5; min-height: 300px; }
-  .flip-card-back { padding: 1.2rem; }
+  .diary-card-wrapper { max-width: 100%; padding: 0.5rem; }
+  .flip-card-inner { aspect-ratio: 3 / 4.5; }
+  .flip-card-back { padding: 1.5rem; }
   .card-back-title { font-size: 1.2rem; }
   .card-back-diary { font-size: 0.9rem; }
   .card-emoji { font-size: 4rem; }
-  .flip-hint { font-size: 0.7rem; padding: 0.3rem 0.8rem; }
 
-  .diary-actions { flex-direction: column; align-items: center; gap: 0.6rem; }
-  .btn { padding: 0.6rem 1.2rem; font-size: 0.9rem; width: 100%; max-width: 280px; }
+  .diary-actions { flex-direction: column; align-items: center; gap: 0.8rem; }
+  .btn { padding: 0.6rem 1.2rem; font-size: 0.9rem; }
   .btn-lg { padding: 0.8rem 2rem; font-size: 1rem; }
 
-  /* Calendar */
-  .calendar th { font-size: 0.75rem; padding: 0.3rem 0; }
-  .calendar td { height: 60px; padding: 4px; }
-  .day-number { font-size: 0.75rem; top: 4px; left: 4px; }
-  .mood-emoji { font-size: 1.4rem; }
-  .add-diary-btn { font-size: 1.1rem; }
-  .bento-calendar { grid-column: span 12; }
-  .bento-sidebar { grid-column: span 12; }
-  .bento-sidebar .bento-card { padding: 1rem; }
-  .calendar-header h2 { font-size: 1.3rem; }
-
-  /* Date list */
-  .diary-list-ul li a { padding: 0.8rem 1rem; flex-wrap: wrap; }
-  .diary-list-title { font-size: 0.95rem; }
-  .diary-list-time { font-size: 0.8rem; }
-  .diary-image-container img, .diary-image { max-height: 200px; object-fit: cover; }
-
-  /* Auth */
-  .auth-container { padding: 1.5rem; max-width: 100%; }
-  .auth-container h2 { font-size: 1.3rem; }
-
-  /* Dashboard */
-  #mood-chart-container, #mood-wordcloud-container { grid-column: span 12; }
-
-  /* Edit page */
-  .art-style-details { padding: 0.8rem; }
-  .art-style-details summary { font-size: 0.85rem; }
+  .calendar th { font-size: 0.75rem; }
+  .calendar td { height: 70px; }
+  .day-number { font-size: 0.8rem; }
+  .mood-emoji { font-size: 1.5rem; }
+  .add-diary-btn { font-size: 1.2rem; }
 }
 
-/* --- Phone (≤480px) --- */
 @media (max-width: 480px) {
-  body { padding-top: 52px; }
-  .glass-header { padding: 0.4rem 0.6rem; }
-  .navbar { gap: 0.3rem; }
-  .navbar-brand { font-size: 0.95rem; }
-  .nav-link { padding: 0.3rem 0.5rem; font-size: 0.78rem; }
-  .nav-user-greeting { font-size: 0.72rem; }
+  body { padding-top: 60px; }
+  .glass-header { padding: 0.5rem 0.8rem; }
+  .navbar { flex-wrap: wrap; gap: 0.4rem; }
+  .navbar-brand { font-size: 1rem; }
+  .nav-link { padding: 0.3rem 0.5rem; font-size: 0.8rem; }
 
-  .main-container { padding: 0 0.5rem; margin: 0.8rem auto; }
-  .bento-card { padding: 1rem; border-radius: 10px; }
-  .form-container { padding: 0.8rem; }
-  .form-title { font-size: 1.15rem; margin-bottom: 1rem; }
-  .form-group { margin-bottom: 0.8rem; }
-  .form-group input, .form-group textarea, .form-group select { padding: 0.6rem 0.7rem; font-size: 0.85rem; }
+  .form-container { padding: 1rem; }
+  .form-title { font-size: 1.2rem; margin-bottom: 1.2rem; }
 
-  .flip-card-inner { aspect-ratio: 2 / 3; min-height: 260px; }
-  .flip-card-back { padding: 0.8rem; }
-  .card-back-title { font-size: 1.05rem; }
-  .card-back-diary { font-size: 0.82rem; line-height: 1.5; }
-  .card-back-quote blockquote { font-size: 0.82rem; }
-  .card-emoji { font-size: 2.8rem; }
-  .card-front-meta { top: 0.5rem; left: 0.5rem; right: 0.5rem; }
-  .card-date { font-size: 0.72rem; padding: 0.15rem 0.5rem; }
-  .card-mood-tag { font-size: 1.2rem; }
-
-  .diary-actions { gap: 0.5rem; }
-  .btn { padding: 0.55rem 1rem; font-size: 0.85rem; }
-  .btn-lg { padding: 0.7rem 1.5rem; font-size: 0.95rem; }
-
-  /* Calendar */
-  .calendar th { font-size: 0.65rem; }
-  .calendar td { height: 48px; padding: 2px; }
-  .day-number { font-size: 0.65rem; top: 2px; left: 2px; }
-  .mood-emoji { font-size: 1.1rem; }
-  .add-diary-btn { font-size: 0.9rem; }
-  .calendar-header h2 { font-size: 1.1rem; }
-  .calendar-nav { gap: 0.5rem; }
-  .nav-arrow { font-size: 1.5rem; }
-  .today-link { padding: 0.3rem 0.6rem; font-size: 0.78rem; }
-  .diary-entry { padding-top: 18px; }
-
-  /* Date list */
-  .diary-list-ul li a { padding: 0.6rem 0.8rem; }
-  .diary-list-title { font-size: 0.88rem; }
-  .diary-image-container img, .diary-image { max-height: 140px; }
-
-  /* Auth pages */
-  .auth-container { padding: 1rem; }
-  .auth-container h2 { font-size: 1.15rem; }
-
-  /* Charts */
-  #heatmap-container { min-height: 200px; }
-  #mood-chart-container, #mood-wordcloud-container { min-height: 200px; }
-
-  /* Art style details */
-  .art-style-details { padding: 0.6rem; margin: 0.8rem 0; }
-
-  /* Toast */
-  .toast { bottom: 1rem; padding: 0.6rem 1rem; font-size: 0.8rem; }
+  .flip-card-inner { aspect-ratio: 2 / 3; }
+  .flip-card-back { padding: 1rem; }
+  .card-back-title { font-size: 1.1rem; }
+  .card-back-diary { font-size: 0.85rem; line-height: 1.6; }
+  .card-back-quote blockquote { font-size: 0.85rem; }
+  .card-emoji { font-size: 3rem; }
 }
