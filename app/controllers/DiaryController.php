@@ -406,7 +406,7 @@ class DiaryController
     }
 
     // ============================================================
-    // 內部：AI 圖片生成（Replicate + 本地儲存）
+    // 內部：AI 圖片生成（Replicate Flux Schnell + 本地儲存）
     // ============================================================
     private function callAIImageGeneration($content, $style, $mood)
     {
@@ -423,13 +423,15 @@ class DiaryController
             CURLOPT_HTTPHEADER => [
                 'Authorization: Bearer ' . $apiKey,
                 'Content-Type: application/json',
+                'Prefer: wait',
             ],
             CURLOPT_POSTFIELDS => json_encode([
-                'version' => '19335492dbe879d4b5983bff2149f597db8314ccc7fe374e6313af7c2b52792f',
+                'version' => 'black-forest-labs/flux-schnell',
                 'input' => [
                     'prompt' => $prompt,
                     'aspect_ratio' => '1:1',
-                    'safety_filter_level' => 'block_medium_and_above',
+                    'num_outputs' => 1,
+                    'output_format' => 'jpg',
                 ],
             ]),
         ]);
@@ -454,7 +456,7 @@ class DiaryController
 
     private function pollReplicatePrediction($predictionId, $apiKey)
     {
-        for ($i = 0; $i < 30; $i++) {
+        for ($i = 0; $i < 15; $i++) {
             sleep(2);
             $ch = curl_init("https://api.replicate.com/v1/predictions/$predictionId");
             curl_setopt_array($ch, [
@@ -496,7 +498,7 @@ class DiaryController
             return null;
         }
 
-        $imageId = uniqid('img_') . '.png';
+        $imageId = uniqid('img_') . '.jpg';
         $dir = BASE_PATH . '/public/storage/generated_images/';
         if (!is_dir($dir)) mkdir($dir, 0755, true);
 
@@ -513,14 +515,13 @@ class DiaryController
     // ============================================================
     private function callAIQuoteGeneration($content, $mood)
     {
-        // 走 Pioneer API（OpenAI 相容）用 DeepSeek 模型
-        $apiKey = getenv('PIONEER_API_KEY');
-        if (empty($apiKey)) throw new Exception('PIONEER_API_KEY not configured');
+        $apiKey = getenv('DEEPSEEK_API_KEY');
+        if (empty($apiKey)) throw new Exception('DEEPSEEK_API_KEY not configured');
 
         $prompt = "請根據以下日記內容，生成一句溫暖、有詩意的心情短語（不超過 40 字）。\n\n"
                 . "日記內容：{$content}\n心情：{$mood}\n\n只需回傳短語本身，不要加任何說明。";
 
-        $ch = curl_init('https://api.pioneer.ai/v1/chat/completions');
+        $ch = curl_init('https://api.deepseek.com/v1/chat/completions');
         curl_setopt_array($ch, [
             CURLOPT_POST => true,
             CURLOPT_RETURNTRANSFER => true,
@@ -583,19 +584,18 @@ class DiaryController
     }
 
     // ============================================================
-    // 內部：呼叫 Pioneer（DeepSeek 模型）產生心情洞察
-    // 沿用語錄相同、已驗證可通的 Pioneer 設定
+    // 內部：呼叫 DeepSeek V4 Pro 產生心情洞察
     // ============================================================
     private function callAIInsightGeneration($summary)
     {
-        $apiKey = getenv('PIONEER_API_KEY');
-        if (empty($apiKey)) throw new Exception('PIONEER_API_KEY not configured');
+        $apiKey = getenv('DEEPSEEK_API_KEY');
+        if (empty($apiKey)) throw new Exception('DEEPSEEK_API_KEY not configured');
 
         $prompt = "你是一位溫暖的心理陪伴者。以下是使用者近期的心情日記摘要，"
                 . "請用繁體中文寫一段 2-3 句、溫暖且具洞察力的觀察與鼓勵（不超過 120 字），"
                 . "點出心情趨勢或值得留意的地方，語氣親切不說教。\n\n摘要：\n{$summary}\n\n只回傳觀察文字本身，不要加任何說明。";
 
-        $ch = curl_init('https://api.pioneer.ai/v1/chat/completions');
+        $ch = curl_init('https://api.deepseek.com/v1/chat/completions');
         curl_setopt_array($ch, [
             CURLOPT_POST => true,
             CURLOPT_RETURNTRANSFER => true,
