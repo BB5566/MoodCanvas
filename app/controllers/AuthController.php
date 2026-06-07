@@ -76,6 +76,7 @@ class AuthController {
                 $user = $this->userModel->findByUsername($username);
                 if ($user && password_verify($password, $user['password_hash'])) {
                     // 登入成功，設定 session
+                    session_regenerate_id(true); // 防止 Session Fixation
                     $_SESSION['user_id'] = $user['id'];
                     $_SESSION['username'] = $user['username'];
                     // 導向到日記主頁
@@ -111,8 +112,17 @@ class AuthController {
      */
     private function showError($message) {
         $_SESSION['error_message'] = $message;
-        // 簡單地導回登入頁面，可以根據情境做得更複雜
-        header('Location: ' . ($_SERVER['HTTP_REFERER'] ?? 'index.php?action=login'));
+        // 安全導回：驗證 Referer 是否為同站 URL，避免 Open Redirect
+        $referer = $_SERVER['HTTP_REFERER'] ?? '';
+        $allowed_host = $_SERVER['HTTP_HOST'] ?? '';
+        $fallback = 'index.php?action=login';
+        if (!empty($referer) && !empty($allowed_host)) {
+            $parsed = parse_url($referer);
+            if (isset($parsed['host']) && $parsed['host'] === $allowed_host) {
+                $fallback = $referer;
+            }
+        }
+        header('Location: ' . $fallback);
         exit;
     }
 }

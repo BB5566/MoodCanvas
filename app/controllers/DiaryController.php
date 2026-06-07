@@ -421,7 +421,7 @@ class DiaryController
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_TIMEOUT => 30,
             CURLOPT_HTTPHEADER => [
-                'Authorization: Bearer ' . $apiKey,
+                "Authorization: Bearer $apiKey",
                 'Content-Type: application/json',
                 'Prefer: wait',
             ],
@@ -462,7 +462,7 @@ class DiaryController
             curl_setopt_array($ch, [
                 CURLOPT_RETURNTRANSFER => true,
                 CURLOPT_TIMEOUT => 10,
-                CURLOPT_HTTPHEADER => ['Authorization: Bearer ' . $apiKey],
+                CURLOPT_HTTPHEADER => ["Authorization: Bearer $apiKey"],
             ]);
             $response = curl_exec($ch);
             curl_close($ch);
@@ -527,7 +527,7 @@ class DiaryController
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_TIMEOUT => 60,
             CURLOPT_HTTPHEADER => [
-                'Authorization: Bearer ' . $apiKey,
+                "Authorization: Bearer $apiKey",
                 'Content-Type: application/json',
             ],
             CURLOPT_POSTFIELDS => json_encode([
@@ -601,7 +601,7 @@ class DiaryController
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_TIMEOUT => 60,
             CURLOPT_HTTPHEADER => [
-                'Authorization: Bearer ' . $apiKey,
+                "Authorization: Bearer $apiKey",
                 'Content-Type: application/json',
             ],
             CURLOPT_POSTFIELDS => json_encode([
