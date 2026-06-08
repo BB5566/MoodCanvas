@@ -264,7 +264,9 @@ spl_autoload_register(function ($class) {
 function route($uri, $controller, $action = 'index')
 {
     $current_uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-    $base_path = '/project/MoodCanvas';
+    // 動態推導 base path：從 SCRIPT_NAME 取得專案根路徑
+    $base_path = dirname(dirname($_SERVER['SCRIPT_NAME']));
+    $base_path = rtrim(str_replace('\\', '/', $base_path), '/');
     $current_uri = str_replace($base_path, '', $current_uri);
     $current_uri = trim($current_uri, '/');
 

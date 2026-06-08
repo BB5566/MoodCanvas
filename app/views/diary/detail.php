@@ -3,40 +3,8 @@
 
 require_once BASE_PATH . '/app/views/layout/header.php';
 
-// 內嵌翻轉卡片關鍵 CSS（避免 Cloudflare 快取舊版）
+// 翻轉卡片 CSS 已在 style-v2.css 中定義（由 header.php 載入），此處不再重複
 $flipCSS = '20260603a'; ?>
-
-<style>
-/* Critical Flip Card CSS — inline to bypass Cloudflare cache */
-.flip-card{perspective:1200px;-webkit-perspective:1200px;cursor:pointer;outline:none;-webkit-tap-highlight-color:transparent;margin-bottom:2rem}
-.flip-card:focus-visible{outline:3px solid var(--color-accent);outline-offset:4px;border-radius:var(--border-radius-lg)}
-.flip-card-inner{position:relative;width:100%;aspect-ratio:3/4;min-height:360px;transition:transform 0.7s cubic-bezier(0.4,0,0.2,1);transform-style:preserve-3d;-webkit-transform-style:preserve-3d;will-change:transform}
-.flip-card-inner.flipped{transform:rotateY(180deg);-webkit-transform:rotateY(180deg)}
-.flip-card-front,.flip-card-back{position:absolute;top:0;left:0;width:100%;height:100%;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:var(--border-radius-lg);overflow:hidden;box-shadow:var(--shadow-card)}
-.flip-card-front{background:linear-gradient(135deg,#e8ecef 0%,#d5dbe0 100%);display:flex;align-items:center;justify-content:center}
-.flip-card-back{transform:rotateY(180deg);-webkit-transform:rotateY(180deg);background:var(--color-surface);display:flex;flex-direction:column;padding:2rem;overflow-y:auto}
-.card-image{width:100%;height:100%;object-fit:cover;display:block}
-.card-emoji-fallback{display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;height:100%;background:linear-gradient(135deg,#f0ebe3 0%,#e8e0d5 100%)}
-.card-emoji{font-size:6rem;line-height:1;filter:drop-shadow(0 4px 8px rgba(0,0,0,0.1));animation:float 3s ease-in-out infinite}
-@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
-.flip-hint{position:absolute;bottom:1rem;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.45);color:#fff;padding:0.4rem 1rem;border-radius:20px;font-size:0.8rem;opacity:0;transition:opacity 0.3s;pointer-events:none;backdrop-filter:blur(4px)}
-.flip-card:hover .flip-hint,.flip-card:focus-visible .flip-hint{opacity:1}
-.card-front-meta{position:absolute;top:1rem;left:1rem;right:1rem;display:flex;justify-content:space-between;align-items:center}
-.card-date{font-size:0.85rem;color:#fff;background:rgba(0,0,0,0.4);padding:0.2rem 0.7rem;border-radius:12px;backdrop-filter:blur(4px)}
-.card-mood-tag{font-size:1.5rem;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3))}
-.card-back-content{flex:1;display:flex;flex-direction:column;gap:1rem}
-.card-back-title{font-size:1.4rem;font-weight:600;color:var(--color-text-primary);line-height:1.4}
-.card-back-date{font-size:0.85rem;color:var(--color-text-muted)}
-.card-back-diary{flex:1;font-size:0.95rem;line-height:1.8;color:var(--color-text-primary);white-space:pre-wrap;overflow-y:auto}
-.card-back-quote{margin-top:auto;padding-top:1rem}
-.quote-divider{width:40px;height:2px;background:var(--color-accent);margin-bottom:1rem}
-.card-back-quote blockquote{border-left:3px solid var(--color-accent);padding-left:1rem;margin:0;font-style:italic;color:var(--color-text-secondary);font-size:0.95rem;line-height:1.6}
-.ai-generating-badge{display:flex;align-items:center;gap:0.5rem;margin-top:1.5rem;padding:0.6rem 1.2rem;background:rgba(255,255,255,0.85);border-radius:20px;font-size:0.85rem;color:var(--color-text-secondary);box-shadow:var(--shadow-subtle);transition:opacity 0.8s}
-.diary-card-wrapper{max-width:560px;margin:0 auto;padding:1rem}
-.diary-actions{display:flex;justify-content:center;gap:1rem;margin-top:1rem;flex-wrap:wrap}
-@media(max-width:768px){.flip-card-inner{aspect-ratio:3/4.5;min-height:300px}.flip-card-back{padding:1.2rem}.card-back-title{font-size:1.2rem}.card-back-diary{font-size:0.9rem}.card-emoji{font-size:4rem}.diary-actions{flex-direction:column;align-items:center;gap:0.6rem}.btn{width:100%;max-width:280px}}
-@media(max-width:480px){.flip-card-inner{aspect-ratio:2/3;min-height:260px}.flip-card-back{padding:0.8rem}.card-back-title{font-size:1.05rem}.card-back-diary{font-size:0.82rem;line-height:1.5}.card-back-quote blockquote{font-size:0.82rem}.card-emoji{font-size:2.8rem}}
-</style>
 
 <?php
 

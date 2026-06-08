@@ -15,7 +15,7 @@ function setSecurityHeaders() {
     }
 }
 
-// 速率限制
+// 速率限制 (使用檔案 + LOCK_EX 避免 race condition)
 function checkRateLimit($ip = null) {
     if (!defined('RATE_LIMIT_ENABLED') || !RATE_LIMIT_ENABLED) {
         return true;
@@ -30,28 +30,48 @@ function checkRateLimit($ip = null) {
     $cache_file = LOG_PATH . '/rate_limit_' . md5($ip) . '.txt';
     
     $current_time = time();
-    $requests = [];
+    $window = 3600; // 1 小時視窗
+    $max_requests = 100;
     
-    // 讀取現有請求記錄
+    // 使用 LOCK_EX 避免 race condition
+    $requests = [];
     if (file_exists($cache_file)) {
-        $content = file_get_contents($cache_file);
-        $requests = $content ? explode("\n", trim($content)) : [];
+        $fh = fopen($cache_file, 'r');
+        if ($fh && flock($fh, LOCK_SH)) {
+            $content = stream_get_contents($fh);
+            flock($fh, LOCK_UN);
+            fclose($fh);
+            $requests = $content ? explode("\n", trim($content)) : [];
+        } elseif ($fh) {
+            fclose($fh);
+        }
     }
     
-    // 清除一小時前的記錄
-    $requests = array_filter($requests, function($timestamp) use ($current_time) {
-        return ($current_time - (int)$timestamp) < 3600; // 1小時
-    });
+    // 清除視窗外的舊記錄
+    $cutoff = $current_time - $window;
+    $requests = array_values(array_filter($requests, function($timestamp) use ($cutoff) {
+        return ((int)$timestamp) > $cutoff;
+    }));
     
-    // 檢查是否超過限制 (每小時100次請求)
-    if (count($requests) >= 100) {
+    // 檢查是否超過限制
+    if (count($requests) >= $max_requests) {
         http_response_code(429);
+        header('Retry-After: ' . ($requests[0] + $window - $current_time));
         die('Too Many Requests. Please try again later.');
     }
     
-    // 記錄當前請求
+    // 記錄當前請求 (LOCK_EX 寫入)
     $requests[] = $current_time;
-    file_put_contents($cache_file, implode("\n", $requests));
+    $fh = fopen($cache_file, 'c');
+    if ($fh && flock($fh, LOCK_EX)) {
+        ftruncate($fh, 0);
+        fwrite($fh, implode("\n", $requests));
+        fflush($fh);
+        flock($fh, LOCK_UN);
+        fclose($fh);
+    } elseif ($fh) {
+        fclose($fh);
+    }
     
     return true;
 }
