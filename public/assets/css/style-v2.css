@@ -1,7 +1,5 @@
 /* public/assets/css/style.css */
-
-/* --- Google Fonts --- */
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Inter:wght@300;400;500;600;700&display=swap');
+/* 字體改由 header.php 以 <link rel="preconnect"> + stylesheet 載入，避免 @import 阻塞渲染 */
 
 /* --- CSS Variables --- */
 :root {
