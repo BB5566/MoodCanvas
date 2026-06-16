@@ -81,6 +81,13 @@ class DiaryController
             $title = '無標題日記';
         }
 
+        // 一天只能一篇：該日期已有日記則導向編輯既有日記，不再新增
+        $existing = $this->diaryModel->getDiariesByDate($user_id, $diary_date);
+        if (!empty($existing)) {
+            header('Location: ' . APP_URL . '/public/index.php?action=diary_edit&id=' . $existing[0]['id'] . '&notice=date_exists');
+            exit;
+        }
+
         try {
             $diary_id = $this->diaryModel->create($user_id, $title, $content, $mood, $diary_date, null, null);
 
@@ -236,6 +243,13 @@ class DiaryController
             return;
         }
 
+        // 一天只能一篇：該日期已有日記則回傳既有日記 id，不再新增
+        $existing = $this->diaryModel->getDiariesByDate($user_id, $diary_date);
+        if (!empty($existing)) {
+            echo json_encode(['success' => false, 'message' => '該日期已有日記', 'existing_id' => $existing[0]['id']]);
+            return;
+        }
+
         try {
             $diary_id = $this->diaryModel->create(
                 $user_id,
@@ -355,6 +369,14 @@ class DiaryController
     // ============================================================
     private function showCreateForm()
     {
+        // 一天只能一篇：若指定日期已有日記，直接導向編輯既有日記
+        $user_id = $_SESSION['user_id'] ?? 1;
+        $requestedDate = $_GET['date'] ?? date('Y-m-d');
+        $existing = $this->diaryModel->getDiariesByDate($user_id, $requestedDate);
+        if (!empty($existing)) {
+            header('Location: ' . APP_URL . '/public/index.php?action=diary_edit&id=' . $existing[0]['id'] . '&notice=date_exists');
+            exit;
+        }
         $pageTitle = '新增日記';
         include BASE_PATH . '/app/views/diary/create.php';
     }

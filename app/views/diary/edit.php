@@ -9,7 +9,10 @@ $metaDescription = '修改你的心情日記';
 
 <div class="bento-card form-container">
     <h2 class="form-title">✏️ 編輯日記</h2>
-    
+
+    <?php if (($_GET['notice'] ?? '') === 'date_exists'): ?>
+        <div class="alert alert-success">該日期已經有一篇日記了，一天只能寫一篇，已為你開啟編輯。</div>
+    <?php endif; ?>
     <?php if (isset($error)): ?>
         <div class="alert alert-error"><?php echo htmlspecialchars($error); ?></div>
     <?php endif; ?>
