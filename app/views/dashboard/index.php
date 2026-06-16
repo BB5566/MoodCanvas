@@ -59,9 +59,10 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // 心情顏色對應
+// 無印大地色情緒漸層：低落=暖陶土 → 中性=暖砂 → 平靜=鼠尾草（1:差 -> 5:優）
 const moodColor = d3.scaleLinear()
     .domain([1, 2, 3, 4, 5])
-    .range(["#e74c3c", "#f39c12", "#f1c40f", "#2ecc71", "#3498db"]); // 1:差 -> 5:優
+    .range(["#C2746A", "#C99E6E", "#C7BE8E", "#A3AC98", "#8A9480"]);
 
 /**
  * 生成心情熱力圖 (D3.js)
@@ -116,7 +117,7 @@ function generateHeatmap(data) {
             .text(d => `${d}: 心情 ${dataByDate.get(d)}`);
             
         rect.filter(d => !dataByDate.has(d))
-            .style("fill", "#efefef")
+            .style("fill", "#E6DFD2")
             .append("title")
             .text(d => `${d}: 無紀錄`);
     }
@@ -141,9 +142,9 @@ function generateMoodChart(data) {
                 label: '心情分數',
                 data: scores,
                 fill: true,
-                borderColor: 'rgba(52, 152, 219, 0.8)',
-                backgroundColor: 'rgba(52, 152, 219, 0.1)',
-                tension: 0.3,
+                borderColor: 'rgba(138, 148, 128, 0.9)',
+                backgroundColor: 'rgba(138, 148, 128, 0.12)',
+                tension: 0.35,
                 pointBackgroundColor: scores.map(score => moodColor(score)),
                 pointRadius: 4,
                 pointHoverRadius: 7,
@@ -188,6 +189,8 @@ function generateMoodChart(data) {
 function generateWordCloud(data) {
     const container = d3.select("#wordcloud");
     if (container.empty() || !container.node().getBoundingClientRect) return;
+    // 無印大地色盤（取代鮮豔的 schemeCategory10）
+    const muji = ['#8A9480', '#B79B7C', '#6F7A66', '#C2746A', '#A3AC98', '#9C8E78', '#C99E6E', '#75866F'];
 
     const text = data.map(d => d.content + " " + (d.tags ? d.tags.join(" ") : "")).join(" ");
     
@@ -236,7 +239,7 @@ function generateWordCloud(data) {
             .enter().append("text")
             .style("font-size", d => d.size + "px")
             .style("font-family", "'Noto Sans TC', sans-serif")
-            .style("fill", (d, i) => d3.schemeCategory10[i % 10])
+            .style("fill", (d, i) => muji[i % muji.length])
             .attr("text-anchor", "middle")
             .attr("transform", d => `translate(${d.x}, ${d.y})rotate(${d.rotate})`)
             .text(d => d.text);

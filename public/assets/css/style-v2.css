@@ -151,6 +151,11 @@ body {
   display: flex; flex-direction: column;
   justify-content: center; align-items: center; text-align: center;
 }
+/* 手機/平板：心情趨勢與詞雲改整欄堆疊，避免半寬擠壓 */
+@media (max-width: 991px) {
+  #mood-chart-container,
+  #mood-wordcloud-container { grid-column: span 12; }
+}
 
 .bento-card h3 {
   font-family: var(--font-display);
