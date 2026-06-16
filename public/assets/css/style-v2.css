@@ -6,27 +6,29 @@
 /* --- CSS Variables --- */
 :root {
   --font-main: 'Noto Sans TC', 'Inter', sans-serif;
-  --color-background: #F8F8F8;
+  --color-background: #F6F4F1; /* 暖白：心情日記的溫潤底色 */
   --color-surface: #FFFFFF;
-  --color-text-primary: #333333;
-  --color-text-secondary: #666666;
-  --color-text-muted: #999999;
-  --color-border-light: #EEEEEE;
-  --color-border-medium: #DDDDDD;
+  --color-text-primary: #2E2A26; /* 暖黑，比純灰更柔和 */
+  --color-text-secondary: #6B645C;
+  --color-text-muted: #9C948A;
+  --color-border-light: #ECE7E0; /* 暖色淺邊框 */
+  --color-border-medium: #DBD4C9;
   --color-accent: #8B9A89;
   --color-accent-light: #A0B09E;
-  --color-accent-dark: #7A8B78;
+  --color-accent-dark: #75866F;
   --color-primary-btn: #6B7A8F;
   --color-primary-btn-dark: #5A6B7E;
   --color-danger: #E57373;
   --color-success: #81C784;
-  --shadow-subtle: 0 2px 8px rgba(0, 0, 0, 0.05);
-  --shadow-medium: 0 4px 15px rgba(0, 0, 0, 0.08);
-  --shadow-card: 0 8px 30px rgba(0, 0, 0, 0.12);
-  --border-radius-lg: 16px;
-  --border-radius-md: 8px;
-  --border-radius-sm: 4px;
+  /* 暖色調陰影，比純黑更自然柔和 */
+  --shadow-subtle: 0 2px 10px rgba(74, 60, 46, 0.06);
+  --shadow-medium: 0 8px 24px rgba(74, 60, 46, 0.10);
+  --shadow-card: 0 16px 48px rgba(74, 60, 46, 0.13);
+  --border-radius-lg: 18px;
+  --border-radius-md: 10px;
+  --border-radius-sm: 6px;
   --transition-speed: 0.2s;
+  --ease-soft: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 /* --- Base --- */
@@ -36,6 +38,11 @@ html { scroll-behavior: smooth; }
 body {
   font-family: var(--font-main);
   background-color: var(--color-background);
+  /* 頂部一抹淡淡的香料金 + 沙綠暈染，增加層次、不再扁平 */
+  background-image:
+    radial-gradient(900px 500px at 85% -8%, rgba(225, 193, 110, 0.10), transparent 60%),
+    radial-gradient(1000px 600px at 12% 0%, rgba(139, 154, 137, 0.10), transparent 55%);
+  background-attachment: fixed;
   color: var(--color-text-primary);
   line-height: 1.6;
   min-height: 100vh;
@@ -43,10 +50,12 @@ body {
   padding-top: 80px;
 }
 
-/* --- Header --- */
+/* --- Header（名副其實的毛玻璃）--- */
 .glass-header {
   position: fixed; top: 0; left: 0; width: 100%; z-index: 1000;
-  background-color: var(--color-surface);
+  background-color: rgba(255, 255, 255, 0.72);
+  backdrop-filter: saturate(180%) blur(14px);
+  -webkit-backdrop-filter: saturate(180%) blur(14px);
   border-bottom: 1px solid var(--color-border-light);
   box-shadow: var(--shadow-subtle);
   padding: 0.8rem 2rem;
@@ -90,9 +99,12 @@ body {
   box-shadow: var(--shadow-subtle);
   transition: transform var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
 }
+.bento-card {
+  transition: transform var(--transition-speed) var(--ease-soft), box-shadow var(--transition-speed) var(--ease-soft);
+}
 .bento-card:hover {
-  transform: translateY(-3px);
-  box-shadow: var(--shadow-medium);
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-card);
 }
 
 .bento-grid {
@@ -128,24 +140,26 @@ body {
   gap: 0.5rem;
 }
 
+.btn:active { transform: translateY(0) scale(0.98); }
+
 .btn-primary {
-  background-color: var(--color-primary-btn);
+  background-image: linear-gradient(180deg, #7787a0 0%, var(--color-primary-btn) 100%);
   color: white;
 }
 .btn-primary:hover {
-  background-color: var(--color-primary-btn-dark);
+  background-image: linear-gradient(180deg, var(--color-primary-btn) 0%, var(--color-primary-btn-dark) 100%);
   transform: translateY(-2px);
-  box-shadow: var(--shadow-subtle);
+  box-shadow: var(--shadow-medium);
 }
 
 .btn-secondary {
-  background-color: var(--color-accent);
+  background-image: linear-gradient(180deg, var(--color-accent-light) 0%, var(--color-accent) 100%);
   color: white;
 }
 .btn-secondary:hover {
-  background-color: var(--color-accent-dark);
+  background-image: linear-gradient(180deg, var(--color-accent) 0%, var(--color-accent-dark) 100%);
   transform: translateY(-2px);
-  box-shadow: var(--shadow-subtle);
+  box-shadow: var(--shadow-medium);
 }
 
 .btn-tertiary {
@@ -169,7 +183,7 @@ body {
 
 /* --- Form Styles --- */
 .form-container { max-width: 640px; margin: 2rem auto; padding: 2.5rem; }
-.form-title { text-align: center; font-size: 1.8rem; font-weight: 600; color: var(--color-text-primary); margin-bottom: 2rem; }
+.form-title { text-align: center; font-size: 1.9rem; font-weight: 700; color: var(--color-text-primary); margin-bottom: 2rem; letter-spacing: -0.02em; }
 
 .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
 .form-group { margin-bottom: 1.2rem; }
