@@ -11,8 +11,18 @@ require_once __DIR__ . '/../config/security.php';
 setSecurityHeaders();
 
 if (!isset($_SESSION['user_id'])) {
-    $_SESSION['user_id'] = 1;
-    $_SESSION['username'] = 'guest';
+    // 免登陸試用：為每位訪客建立獨立的 guest 帳號，資料彼此隔離，
+    // 不會看到或刪除其他訪客的日記
+    $guestId = (new \App\Models\User())->createGuest();
+    if ($guestId) {
+        $_SESSION['user_id'] = (int) $guestId;
+        $_SESSION['username'] = 'guest_' . $guestId;
+        $_SESSION['is_guest'] = true;
+    } else {
+        // 建立失敗的後援，仍可讓站台運作
+        $_SESSION['user_id'] = 1;
+        $_SESSION['username'] = 'guest';
+    }
 }
 
 use App\Controllers\AuthController;

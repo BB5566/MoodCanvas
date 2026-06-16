@@ -60,6 +60,22 @@ class User {
     }
     
     /**
+     * 建立一個獨立的訪客帳號（免登陸試用用）
+     * 每位訪客有自己的 user_id，資料彼此隔離，不會互相看到或刪除
+     * @return int|false 新訪客的 id，失敗回 false
+     */
+    public function createGuest() {
+        try {
+            $username = 'guest_' . bin2hex(random_bytes(6));
+            $password = bin2hex(random_bytes(16)); // 訪客不需登入，密碼僅為滿足 NOT NULL
+            return $this->create($username, $password);
+        } catch (Exception $e) {
+            error_log("Failed to create guest user: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
      * 獲取所有用戶 (管理員功能)
      */
     public function getAllUsers($limit = 100, $offset = 0) {
