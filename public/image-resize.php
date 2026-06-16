@@ -45,8 +45,8 @@ if (isset($_GET['logout'])) {
     exit;
 }
 
-// 開啟錯誤顯示以便調試
-ini_set('display_errors', 1);
+// 生產環境不顯示錯誤，避免洩漏伺服器絕對路徑；錯誤改寫入 log
+ini_set('display_errors', 0);
 error_reporting(E_ALL);
 
 echo "<h1>圖片縮小工具</h1>";

@@ -5,7 +5,8 @@
 // 基本安全標頭
 function setSecurityHeaders() {
     header('X-Content-Type-Options: nosniff');
-    header('X-Frame-Options: DENY');
+    // SAMEORIGIN：仍防跨站點擊劫持，但允許同源（portfolio）嵌入展示
+    header('X-Frame-Options: SAMEORIGIN');
     header('X-XSS-Protection: 1; mode=block');
     header('Referrer-Policy: strict-origin-when-cross-origin');
     

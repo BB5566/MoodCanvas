@@ -4,6 +4,11 @@
 
 require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../config/autoloader.php';
+require_once __DIR__ . '/../config/security.php';
+
+// 啟用基本安全標頭（nosniff / X-Frame-Options / Referrer-Policy / HSTS）
+// 註：不啟用 initSecurity 的速率限制與可疑活動偵測，避免 NAS 反向代理下誤擋
+setSecurityHeaders();
 
 if (!isset($_SESSION['user_id'])) {
     $_SESSION['user_id'] = 1;
