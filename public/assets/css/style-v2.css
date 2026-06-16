@@ -524,6 +524,17 @@ textarea { resize: vertical; min-height: 100px; }
   display: flex; flex-direction: column; justify-content: center; align-items: center;
   cursor: pointer; border-radius: var(--border-radius-md);
   text-decoration: none; color: inherit; z-index: 1; padding-top: 25px;
+  overflow: hidden; /* 防止日記縮圖溢出月曆格 */
+}
+/* 日記縮圖：填滿月曆格、裁切置中，避免 AI 生成的原始大圖撐爆版面 */
+.diary-thumb {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  border-radius: var(--border-radius-md);
 }
 .diary-entry:hover { background: rgba(0, 0, 0, 0.02); }
 .mood-emoji { font-size: 2.5rem; transition: transform var(--transition-speed) ease; }
