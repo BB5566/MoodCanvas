@@ -3,30 +3,63 @@
 
 /* --- CSS Variables --- */
 :root {
+  /* 編輯/美術館調性：襯線展示字 + 無襯線內文 */
   --font-main: 'Noto Sans TC', 'Inter', sans-serif;
-  --color-background: #F6F4F1; /* 暖白：心情日記的溫潤底色 */
-  --color-surface: #FFFFFF;
-  --color-text-primary: #2E2A26; /* 暖黑，比純灰更柔和 */
-  --color-text-secondary: #6B645C;
-  --color-text-muted: #9C948A;
-  --color-border-light: #ECE7E0; /* 暖色淺邊框 */
-  --color-border-medium: #DBD4C9;
-  --color-accent: #8B9A89;
-  --color-accent-light: #A0B09E;
-  --color-accent-dark: #75866F;
-  --color-primary-btn: #6B7A8F;
-  --color-primary-btn-dark: #5A6B7E;
-  --color-danger: #E57373;
-  --color-success: #81C784;
-  /* 暖色調陰影，比純黑更自然柔和 */
-  --shadow-subtle: 0 2px 10px rgba(74, 60, 46, 0.06);
-  --shadow-medium: 0 8px 24px rgba(74, 60, 46, 0.10);
-  --shadow-card: 0 16px 48px rgba(74, 60, 46, 0.13);
-  --border-radius-lg: 18px;
-  --border-radius-md: 10px;
-  --border-radius-sm: 6px;
-  --transition-speed: 0.2s;
+  --font-display: 'Playfair Display', 'Noto Serif TC', Georgia, serif;
+  --font-serif: 'Noto Serif TC', 'Playfair Display', serif;
+
+  /* 暖紙色系 */
+  --color-background: #F4F0E8; /* 紙感暖米白 */
+  --color-surface: #FFFDFA;    /* 帶一點暖的「畫布白」 */
+  --color-text-primary: #2A2521; /* 墨色 */
+  --color-text-secondary: #6A6258;
+  --color-text-muted: #A39A8C;
+  --color-border-light: #E7E0D4; /* 細緻暖邊框 */
+  --color-border-medium: #D6CDBE;
+  --color-ink: #2A2521;
+
+  /* 單一沉穩主色（鼠尾草綠）+ 畫框暖陶點綴 */
+  --color-accent: #7E8B73;
+  --color-accent-light: #97A38C;
+  --color-accent-dark: #66735C;
+  --color-clay: #B08968; /* 畫框/裱褙暖陶色 */
+  --color-primary-btn: #3A352F; /* 編輯風：墨色實心 CTA */
+  --color-primary-btn-dark: #2A2521;
+  --color-danger: #C76B5E;
+  --color-success: #7E9B6E;
+
+  /* 美術館式的克制陰影 */
+  --shadow-subtle: 0 1px 2px rgba(60, 48, 36, 0.04), 0 8px 24px rgba(60, 48, 36, 0.05);
+  --shadow-medium: 0 2px 4px rgba(60, 48, 36, 0.05), 0 14px 40px rgba(60, 48, 36, 0.08);
+  --shadow-card: 0 4px 8px rgba(60, 48, 36, 0.06), 0 24px 60px rgba(60, 48, 36, 0.10);
+  --border-radius-lg: 14px;
+  --border-radius-md: 8px;
+  --border-radius-sm: 4px;
+  --transition-speed: 0.25s;
   --ease-soft: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* 編輯風通用：襯線大標題 + 小寫字距標籤 */
+.display-title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--color-ink);
+  line-height: 1.15;
+}
+.eyebrow {
+  font-family: var(--font-main);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--color-accent-dark);
+}
+.rule {
+  height: 1px;
+  background: var(--color-border-medium);
+  border: 0;
+  margin: 1.5rem 0;
 }
 
 /* --- Base --- */
@@ -36,16 +69,14 @@ html { scroll-behavior: smooth; }
 body {
   font-family: var(--font-main);
   background-color: var(--color-background);
-  /* 頂部一抹淡淡的香料金 + 沙綠暈染，增加層次、不再扁平 */
-  background-image:
-    radial-gradient(900px 500px at 85% -8%, rgba(225, 193, 110, 0.10), transparent 60%),
-    radial-gradient(1000px 600px at 12% 0%, rgba(139, 154, 137, 0.10), transparent 55%);
+  /* 極淡的暖紙暈染，保持美術館式乾淨不扁平 */
+  background-image: radial-gradient(1200px 720px at 50% -18%, rgba(176, 137, 104, 0.055), transparent 62%);
   background-attachment: fixed;
   color: var(--color-text-primary);
-  line-height: 1.6;
+  line-height: 1.7;
   min-height: 100vh;
   overflow-x: hidden;
-  padding-top: 80px;
+  padding-top: 84px;
 }
 
 /* --- Header（名副其實的毛玻璃）--- */
@@ -65,9 +96,10 @@ body {
 }
 
 .navbar-brand {
+  font-family: var(--font-display);
   font-size: 1.5rem; font-weight: 600;
-  color: var(--color-text-primary); text-decoration: none;
-  letter-spacing: 0.2px;
+  color: var(--color-ink); text-decoration: none;
+  letter-spacing: 0;
 }
 
 .navbar-nav { list-style: none; display: flex; gap: 1.5rem; align-items: center; }
@@ -93,16 +125,13 @@ body {
   background-color: var(--color-surface);
   border: 1px solid var(--color-border-light);
   border-radius: var(--border-radius-lg);
-  padding: 2rem;
+  padding: 2.25rem;
   box-shadow: var(--shadow-subtle);
-  transition: transform var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
-}
-.bento-card {
   transition: transform var(--transition-speed) var(--ease-soft), box-shadow var(--transition-speed) var(--ease-soft);
 }
 .bento-card:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-card);
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-medium);
 }
 
 .bento-grid {
@@ -122,9 +151,11 @@ body {
 }
 
 .bento-card h3 {
-  font-size: 1.4rem; font-weight: 500;
-  color: var(--color-text-primary); margin-bottom: 1.2rem;
-  padding-bottom: 0.8rem; border-bottom: 1px solid var(--color-border-light);
+  font-family: var(--font-display);
+  font-size: 1.5rem; font-weight: 600;
+  color: var(--color-ink); margin-bottom: 1.4rem;
+  padding-bottom: 1rem; border-bottom: 1px solid var(--color-border-light);
+  letter-spacing: -0.01em;
 }
 
 /* --- Buttons --- */
@@ -141,21 +172,24 @@ body {
 .btn:active { transform: translateY(0) scale(0.98); }
 
 .btn-primary {
-  background-image: linear-gradient(180deg, #7787a0 0%, var(--color-primary-btn) 100%);
-  color: white;
+  background-color: var(--color-primary-btn);
+  color: #F4F0E8;
+  border-color: var(--color-primary-btn);
+  letter-spacing: 0.02em;
 }
 .btn-primary:hover {
-  background-image: linear-gradient(180deg, var(--color-primary-btn) 0%, var(--color-primary-btn-dark) 100%);
+  background-color: var(--color-primary-btn-dark);
   transform: translateY(-2px);
   box-shadow: var(--shadow-medium);
 }
 
 .btn-secondary {
-  background-image: linear-gradient(180deg, var(--color-accent-light) 0%, var(--color-accent) 100%);
-  color: white;
+  background-color: var(--color-accent);
+  color: #FFFDFA;
+  border-color: var(--color-accent);
 }
 .btn-secondary:hover {
-  background-image: linear-gradient(180deg, var(--color-accent) 0%, var(--color-accent-dark) 100%);
+  background-color: var(--color-accent-dark);
   transform: translateY(-2px);
   box-shadow: var(--shadow-medium);
 }
@@ -513,7 +547,10 @@ textarea { resize: vertical; min-height: 100px; }
   display: flex; justify-content: space-between; align-items: center;
   margin-bottom: 1.5rem; padding: 0 0.5rem;
 }
-.calendar-header h2 { color: var(--color-text-primary); font-weight: 600; margin: 0; font-size: 1.7rem; }
+.calendar-header h2 {
+  font-family: var(--font-display); color: var(--color-ink); font-weight: 600;
+  margin: 0; font-size: 2rem; letter-spacing: -0.01em;
+}
 .calendar-nav { display: flex; align-items: center; gap: 1rem; }
 
 .nav-arrow {
@@ -521,6 +558,51 @@ textarea { resize: vertical; min-height: 100px; }
   text-decoration: none; transition: color var(--transition-speed) ease, transform var(--transition-speed) ease;
 }
 .nav-arrow:hover { color: var(--color-accent); transform: scale(1.1); }
+
+/* ===== 側欄統計（編輯式：大襯線數字 + 字距標籤）===== */
+.stats-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+}
+.stat-item { text-align: center; padding: 0.25rem 0.5rem; position: relative; }
+.stat-item + .stat-item::before {
+  content: ''; position: absolute; left: 0; top: 12%; bottom: 12%;
+  width: 1px; background: var(--color-border-light);
+}
+.stat-number {
+  font-family: var(--font-display); font-size: 2.4rem; font-weight: 600;
+  color: var(--color-ink); line-height: 1.1; letter-spacing: -0.02em;
+}
+.stat-label {
+  margin-top: 0.4rem; font-size: 0.7rem; font-weight: 600;
+  letter-spacing: 0.16em; text-transform: uppercase; color: var(--color-text-muted);
+}
+
+/* ===== 心情分佈 ===== */
+.mood-distribution { display: flex; flex-direction: column; gap: 1rem; }
+.mood-item { display: flex; align-items: center; gap: 0.9rem; }
+.mood-emoji-large { font-size: 1.6rem; line-height: 1; flex-shrink: 0; }
+.mood-info { flex: 1; display: flex; flex-direction: column; gap: 0.35rem; }
+.mood-count { font-size: 0.8rem; color: var(--color-text-secondary); letter-spacing: 0.02em; }
+.mood-bar { height: 6px; background: var(--color-border-light); border-radius: 999px; overflow: hidden; }
+.mood-fill {
+  height: 100%; border-radius: 999px;
+  background: linear-gradient(90deg, var(--color-accent-light), var(--color-accent));
+}
+
+/* ===== 快速操作 ===== */
+.quick-actions { display: flex; flex-direction: column; gap: 0.75rem; }
+.quick-btn {
+  display: inline-flex; align-items: center; gap: 0.6rem;
+  padding: 0.7rem 1rem; border-radius: var(--border-radius-md);
+  border: 1px solid var(--color-border-medium); background: transparent;
+  color: var(--color-text-primary); text-decoration: none; font-weight: 500;
+  transition: all var(--transition-speed) var(--ease-soft);
+}
+.quick-btn:hover {
+  border-color: var(--color-accent); color: var(--color-accent-dark);
+  background: rgba(126, 139, 115, 0.06); transform: translateY(-2px);
+}
+.quick-btn-icon { font-size: 1.05rem; }
 
 .today-link {
   background-color: var(--color-border-light);
