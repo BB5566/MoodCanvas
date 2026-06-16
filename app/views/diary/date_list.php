@@ -165,16 +165,29 @@ $metaDescription = '瀏覽 ' . $dateFormatted . ' 所有心情日記，快速檢
     font-size: 0.9rem;
 }
 
+/* 拍立得白框照片 */
 .diary-image-preview {
-    margin-top: 1rem;
+    margin-top: 1.25rem;
+    display: inline-block;
+    background: var(--color-surface);
+    padding: 10px 10px 28px;
+    border-radius: 3px;
+    box-shadow: var(--shadow-polaroid);
+    transform: rotate(-1.5deg);
+    transition: transform var(--transition-speed) var(--ease-soft), box-shadow var(--transition-speed) var(--ease-soft);
 }
-
+.diary-image-preview:hover {
+    transform: rotate(0deg) translateY(-3px);
+    box-shadow: 0 8px 20px rgba(70, 58, 44, 0.2);
+}
 .diary-image-preview img {
-    width: 100%;
-    max-width: 200px;
-    height: auto;
-    border-radius: var(--border-radius-md);
-    box-shadow: var(--shadow-subtle);
+    display: block;
+    width: 200px;
+    max-width: 60vw;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 2px;
+    box-shadow: none;
 }
 
 .diary-card-actions {
