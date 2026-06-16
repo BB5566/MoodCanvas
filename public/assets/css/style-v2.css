@@ -3,57 +3,59 @@
 
 /* --- CSS Variables --- */
 :root {
-  /* 編輯/美術館調性：襯線展示字 + 無襯線內文 */
-  --font-main: 'Noto Sans TC', 'Inter', sans-serif;
-  --font-display: 'Playfair Display', 'Noto Serif TC', Georgia, serif;
-  --font-serif: 'Noto Serif TC', 'Playfair Display', serif;
+  /* 無印良品 / 日系文青：乾淨日系黑體 + 手寫感點綴 */
+  --font-main: 'Zen Kaku Gothic New', 'Noto Sans TC', 'Inter', sans-serif;
+  --font-display: 'Zen Kaku Gothic New', 'Noto Sans TC', sans-serif;
+  --font-hand: 'Klee One', 'Noto Sans TC', cursive; /* 文青手寫感（拍立得說明）*/
 
-  /* 暖紙色系 */
-  --color-background: #F4F0E8; /* 紙感暖米白 */
-  --color-surface: #FFFDFA;    /* 帶一點暖的「畫布白」 */
-  --color-text-primary: #2A2521; /* 墨色 */
-  --color-text-secondary: #6A6258;
-  --color-text-muted: #A39A8C;
-  --color-border-light: #E7E0D4; /* 細緻暖邊框 */
-  --color-border-medium: #D6CDBE;
-  --color-ink: #2A2521;
+  /* 牛皮紙暖色系（無印質感）*/
+  --color-background: #EDE7DC; /* 牛皮紙暖底 */
+  --color-surface: #FAF6EF;    /* 暖紙白，非純白 */
+  --color-text-primary: #3D3833; /* 柔和深褐灰，非純黑 */
+  --color-text-secondary: #6E665C;
+  --color-text-muted: #A69D8F;
+  --color-border-light: #E2D9CB; /* 暖色細邊 */
+  --color-border-medium: #D2C7B5;
+  --color-ink: #3D3833;
 
-  /* 單一沉穩主色（鼠尾草綠）+ 畫框暖陶點綴 */
-  --color-accent: #7E8B73;
-  --color-accent-light: #97A38C;
-  --color-accent-dark: #66735C;
-  --color-clay: #B08968; /* 畫框/裱褙暖陶色 */
-  --color-primary-btn: #3A352F; /* 編輯風：墨色實心 CTA */
-  --color-primary-btn-dark: #2A2521;
-  --color-danger: #C76B5E;
-  --color-success: #7E9B6E;
+  /* 克制的自然色：霧感鼠尾草 + 牛皮陶 */
+  --color-accent: #8A9480;
+  --color-accent-light: #A3AC98;
+  --color-accent-dark: #6F7A66;
+  --color-clay: #B79B7C; /* 牛皮/陶土點綴 */
+  --color-primary-btn: #4A443C; /* 無印：低調炭褐實心 */
+  --color-primary-btn-dark: #36312B;
+  --color-danger: #C77B6E;
+  --color-success: #8AA078;
 
-  /* 美術館式的克制陰影 */
-  --shadow-subtle: 0 1px 2px rgba(60, 48, 36, 0.04), 0 8px 24px rgba(60, 48, 36, 0.05);
-  --shadow-medium: 0 2px 4px rgba(60, 48, 36, 0.05), 0 14px 40px rgba(60, 48, 36, 0.08);
-  --shadow-card: 0 4px 8px rgba(60, 48, 36, 0.06), 0 24px 60px rgba(60, 48, 36, 0.10);
-  --border-radius-lg: 14px;
-  --border-radius-md: 8px;
-  --border-radius-sm: 4px;
+  /* 無印式幾乎無感的柔陰影 */
+  --shadow-subtle: 0 1px 2px rgba(70, 58, 44, 0.04), 0 6px 18px rgba(70, 58, 44, 0.04);
+  --shadow-medium: 0 2px 4px rgba(70, 58, 44, 0.05), 0 12px 30px rgba(70, 58, 44, 0.06);
+  --shadow-card: 0 3px 6px rgba(70, 58, 44, 0.05), 0 18px 44px rgba(70, 58, 44, 0.08);
+  /* 拍立得照片陰影（自然立體）*/
+  --shadow-polaroid: 0 1px 1px rgba(70, 58, 44, 0.10), 0 10px 22px rgba(70, 58, 44, 0.14);
+  --border-radius-lg: 10px;
+  --border-radius-md: 6px;
+  --border-radius-sm: 3px;
   --transition-speed: 0.25s;
   --ease-soft: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-/* 編輯風通用：襯線大標題 + 小寫字距標籤 */
+/* 無印通用：乾淨日系大標題（細、留白、字距）+ 字距小標籤 */
 .display-title {
   font-family: var(--font-display);
-  font-weight: 600;
-  letter-spacing: -0.01em;
+  font-weight: 500;
+  letter-spacing: 0.02em;
   color: var(--color-ink);
-  line-height: 1.15;
+  line-height: 1.3;
 }
 .eyebrow {
   font-family: var(--font-main);
-  font-size: 0.72rem;
-  font-weight: 600;
-  letter-spacing: 0.22em;
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.28em;
   text-transform: uppercase;
-  color: var(--color-accent-dark);
+  color: var(--color-text-muted);
 }
 .rule {
   height: 1px;
@@ -152,10 +154,10 @@ body {
 
 .bento-card h3 {
   font-family: var(--font-display);
-  font-size: 1.5rem; font-weight: 600;
+  font-size: 1.25rem; font-weight: 500;
   color: var(--color-ink); margin-bottom: 1.4rem;
   padding-bottom: 1rem; border-bottom: 1px solid var(--color-border-light);
-  letter-spacing: -0.01em;
+  letter-spacing: 0.04em;
 }
 
 /* --- Buttons --- */
@@ -215,7 +217,7 @@ body {
 
 /* --- Form Styles --- */
 .form-container { max-width: 640px; margin: 2rem auto; padding: 2.5rem; }
-.form-title { text-align: center; font-size: 1.9rem; font-weight: 700; color: var(--color-text-primary); margin-bottom: 2rem; letter-spacing: -0.02em; }
+.form-title { text-align: center; font-size: 1.55rem; font-weight: 500; color: var(--color-text-primary); margin-bottom: 2rem; letter-spacing: 0.05em; }
 
 .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
 .form-group { margin-bottom: 1.2rem; }
@@ -389,12 +391,26 @@ textarea { resize: vertical; min-height: 100px; }
   box-shadow: var(--shadow-card);
 }
 
-/* --- 正面 (圖片) --- */
+/* --- 正面：拍立得白框照片 --- */
 .flip-card-front {
-  background: linear-gradient(135deg, #e8ecef 0%, #d5dbe0 100%);
+  background: var(--color-surface);
+  padding: 14px 14px 0;
   display: flex;
-  align-items: center;
-  justify-content: center;
+  flex-direction: column;
+  box-shadow: var(--shadow-polaroid);
+}
+.polaroid-photo {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  border-radius: 2px;
+  background: #e6e1d8;
+  position: relative;
+}
+.polaroid-caption {
+  height: 58px;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 4px;
 }
 
 .card-image {
@@ -452,21 +468,15 @@ textarea { resize: vertical; min-height: 100px; }
   opacity: 1;
 }
 
-/* 正面日期/心情標籤 */
-.card-front-meta {
-  position: absolute; top: 1rem; left: 1rem; right: 1rem;
-  display: flex; justify-content: space-between;
-  align-items: center;
-}
-
+/* 拍立得下方手寫感說明 */
 .card-date {
-  font-size: 0.85rem; color: white;
-  background: rgba(0,0,0,0.4); padding: 0.2rem 0.7rem;
-  border-radius: 12px; backdrop-filter: blur(4px);
+  font-family: var(--font-hand);
+  font-size: 1.15rem; color: var(--color-text-secondary);
+  letter-spacing: 0.06em;
 }
 
 .card-mood-tag {
-  font-size: 1.5rem; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+  font-size: 1.6rem; line-height: 1;
 }
 
 /* --- 背面 (內容) --- */
@@ -548,8 +558,8 @@ textarea { resize: vertical; min-height: 100px; }
   margin-bottom: 1.5rem; padding: 0 0.5rem;
 }
 .calendar-header h2 {
-  font-family: var(--font-display); color: var(--color-ink); font-weight: 600;
-  margin: 0; font-size: 2rem; letter-spacing: -0.01em;
+  font-family: var(--font-display); color: var(--color-ink); font-weight: 500;
+  margin: 0; font-size: 1.8rem; letter-spacing: 0.05em;
 }
 .calendar-nav { display: flex; align-items: center; gap: 1rem; }
 

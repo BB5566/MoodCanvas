@@ -48,35 +48,37 @@ $aiGenerating = ($ai_generating ?? false);
     <div class="flip-card" id="flip-card">
         <div class="flip-card-inner" id="flip-card-inner">
             
-            <!-- 正面：圖片 / Emoji -->
+            <!-- 正面：拍立得照片（圖片 / Emoji）-->
             <div class="flip-card-front" id="card-front">
-                <?php if ($hasImage): ?>
-                    <img src="<?php echo htmlspecialchars($imageUrl, ENT_QUOTES); ?>"
-                         alt="AI 生成圖片"
-                         class="card-image"
-                         loading="lazy"
-                         onerror="this.parentElement.innerHTML='<div class=\'card-emoji-fallback\'><?php echo $mood; ?></div>'">
-                <?php else: ?>
-                    <div class="card-emoji-fallback" id="card-emoji">
-                        <span class="card-emoji"><?php echo $mood; ?></span>
-                        <?php if ($aiGenerating): ?>
-                            <div class="ai-generating-badge">
-                                <div class="loading-spinner-small"></div>
-                                <span>AI 正在創作...</span>
-                            </div>
-                        <?php endif; ?>
-                    </div>
-                <?php endif; ?>
-                
+                <div class="polaroid-photo">
+                    <?php if ($hasImage): ?>
+                        <img src="<?php echo htmlspecialchars($imageUrl, ENT_QUOTES); ?>"
+                             alt="AI 生成圖片"
+                             class="card-image"
+                             loading="lazy"
+                             onerror="this.parentElement.innerHTML='<div class=\'card-emoji-fallback\'><?php echo $mood; ?></div>'">
+                    <?php else: ?>
+                        <div class="card-emoji-fallback" id="card-emoji">
+                            <span class="card-emoji"><?php echo $mood; ?></span>
+                            <?php if ($aiGenerating): ?>
+                                <div class="ai-generating-badge">
+                                    <div class="loading-spinner-small"></div>
+                                    <span>AI 正在創作...</span>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                    <?php endif; ?>
+                </div>
+
+                <!-- 拍立得下方手寫感說明 -->
+                <div class="polaroid-caption">
+                    <span class="card-date"><?php echo $date->format('Y . m . d'); ?></span>
+                    <span class="card-mood-tag" role="img" aria-label="心情"><?php echo $mood; ?></span>
+                </div>
+
                 <!-- 翻轉提示 -->
                 <div class="flip-hint">
                     <span>點擊翻轉 ↻</span>
-                </div>
-                
-                <!-- 日期與心情標籤 -->
-                <div class="card-front-meta">
-                    <span class="card-date"><?php echo $date->format('Y.m.d'); ?></span>
-                    <span class="card-mood-tag" role="img" aria-label="心情"><?php echo $mood; ?></span>
                 </div>
             </div>
             
