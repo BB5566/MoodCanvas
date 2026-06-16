@@ -274,6 +274,11 @@ textarea { resize: vertical; min-height: 100px; }
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
+/* 日記詳情頁 AI 圖片/短語載入後的淡入（原本引用但未定義，動畫靜默失效）*/
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
 /* dashboard AI 洞察等狀態用到的 class */
 .spinner {
   border: 3px solid var(--color-border-light);

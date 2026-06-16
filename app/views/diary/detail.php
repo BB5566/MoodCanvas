@@ -51,8 +51,8 @@ $aiGenerating = ($ai_generating ?? false);
             <!-- 正面：圖片 / Emoji -->
             <div class="flip-card-front" id="card-front">
                 <?php if ($hasImage): ?>
-                    <img src="<?php echo $imageUrl; ?>" 
-                         alt="AI 生成圖片" 
+                    <img src="<?php echo htmlspecialchars($imageUrl, ENT_QUOTES); ?>"
+                         alt="AI 生成圖片"
                          class="card-image"
                          loading="lazy"
                          onerror="this.parentElement.innerHTML='<div class=\'card-emoji-fallback\'><?php echo $mood; ?></div>'">
