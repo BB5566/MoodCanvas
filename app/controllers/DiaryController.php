@@ -272,6 +272,9 @@ class DiaryController
     public function generateCardContent()
     {
         header('Content-Type: application/json');
+        // AI 串接耗時，放寬執行時間並忽略使用者中斷，避免被 max_execution_time 截斷成非法 JSON
+        @set_time_limit(0);
+        ignore_user_abort(true);
 
         $diary_id = $_GET['id'] ?? ($_POST['diary_id'] ?? null);
         if (!$diary_id) {
@@ -299,6 +302,9 @@ class DiaryController
         $mood = $diary['mood'] ?? '😊';
         $style = $_SESSION['diary_art_style'] ?? 'random';
         unset($_SESSION['diary_art_style']);
+
+        // 釋放 session 鎖：後續 AI 工作可能耗時數十秒，期間不應阻塞使用者的其他請求
+        session_write_close();
 
         $results = ['success' => true, 'image_url' => null, 'quote' => null];
 
@@ -467,6 +473,14 @@ class DiaryController
         }
 
         $data = json_decode($response, true);
+
+        // Prefer: wait 多半已同步完成，先檢查首次回應，避免白白進入 poll 又多睡 2 秒
+        if (($data['status'] ?? '') === 'succeeded') {
+            $output = $data['output'] ?? null;
+            $immediateUrl = is_array($output) ? ($output[0] ?? null) : $output;
+            if ($immediateUrl) return $this->downloadImage($immediateUrl);
+        }
+
         $predictionId = $data['id'] ?? null;
         if (!$predictionId) throw new Exception('No prediction ID');
 
@@ -479,7 +493,6 @@ class DiaryController
     private function pollReplicatePrediction($predictionId, $apiKey)
     {
         for ($i = 0; $i < 15; $i++) {
-            sleep(2);
             $ch = curl_init("https://api.replicate.com/v1/predictions/$predictionId");
             curl_setopt_array($ch, [
                 CURLOPT_RETURNTRANSFER => true,
@@ -496,6 +509,7 @@ class DiaryController
                 return is_array($output) ? ($output[0] ?? null) : $output;
             }
             if (in_array($status, ['failed', 'canceled'])) return null;
+            sleep(2); // 查詢之後再等待，避免每輪都先睡造成不必要延遲
         }
         return null;
     }
