@@ -265,7 +265,7 @@ body {
 textarea { resize: vertical; min-height: 100px; }
 
 .optional-tag { font-weight: 300; color: var(--color-text-muted); font-size: 0.8rem; margin-left: 0.3rem; }
-.required-star { color: #e57373; }
+.required-star { color: var(--color-danger); }
 
 .char-count { text-align: right; color: var(--color-text-muted); font-size: 0.85rem; margin-top: 0.3rem; }
 
@@ -455,7 +455,7 @@ textarea { resize: vertical; min-height: 100px; }
 .flip-hint {
   position: absolute; bottom: 1rem; left: 50%;
   transform: translateX(-50%);
-  background: rgba(0,0,0,0.45); color: white;
+  background: rgba(61, 56, 51, 0.6); color: var(--color-surface);
   padding: 0.4rem 1rem; border-radius: 20px;
   font-size: 0.8rem; letter-spacing: 0.5px;
   opacity: 0; transition: opacity 0.3s ease;
@@ -497,9 +497,10 @@ textarea { resize: vertical; min-height: 100px; }
 }
 
 .card-back-title {
-  font-size: 1.4rem; font-weight: 600;
-  color: var(--color-text-primary);
-  line-height: 1.4;
+  font-family: var(--font-display);
+  font-size: 1.35rem; font-weight: 500;
+  color: var(--color-ink);
+  line-height: 1.5; letter-spacing: 0.02em;
 }
 
 .card-back-date {
@@ -529,8 +530,9 @@ textarea { resize: vertical; min-height: 100px; }
 .card-back-quote blockquote {
   border-left: 3px solid var(--color-accent);
   padding-left: 1rem; margin: 0;
-  font-style: italic; color: var(--color-text-secondary);
-  font-size: 0.95rem; line-height: 1.6;
+  font-family: var(--font-hand);
+  color: var(--color-text-secondary);
+  font-size: 1.05rem; line-height: 1.7;
 }
 
 .quote-loading {
