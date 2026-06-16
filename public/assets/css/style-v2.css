@@ -274,6 +274,16 @@ textarea { resize: vertical; min-height: 100px; }
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
+/* dashboard AI 洞察等狀態用到的 class */
+.spinner {
+  border: 3px solid var(--color-border-light);
+  border-top: 3px solid var(--color-accent);
+  border-radius: 50%; width: 20px; height: 20px;
+  animation: spin 1s linear infinite;
+  display: inline-block; vertical-align: middle; margin-left: 0.5rem;
+}
+.placeholder-text { color: var(--color-text-muted); text-align: center; padding: 1.5rem 0; }
+.error-message { color: var(--color-danger); }
 
 /* ================================================================
    3D FLIP CARD — 核心翻轉卡片
@@ -545,8 +555,16 @@ textarea { resize: vertical; min-height: 100px; }
 
 /* --- Alerts --- */
 .alert { padding: 0.8rem 1rem; border-radius: var(--border-radius-md); margin-bottom: 1rem; }
-.alert-error { background: #fdecea; border: 1px solid #f5c6cb; color: #721c24; }
+.alert-error,
+.alert-danger { background: #fdecea; border: 1px solid #f5c6cb; color: #721c24; }
 .alert-success { background: #e8f5e9; border: 1px solid #c8e6c9; color: #2e7d32; }
+.alert-info { background: #eaf4fb; border: 1px solid #b6daf2; color: #1c5a7a; }
+
+/* --- 表單/通用工具 class（補齊 auth 等頁面使用到的）--- */
+.btn-block { display: block; width: 100%; }
+.text-center { text-align: center; }
+.mt-3 { margin-top: 1rem; }
+.sub-heading { color: var(--color-text-muted); margin-top: -0.5rem; }
 
 /* --- Toast --- */
 .toast {

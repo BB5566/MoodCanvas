@@ -81,7 +81,7 @@ $metaDescription = '瀏覽 ' . $dateFormatted . ' 所有心情日記，快速檢
 }
 
 .date-list-header h1 {
-    color: var(--text-primary);
+    color: var(--color-text-primary);
     font-size: 2rem;
     margin: 0;
 }
@@ -92,17 +92,17 @@ $metaDescription = '瀏覽 ' . $dateFormatted . ' 所有心情日記，快速檢
 }
 
 .diary-card {
-    background: var(--glass-bg);
-    border: var(--glass-border);
+    background: var(--color-surface);
+    border: var(--color-border-light);
     border-radius: var(--border-radius-lg);
-    backdrop-filter: var(--backdrop-blur);
+    backdrop-filter: 10px;
     padding: 1.5rem;
     transition: all 0.3s ease;
 }
 
 .diary-card:hover {
     transform: translateY(-5px);
-    box-shadow: var(--shadow-strong);
+    box-shadow: var(--shadow-card);
     background: rgba(255, 255, 255, 0.15);
 }
 
@@ -122,13 +122,13 @@ $metaDescription = '瀏覽 ' . $dateFormatted . ' 所有心情日記，快速檢
 
 .diary-meta h3 {
     flex-grow: 1;
-    color: var(--text-primary);
+    color: var(--color-text-primary);
     margin: 0;
     font-size: 1.3rem;
 }
 
 .diary-time {
-    color: var(--text-secondary);
+    color: var(--color-text-secondary);
     font-size: 0.9rem;
     background: rgba(255, 255, 255, 0.1);
     padding: 0.3rem 0.8rem;
@@ -140,27 +140,27 @@ $metaDescription = '瀏覽 ' . $dateFormatted . ' 所有心情日記，快速檢
 }
 
 .diary-card-content p {
-    color: var(--text-primary);
+    color: var(--color-text-primary);
     line-height: 1.6;
     margin-bottom: 1rem;
 }
 
 .ai-insight {
     background: rgba(77, 208, 225, 0.1);
-    border-left: 3px solid var(--accent-color);
+    border-left: 3px solid var(--color-accent);
     padding: 1rem;
     border-radius: var(--border-radius-sm);
     margin-top: 1rem;
 }
 
 .ai-insight strong {
-    color: var(--accent-color);
+    color: var(--color-accent);
     display: block;
     margin-bottom: 0.5rem;
 }
 
 .ai-insight p {
-    color: var(--text-secondary);
+    color: var(--color-text-secondary);
     margin: 0;
     font-size: 0.9rem;
 }
@@ -174,7 +174,7 @@ $metaDescription = '瀏覽 ' . $dateFormatted . ' 所有心情日記，快速檢
     max-width: 200px;
     height: auto;
     border-radius: var(--border-radius-md);
-    box-shadow: var(--shadow-light);
+    box-shadow: var(--shadow-subtle);
 }
 
 .diary-card-actions {
@@ -194,18 +194,18 @@ $metaDescription = '瀏覽 ' . $dateFormatted . ' 所有心情日記，快速檢
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, var(--color-primary), var(--accent-color));
+    background: linear-gradient(135deg, var(--color-primary-btn), var(--color-accent));
     color: white;
 }
 
 .btn-primary:hover {
     transform: translateY(-2px);
-    box-shadow: var(--shadow-light);
+    box-shadow: var(--shadow-subtle);
 }
 
 .btn-secondary {
     background: rgba(255, 255, 255, 0.1);
-    color: var(--text-primary);
+    color: var(--color-text-primary);
     border: 1px solid rgba(255, 255, 255, 0.3);
 }
 

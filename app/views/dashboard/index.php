@@ -269,12 +269,12 @@ async function fetchAIInsight(diaries) {
         const result = await response.json();
 
         if (result.success) {
-            // Typing effect
+            // Typing effect（用 textContent 累加，避免 AI 回傳內容含 HTML 造成 XSS / 顯示錯亂）
             let i = 0;
-            insightContainer.innerHTML = "";
+            insightContainer.textContent = "";
             function typeWriter() {
                 if (i < result.insight.length) {
-                    insightContainer.innerHTML += result.insight.charAt(i);
+                    insightContainer.textContent += result.insight.charAt(i);
                     i++;
                     setTimeout(typeWriter, 20); // 調整打字速度
                 }

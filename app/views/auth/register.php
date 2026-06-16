@@ -1,13 +1,15 @@
 <?php
 require_once __DIR__ . '/../../../config/config.php';
-require_once BASE_PATH . '/app/views/layout/header.php';
 
+// 先設定頁面 meta，再引入頁首（header 會輸出 <title>/description）
 $pageTitle = '註冊';
 $metaDescription = '註冊 MoodCanvas，立即擁有專屬帳號，體驗 AI 日記、心情日曆與智慧插畫功能。';
+
+require_once BASE_PATH . '/app/views/layout/header.php';
 ?>
 
-<div class="container card">
-    <h2 class="text-center">建立您的 MoodCanvas 帳戶</h2>
+<div class="bento-card form-container">
+    <h2 class="form-title">建立您的 MoodCanvas 帳戶</h2>
     <p class="text-center sub-heading">記錄心情，生成專屬您的 AI 畫作</p>
 
     <?php if (isset($_GET['error'])): ?>
