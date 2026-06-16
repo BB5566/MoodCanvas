@@ -544,13 +544,14 @@ textarea { resize: vertical; min-height: 100px; }
   margin-top: 1rem; flex-wrap: wrap;
 }
 
-/* --- Calendar Styles (keep existing) --- */
+/* --- Calendar Styles（手機優先：預設整欄堆疊，桌面才 8/4 分欄）--- */
 .bento-calendar { grid-column: span 12; }
+.bento-sidebar { grid-column: span 12; display: flex; flex-direction: column; gap: 20px; }
 @media (min-width: 992px) {
   .bento-calendar { grid-column: span 8; }
-  .bento-sidebar { grid-column: span 4; display: flex; flex-direction: column; gap: 20px; }
+  .bento-sidebar { grid-column: span 4; }
 }
-.bento-sidebar .bento-card { flex-grow: 1; }
+.bento-sidebar .bento-card { flex-grow: 0; }
 
 .calendar-container { height: 100%; display: flex; flex-direction: column; }
 .calendar-header {
@@ -726,6 +727,12 @@ textarea { resize: vertical; min-height: 100px; }
   .day-number { font-size: 0.8rem; }
   .mood-emoji { font-size: 1.5rem; }
   .add-diary-btn { font-size: 1.2rem; }
+  /* 小格子：縮小拍立得內縮，避免照片變成細長條 */
+  .diary-thumb {
+    top: 17px; left: 3px; right: 3px; bottom: 3px;
+    width: calc(100% - 6px); height: calc(100% - 20px);
+    border-width: 2px;
+  }
 }
 
 @media (max-width: 480px) {
