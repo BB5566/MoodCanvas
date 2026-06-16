@@ -570,6 +570,42 @@ textarea { resize: vertical; min-height: 100px; }
 }
 .bento-sidebar .bento-card { flex-grow: 0; }
 
+/* 空狀態歡迎（當月無日記）*/
+.empty-welcome {
+  display: flex; align-items: center; gap: 1.25rem;
+  margin: 0 0 1.5rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--border-radius-lg);
+  padding: 1.5rem 1.75rem;
+  box-shadow: var(--shadow-subtle);
+}
+.empty-welcome__mark {
+  flex-shrink: 0;
+  width: 56px; height: 56px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-hand); font-size: 1.9rem;
+  color: var(--color-accent-dark);
+  background: rgba(138, 148, 128, 0.12);
+  border-radius: 50%;
+}
+.empty-welcome__title {
+  font-family: var(--font-display);
+  font-size: 1.15rem; font-weight: 500; color: var(--color-ink);
+  letter-spacing: 0.02em; margin: 0 0 0.3rem;
+}
+.empty-welcome__sub {
+  font-size: 0.92rem; color: var(--color-text-secondary);
+  margin: 0; line-height: 1.65;
+}
+.empty-welcome__sub strong { color: var(--color-accent-dark); font-weight: 600; }
+@media (max-width: 600px) {
+  .empty-welcome { padding: 1.1rem 1.25rem; gap: 1rem; }
+  .empty-welcome__mark { width: 46px; height: 46px; font-size: 1.6rem; }
+  .empty-welcome__title { font-size: 1.05rem; }
+  .empty-welcome__sub { font-size: 0.85rem; }
+}
+
 .calendar-container { height: 100%; display: flex; flex-direction: column; }
 .calendar-header {
   display: flex; justify-content: space-between; align-items: center;

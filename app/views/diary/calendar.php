@@ -66,6 +66,16 @@ if (isset($diaries)) {
     </div>
 <?php endif; ?>
 
+<?php if (($totalDiaries ?? 0) === 0): ?>
+    <div class="empty-welcome">
+        <span class="empty-welcome__mark">✎</span>
+        <div class="empty-welcome__text">
+            <p class="empty-welcome__title">這個月，還是空白的一頁</p>
+            <p class="empty-welcome__sub">點任一天的 <strong>＋</strong>，寫下第一篇心情，讓 AI 為你沖洗一張屬於今天的拍立得。</p>
+        </div>
+    </div>
+<?php endif; ?>
+
 <div class="bento-grid">
     <!-- 日曆主區域 -->
     <div class="bento-card bento-calendar">
