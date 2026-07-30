@@ -12,9 +12,13 @@ require_once BASE_PATH . '/app/views/layout/header.php';
     <h2 class="form-title">建立您的 MoodCanvas 帳戶</h2>
     <p class="text-center sub-heading">記錄心情，生成專屬您的 AI 畫作</p>
 
+    <?php if (!empty($_SESSION['error_message'])): ?>
+        <div class="alert alert-danger"><?php echo htmlspecialchars($_SESSION['error_message']); ?></div>
+    <?php unset($_SESSION['error_message']); endif; ?>
+
     <?php if (isset($_GET['error'])): ?>
         <div class="alert alert-danger">
-            <?php 
+            <?php
                 // 將錯誤碼轉換為使用者友善的訊息
                 $errorMessages = [
                     'missing_fields' => '請填寫所有必填欄位。',
@@ -31,6 +35,7 @@ require_once BASE_PATH . '/app/views/layout/header.php';
     <?php endif; ?>
 
     <form action="index.php?action=register" method="POST" autocomplete="off">
+        <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(generateCsrfToken()); ?>">
         <div class="form-group">
             <label for="username">使用者名稱 <span style="color:#f55;">*</span></label>
             <input type="text" id="username" name="username" class="form-control" required maxlength="30" aria-label="使用者名稱，必填，最多30字">

@@ -2,13 +2,37 @@
 // public/index.php — MoodCanvas v3
 // 簡潔路由，CSRF 驗證，編輯功能
 
+// 1) 全域錯誤處理器：最早載入，涵蓋後續所有階段的錯誤／例外
+require_once __DIR__ . '/../app/helpers/error_handler.php';
+
+// 2) 工作階段安全設定（Fix 1）：須在 session_start() 之前呼叫；
+//    session_start() 實際於下方 config.php 內執行，會套用此處參數。
+//    注意：secure=true 代表 cookie 僅透過 HTTPS 傳送（正式環境所需）；
+//    本機以 HTTP (php -S) 開發時需暫時改為 false，否則 session 不會生效。
+session_set_cookie_params([
+    'httponly' => true,
+    'secure'   => true,
+    'samesite' => 'Strict',
+    'lifetime' => 86400,
+]);
+session_name('__Secure-MoodCanvas-SID');
+
 require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../config/autoloader.php';
 require_once __DIR__ . '/../config/security.php';
 
+// 3) 安全輔助層（CSRF / 輸入驗證 / 速率限制）
+require_once __DIR__ . '/../app/helpers/csrf.php';
+require_once __DIR__ . '/../app/helpers/validator.php';
+require_once __DIR__ . '/../app/helpers/rate_limiter.php';
+
 // 啟用基本安全標頭（nosniff / X-Frame-Options / Referrer-Policy / HSTS）
-// 註：不啟用 initSecurity 的速率限制與可疑活動偵測，避免 NAS 反向代理下誤擋
+// 註：不啟用 initSecurity 的可疑活動偵測，避免 NAS 反向代理下誤擋
 setSecurityHeaders();
+
+// 速率限制（Fix 6）：每 60 秒最多 30 次請求，超過回傳 429。
+// 此為獨立於 security.php（已停用之 100/hr）的較嚴格限制；採 X-Forwarded-For 感知 IP。
+enforceRateLimit(30, 60);
 
 if (!isset($_SESSION['user_id'])) {
     // 免登陸試用：為每位訪客建立獨立的 guest 帳號，資料彼此隔離，

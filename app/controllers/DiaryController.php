@@ -7,6 +7,10 @@ namespace App\Controllers;
 use App\Models\Diary;
 use Exception;
 
+// 安全輔助層（CSRF 驗證 + 輸入驗證）
+require_once __DIR__ . '/../helpers/csrf.php';
+require_once __DIR__ . '/../helpers/validator.php';
+
 class DiaryController
 {
     private $diaryModel;
@@ -58,7 +62,7 @@ class DiaryController
     {
         // CSRF 驗證
         $token = $_POST['csrf_token'] ?? '';
-        if (!verifyCsrfToken($token)) {
+        if (!validateCsrfToken($token)) {
             $this->showError('安全驗證失敗，請重新整理頁面');
             return;
         }
@@ -67,6 +71,9 @@ class DiaryController
         $title = trim($_POST['title'] ?? '');
         $content = trim($_POST['content'] ?? '');
         $mood = $_POST['mood'] ?? '😊';
+        if (!$this->isValidMood($mood)) {
+            $mood = '😊'; // 不在白名單內 → 退回預設心情
+        }
         $diary_date = $this->validateDiaryDate($_POST['diary_date'] ?? null);
 
         if (empty($content)) {
@@ -109,9 +116,9 @@ class DiaryController
     public function edit()
     {
         $user_id = $_SESSION['user_id'] ?? 1;
-        $diary_id = $_GET['id'] ?? null;
+        $diary_id = sanitizeInt($_GET['id'] ?? null, 0);
 
-        if (!$diary_id) {
+        if ($diary_id <= 0) {
             header('Location: index.php?action=home');
             exit;
         }
@@ -124,7 +131,7 @@ class DiaryController
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $token = $_POST['csrf_token'] ?? '';
-            if (!verifyCsrfToken($token)) {
+            if (!validateCsrfToken($token)) {
                 $this->showError('安全驗證失敗');
                 return;
             }
@@ -132,6 +139,9 @@ class DiaryController
             $title = trim($_POST['title'] ?? '');
             $content = trim($_POST['content'] ?? '');
             $mood = $_POST['mood'] ?? $diary['mood'];
+            if (!$this->isValidMood($mood)) {
+                $mood = ($diary['mood'] ?? '') ?: '😊';
+            }
 
             if (empty($content)) {
                 $error = '日記內容不能為空';
@@ -160,9 +170,9 @@ class DiaryController
     public function show()
     {
         $user_id = $_SESSION['user_id'] ?? 1;
-        $diary_id = $_GET['id'] ?? null;
+        $diary_id = sanitizeInt($_GET['id'] ?? null, 0);
 
-        if (!$diary_id) {
+        if ($diary_id <= 0) {
             $this->showError('無效的日記 ID');
             return;
         }
@@ -203,15 +213,18 @@ class DiaryController
             return;
         }
         $token = $_POST['csrf_token'] ?? '';
-        if (!verifyCsrfToken($token)) {
+        if (!validateCsrfToken($token)) {
             $this->showError('安全驗證失敗，請重新整理頁面');
             return;
         }
 
         $user_id = $_SESSION['user_id'] ?? 1;
-        $diary_id = $_GET['id'] ?? ($_POST['id'] ?? null);
+        $diary_id = sanitizeInt($_GET['id'] ?? null, 0);
+        if ($diary_id <= 0) {
+            $diary_id = sanitizeInt($_POST['id'] ?? null, 0);
+        }
 
-        if (!$diary_id) {
+        if ($diary_id <= 0) {
             header('Location: index.php?action=home');
             exit;
         }
@@ -276,8 +289,11 @@ class DiaryController
         @set_time_limit(0);
         ignore_user_abort(true);
 
-        $diary_id = $_GET['id'] ?? ($_POST['diary_id'] ?? null);
-        if (!$diary_id) {
+        $diary_id = sanitizeInt($_GET['id'] ?? null, 0);
+        if ($diary_id <= 0) {
+            $diary_id = sanitizeInt($_POST['diary_id'] ?? null, 0);
+        }
+        if ($diary_id <= 0) {
             echo json_encode(['success' => false, 'message' => '缺少日記 ID']);
             return;
         }
@@ -353,6 +369,15 @@ class DiaryController
 
         $pageTitle = '心情觀測儀表板';
         include BASE_PATH . '/app/views/dashboard/index.php';
+    }
+
+    // ============================================================
+    // 內部：心情白名單驗證（與表單選項一致，防止任意字串寫入或送進 AI）
+    // ============================================================
+    private function isValidMood($mood)
+    {
+        $allowed = ['😊', '😢', '😡', '😍', '😴', '🤔', '😂', '😰', '🥰', '🙄'];
+        return is_string($mood) && in_array($mood, $allowed, true);
     }
 
     // ============================================================

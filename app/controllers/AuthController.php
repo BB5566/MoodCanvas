@@ -6,6 +6,10 @@ namespace App\Controllers;
 use App\Models\User;
 use Exception;
 
+// 安全輔助層（CSRF 驗證 + 輸入驗證）
+require_once __DIR__ . '/../helpers/csrf.php';
+require_once __DIR__ . '/../helpers/validator.php';
+
 class AuthController {
 
     private $userModel;
@@ -24,13 +28,36 @@ class AuthController {
      */
     public function register() {
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-            $username = trim($_POST['username']);
-            $password = $_POST['password'];
-            $confirm_password = $_POST['confirm_password'];
+            // CSRF 驗證（Fix 2）
+            if (!validateCsrfToken($_POST['csrf_token'] ?? '')) {
+                $this->showError('安全驗證失敗，請重新整理頁面後再試。');
+                return;
+            }
 
-            // 基本驗證
-            if (empty($username) || empty($password)) {
-                $this->showError('使用者名稱和密碼不能為空！');
+            // 輸入驗證（Fix 5）：安全讀值並套用基本檢查
+            $username         = trim($_POST['username'] ?? '');
+            $email            = trim($_POST['email'] ?? '');
+            $password         = $_POST['password'] ?? '';
+            $confirm_password = $_POST['confirm_password'] ?? '';
+
+            // 必填欄位驗證
+            if (!empty(validateRequired(['username', 'email', 'password'], $_POST))) {
+                $this->showError('請填寫所有必填欄位。');
+                return;
+            }
+            // 電子郵件格式驗證
+            if (!validateEmail($email)) {
+                $this->showError('電子郵件格式不正確。');
+                return;
+            }
+            // 使用者名稱長度限制（與表單 maxlength=30 一致）
+            if (mb_strlen($username) > 30) {
+                $this->showError('使用者名稱不能超過 30 字。');
+                return;
+            }
+            // 密碼長度（伺服器端強制，與表單 minlength=8 一致）
+            if (strlen($password) < 8) {
+                $this->showError('密碼長度至少需要 8 個字元。');
                 return;
             }
             if ($password !== $confirm_password) {
@@ -64,10 +91,18 @@ class AuthController {
      */
     public function login() {
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-            $username = trim($_POST['username']);
-            $password = $_POST['password'];
+            // CSRF 驗證（Fix 2）
+            if (!validateCsrfToken($_POST['csrf_token'] ?? '')) {
+                $this->showError('安全驗證失敗，請重新整理頁面後再試。');
+                return;
+            }
 
-            if (empty($username) || empty($password)) {
+            // 輸入驗證（Fix 5）：安全讀值
+            $username = trim($_POST['username'] ?? '');
+            $password = $_POST['password'] ?? '';
+
+            // 必填欄位驗證
+            if (!empty(validateRequired(['username', 'password'], $_POST))) {
                 $this->showError('請輸入使用者名稱和密碼。');
                 return;
             }

@@ -21,9 +21,13 @@ require_once BASE_PATH . '/app/views/layout/header.php';
     }
     ?>
 
+    <?php if (!empty($_SESSION['error_message'])): ?>
+        <div class="alert alert-danger"><?php echo htmlspecialchars($_SESSION['error_message']); ?></div>
+    <?php unset($_SESSION['error_message']); endif; ?>
+
     <?php if (isset($_GET['error'])): ?>
         <div class="alert alert-danger">
-            <?php 
+            <?php
                 $errorMessages = [
                     'missing_fields' => '請輸入使用者名稱和密碼。',
                     'invalid_credentials' => '使用者名稱或密碼錯誤，請重新確認。',
@@ -42,6 +46,7 @@ require_once BASE_PATH . '/app/views/layout/header.php';
     <?php endif; ?>
 
     <form action="index.php?action=login" method="POST">
+        <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(generateCsrfToken()); ?>">
         <div class="form-group">
             <label for="username">使用者名稱</label>
             <input type="text" id="username" name="username" required autocomplete="username">
