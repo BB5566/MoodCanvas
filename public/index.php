@@ -7,11 +7,14 @@ require_once __DIR__ . '/../app/helpers/error_handler.php';
 
 // 2) 工作階段安全設定（Fix 1）：須在 session_start() 之前呼叫；
 //    session_start() 實際於下方 config.php 內執行，會套用此處參數。
-//    注意：secure=true 代表 cookie 僅透過 HTTPS 傳送（正式環境所需）；
-//    本機以 HTTP (php -S) 開發時需暫時改為 false，否則 session 不會生效。
+//    secure 依環境動態判斷：正式環境（HTTPS）→ true；本機 HTTP 開發 → false，
+//    避免 cookie secure=true 在 HTTP 下導致 session 失效。
+$isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+    || (($_SERVER['SERVER_PORT'] ?? '') == 443)
+    || (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https');
 session_set_cookie_params([
     'httponly' => true,
-    'secure'   => true,
+    'secure'   => $isHttps,
     'samesite' => 'Strict',
     'lifetime' => 86400,
 ]);

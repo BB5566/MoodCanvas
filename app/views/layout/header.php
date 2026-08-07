@@ -51,7 +51,12 @@ if (!defined('APP_URL')) {
     <header class="glass-header">
         <nav class="navbar">
             <a class="navbar-brand" href="<?php echo APP_URL; ?>/public/index.php?action=home">🎨 MoodCanvas</a>
-            <ul class="navbar-nav">
+            <button class="navbar-toggler" id="navbar-toggler" type="button" aria-label="開啟選單" aria-expanded="false" aria-controls="navbar-nav">
+                <span class="toggler-bar"></span>
+                <span class="toggler-bar"></span>
+                <span class="toggler-bar"></span>
+            </button>
+            <ul class="navbar-nav" id="navbar-nav">
                 <?php if (isset($_SESSION['user_id'])): ?>
                     <li class="nav-item nav-user-greeting">
                         <span>您好, <?php echo htmlspecialchars($_SESSION['username']); ?>!</span>
@@ -73,6 +78,29 @@ if (!defined('APP_URL')) {
             </ul>
         </nav>
     </header>
+
+    <script>
+        // 手機版漢堡選單切換
+        (function () {
+            var toggler = document.getElementById('navbar-toggler');
+            var nav = document.getElementById('navbar-nav');
+            if (!toggler || !nav) return;
+            toggler.addEventListener('click', function () {
+                var isOpen = nav.classList.toggle('open');
+                toggler.classList.toggle('active', isOpen);
+                toggler.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+                toggler.setAttribute('aria-label', isOpen ? '關閉選單' : '開啟選單');
+            });
+            // 點選單連結後自動收起（手機 UX）
+            nav.addEventListener('click', function (e) {
+                if (e.target.closest('a') && window.innerWidth < 768) {
+                    nav.classList.remove('open');
+                    toggler.classList.remove('active');
+                    toggler.setAttribute('aria-expanded', 'false');
+                }
+            });
+        })();
+    </script>
 
     <main class="main-container" id="main">
         <script>

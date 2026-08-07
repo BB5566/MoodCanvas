@@ -106,6 +106,33 @@ body {
 
 .navbar-nav { list-style: none; display: flex; gap: 1.5rem; align-items: center; }
 
+/* 漢堡選單按鈕（預設隱藏，手機顯示） */
+.navbar-toggler {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  width: 44px; height: 44px;
+  padding: 10px;
+  background: transparent;
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--border-radius-sm);
+  cursor: pointer;
+  transition: background var(--transition-speed) ease;
+}
+.navbar-toggler:hover { background: var(--color-border-light); }
+.toggler-bar {
+  display: block;
+  width: 22px; height: 2px;
+  margin: 0 auto;
+  background-color: var(--color-ink);
+  border-radius: 1px;
+  transition: transform 0.25s ease, opacity 0.25s ease;
+}
+.navbar-toggler.active .toggler-bar:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.navbar-toggler.active .toggler-bar:nth-child(2) { opacity: 0; }
+.navbar-toggler.active .toggler-bar:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
 .nav-link {
   color: var(--color-text-secondary); text-decoration: none;
   padding: 0.5rem 1rem; border-radius: var(--border-radius-sm);
@@ -350,7 +377,21 @@ textarea { resize: vertical; min-height: 100px; }
   animation: spin 1s linear infinite;
   display: inline-block; vertical-align: middle; margin-left: 0.5rem;
 }
-.placeholder-text { color: var(--color-text-muted); text-align: center; padding: 1.5rem 0; }
+.placeholder-text {
+  color: var(--color-text-muted);
+  text-align: center;
+  padding: 2.5rem 1.5rem;
+  font-size: 0.95rem;
+  line-height: 1.8;
+}
+.placeholder-text::before {
+  content: '◇';
+  display: block;
+  font-size: 2.2rem;
+  line-height: 1;
+  margin-bottom: 0.8rem;
+  opacity: 0.35;
+}
 .error-message { color: var(--color-danger); }
 
 /* ================================================================
@@ -606,7 +647,7 @@ textarea { resize: vertical; min-height: 100px; }
   .empty-welcome__sub { font-size: 0.85rem; }
 }
 
-.calendar-container { height: 100%; display: flex; flex-direction: column; }
+.calendar-container { height: 100%; display: flex; flex-direction: column; overflow-x: auto; }
 .calendar-header {
   display: flex; justify-content: space-between; align-items: center;
   margin-bottom: 1.5rem; padding: 0 0.5rem;
@@ -762,8 +803,26 @@ textarea { resize: vertical; min-height: 100px; }
 @media (max-width: 768px) {
   .glass-header { padding: 0.6rem 1rem; }
   .navbar-brand { font-size: 1.2rem; }
-  .navbar-nav { gap: 0.8rem; }
-  .nav-link { padding: 0.4rem 0.7rem; font-size: 0.85rem; }
+  .navbar { position: relative; }
+  .navbar-toggler { display: flex; }
+  .navbar-nav {
+    display: none;
+    position: absolute;
+    top: calc(100% + 4px);
+    right: 1rem;
+    left: 1rem;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.4rem;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--border-radius-lg);
+    padding: 0.8rem;
+    box-shadow: var(--shadow-medium);
+    z-index: 100;
+  }
+  .navbar-nav.open { display: flex; }
+  .nav-link { padding: 0.7rem 0.8rem; font-size: 0.9rem; }
   .nav-user-greeting { font-size: 0.8rem; }
 
   .main-container { padding: 0 1rem; margin: 1rem auto; }
@@ -783,6 +842,7 @@ textarea { resize: vertical; min-height: 100px; }
   .btn-lg { padding: 0.8rem 2rem; font-size: 1rem; }
 
   .calendar th { font-size: 0.75rem; }
+  .calendar { min-width: 540px; }
   .calendar td { height: 70px; }
   .day-number { font-size: 0.8rem; }
   .mood-emoji { font-size: 1.5rem; }
@@ -798,9 +858,9 @@ textarea { resize: vertical; min-height: 100px; }
 @media (max-width: 480px) {
   body { padding-top: 60px; }
   .glass-header { padding: 0.5rem 0.8rem; }
-  .navbar { flex-wrap: wrap; gap: 0.4rem; }
+  .navbar { flex-wrap: nowrap; gap: 0.4rem; }
   .navbar-brand { font-size: 1rem; }
-  .nav-link { padding: 0.3rem 0.5rem; font-size: 0.8rem; }
+  .nav-link { padding: 0.5rem 0.8rem; font-size: 0.85rem; }
 
   .form-container { padding: 1rem; }
   .form-title { font-size: 1.2rem; margin-bottom: 1.2rem; }
