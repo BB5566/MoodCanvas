@@ -46,9 +46,9 @@ if (!isset($_SESSION['user_id'])) {
         $_SESSION['username'] = 'guest_' . $guestId;
         $_SESSION['is_guest'] = true;
     } else {
-        // 建立失敗的後援，仍可讓站台運作
-        $_SESSION['user_id'] = 1;
-        $_SESSION['username'] = 'guest';
+        // 建立失敗就停在這裡；不能退回共用 user_id=1，否則所有訪客會看到彼此的日記
+        http_response_code(503);
+        exit('系統暫時無法建立訪客帳號，請稍後再試。');
     }
 }
 
