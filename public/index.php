@@ -11,14 +11,18 @@ require_once __DIR__ . '/../app/helpers/error_handler.php';
 //    避免 cookie secure=true 在 HTTP 下導致 session 失效。
 $isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
     || (($_SERVER['SERVER_PORT'] ?? '') == 443)
-    || (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https');
+    || (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https')
+    // NAS 部署：Cloudflare → nginx → 容器 一路都是 HTTP，上面都判斷不到；
+    // APP_URL 設成 https 代表對外一定是 HTTPS
+    || str_starts_with(getenv('APP_URL') ?: '', 'https://');
 session_set_cookie_params([
     'httponly' => true,
     'secure'   => $isHttps,
     'samesite' => 'Strict',
     'lifetime' => 86400,
 ]);
-session_name('__Secure-MoodCanvas-SID');
+// __Secure- 開頭的 cookie 必須帶 Secure，HTTP 下瀏覽器會整個丟掉，所以只在 HTTPS 用
+session_name($isHttps ? '__Secure-MoodCanvas-SID' : 'MoodCanvas-SID');
 
 require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../config/autoloader.php';
