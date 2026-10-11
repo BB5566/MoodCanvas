@@ -24,6 +24,47 @@ class AuthController {
     }
 
     /**
+     * 轉移訪客資料到新帳號
+     * 遇到同一天兩邊都有日記，保留正式帳號的，刪除訪客的。
+     * 處理完畢後刪除該訪客帳號。
+     */
+    private function migrateGuestData($guestId, $newUserId) {
+        $db = getDbConnection();
+        if (!$db) return;
+
+        try {
+            // 找出該訪客的所有日記
+            $stmt = $db->prepare("SELECT id, diary_date FROM diaries WHERE user_id = ?");
+            $stmt->execute([$guestId]);
+            $guestDiaries = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+            foreach ($guestDiaries as $diary) {
+                // 檢查新帳號在這一天是否已經有日記
+                $checkStmt = $db->prepare("SELECT id FROM diaries WHERE user_id = ? AND diary_date = ?");
+                $checkStmt->execute([$newUserId, $diary['diary_date']]);
+                $existing = $checkStmt->fetch();
+
+                if ($existing) {
+                    // 衝突：保留正式帳號，刪除訪客的
+                    $delStmt = $db->prepare("DELETE FROM diaries WHERE id = ?");
+                    $delStmt->execute([$diary['id']]);
+                } else {
+                    // 無衝突：轉移給新帳號
+                    $updStmt = $db->prepare("UPDATE diaries SET user_id = ? WHERE id = ?");
+                    $updStmt->execute([$newUserId, $diary['id']]);
+                }
+            }
+
+            // 刪除訪客帳號
+            $delUserStmt = $db->prepare("DELETE FROM users WHERE id = ?");
+            $delUserStmt->execute([$guestId]);
+
+        } catch (\PDOException $e) {
+            error_log("Migrate guest data failed: " . $e->getMessage());
+        }
+    }
+
+    /**
      * 顯示註冊頁面或處理註冊邏輯
      */
     public function register() {
@@ -64,6 +105,13 @@ class AuthController {
                 $this->showError('兩次輸入的密碼不一致！');
                 return;
             }
+
+            // 阻擋註冊以 guest_ 開頭的帳號，避免被清理腳本誤刪
+            if (stripos($username, 'guest_') === 0) {
+                $this->showError('此名稱為系統保留。');
+                return;
+            }
+
             if ($this->userModel->findByUsername($username)) {
                 $this->showError('此使用者名稱已被註冊！');
                 return;
@@ -71,7 +119,16 @@ class AuthController {
 
             // 建立使用者
             try {
-                $this->userModel->create($username, $password);
+                $newUserId = $this->userModel->create($username, $password);
+
+                // 如果是訪客註冊，轉移資料
+                if (!empty($_SESSION['is_guest']) && isset($_SESSION['user_id'])) {
+                    $this->migrateGuestData($_SESSION['user_id'], $newUserId);
+                    // 轉移後銷毀 session，讓使用者得到乾淨的新狀態並重新登入
+                    session_unset();
+                    session_destroy();
+                }
+
                 // 註冊成功後直接導向登入頁面
                 header('Location: index.php?action=login&status=registered');
                 exit;
@@ -110,6 +167,14 @@ class AuthController {
             try {
                 $user = $this->userModel->findByUsername($username);
                 if ($user && password_verify($password, $user['password_hash'])) {
+
+                    // 如果目前是訪客，先記下訪客 ID 進行轉移
+                    if (!empty($_SESSION['is_guest']) && isset($_SESSION['user_id'])) {
+                        $guestId = $_SESSION['user_id'];
+                        $this->migrateGuestData($guestId, $user['id']);
+                        unset($_SESSION['is_guest']);
+                    }
+
                     // 登入成功，設定 session
                     session_regenerate_id(true); // 防止 Session Fixation
                     $_SESSION['user_id'] = $user['id'];
@@ -135,6 +200,19 @@ class AuthController {
      * 處理登出邏輯
      */
     public function logout() {
+        // 若為訪客直接登出（或 session 過期模擬登出時呼叫），刪除訪客帳號避免殘留
+        if (!empty($_SESSION['is_guest']) && isset($_SESSION['user_id'])) {
+            $db = getDbConnection();
+            if ($db) {
+                try {
+                    $delStmt = $db->prepare("DELETE FROM users WHERE id = ?");
+                    $delStmt->execute([$_SESSION['user_id']]);
+                } catch (\PDOException $e) {
+                    error_log("Failed to delete guest on logout: " . $e->getMessage());
+                }
+            }
+        }
+
         session_unset();
         session_destroy();
         header('Location: index.php?action=login&status=logged_out');
