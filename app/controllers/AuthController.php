@@ -105,6 +105,13 @@ class AuthController {
                 $this->showError('兩次輸入的密碼不一致！');
                 return;
             }
+
+            // 阻擋註冊以 guest_ 開頭的帳號，避免被清理腳本誤刪
+            if (stripos($username, 'guest_') === 0) {
+                $this->showError('此名稱為系統保留。');
+                return;
+            }
+
             if ($this->userModel->findByUsername($username)) {
                 $this->showError('此使用者名稱已被註冊！');
                 return;
