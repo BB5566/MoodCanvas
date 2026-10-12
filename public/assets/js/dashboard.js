@@ -238,12 +238,16 @@ async function fetchAIInsight(diaries) {
     const apiUrl = dashboardContainer ? dashboardContainer.getAttribute('data-api-url') : '/public/index.php?action=get_ai_insight';
 
     try {
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ||
+                          document.querySelector('input[name="csrf_token"]')?.value || '';
+
         const response = await fetch(apiUrl, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken
             },
-            body: JSON.stringify({ diaries: diaries.map(d => ({ date: d.date, mood_score: d.mood_score, content: d.content })) }) // 只傳送必要的資料
+            body: JSON.stringify({ csrf_token: csrfToken })
         });
 
         if (!response.ok) {

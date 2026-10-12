@@ -1,5 +1,8 @@
 {
     "require": {
-        "google/auth": "^1.48"
+        "google/auth": "^1.50",
+        "guzzlehttp/guzzle": "^7.10.1",
+        "guzzlehttp/psr7": "^2.8.1",
+        "firebase/php-jwt": "^7.2.1"
     }
 }

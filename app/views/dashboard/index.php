@@ -5,6 +5,7 @@ require_once BASE_PATH . '/app/views/layout/header.php';
 
 ?>
 
+<meta name="csrf-token" content="<?php echo htmlspecialchars(generateCsrfToken(), ENT_QUOTES, 'UTF-8'); ?>">
 <div class="bento-grid dashboard-grid">
     <div class="bento-card" id="heatmap-container">
         <h3>📅 心情熱力圖 (年度)</h3>

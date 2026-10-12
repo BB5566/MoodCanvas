@@ -25,7 +25,7 @@ class DiaryController
     // ============================================================
     public function index()
     {
-        $user_id = $_SESSION['user_id'] ?? 1;
+        $user_id = $_SESSION['user_id'] ?? 0;
         $year = (int)($_GET['year'] ?? date('Y'));
         $month = str_pad((int)($_GET['month'] ?? date('m')), 2, '0', STR_PAD_LEFT);
 
@@ -67,7 +67,17 @@ class DiaryController
             return;
         }
 
-        $user_id = $_SESSION['user_id'] ?? 1;
+        if (!isset($_SESSION['user_id']) && !empty($_SESSION['is_guest'])) {
+            $guestId = (new \App\Models\User())->createGuest();
+            if ($guestId) {
+                $_SESSION['user_id'] = (int) $guestId;
+                $_SESSION['username'] = 'guest_' . $guestId;
+            } else {
+                $this->showError('系統暫時無法建立訪客帳號，請稍後再試。');
+                return;
+            }
+        }
+        $user_id = $_SESSION['user_id'] ?? 0;
         $title = trim($_POST['title'] ?? '');
         $content = trim($_POST['content'] ?? '');
         $mood = $_POST['mood'] ?? '😊';
@@ -115,7 +125,7 @@ class DiaryController
     // ============================================================
     public function edit()
     {
-        $user_id = $_SESSION['user_id'] ?? 1;
+        $user_id = $_SESSION['user_id'] ?? 0;
         $diary_id = sanitizeInt($_GET['id'] ?? null, 0);
 
         if ($diary_id <= 0) {
@@ -169,7 +179,7 @@ class DiaryController
     // ============================================================
     public function show()
     {
-        $user_id = $_SESSION['user_id'] ?? 1;
+        $user_id = $_SESSION['user_id'] ?? 0;
         $diary_id = sanitizeInt($_GET['id'] ?? null, 0);
 
         if ($diary_id <= 0) {
@@ -194,7 +204,7 @@ class DiaryController
     // ============================================================
     public function showByDate()
     {
-        $user_id = $_SESSION['user_id'] ?? 1;
+        $user_id = $_SESSION['user_id'] ?? 0;
         $date = $_GET['date'] ?? date('Y-m-d');
 
         $diaries = $this->diaryModel->getDiariesByDate($user_id, $date);
@@ -218,7 +228,7 @@ class DiaryController
             return;
         }
 
-        $user_id = $_SESSION['user_id'] ?? 1;
+        $user_id = $_SESSION['user_id'] ?? 0;
         $diary_id = sanitizeInt($_GET['id'] ?? null, 0);
         if ($diary_id <= 0) {
             $diary_id = sanitizeInt($_POST['id'] ?? null, 0);
@@ -247,7 +257,17 @@ class DiaryController
         header('Content-Type: application/json');
 
         $input = json_decode(file_get_contents('php://input'), true);
-        $user_id = $_SESSION['user_id'] ?? 1;
+        if (!isset($_SESSION['user_id']) && !empty($_SESSION['is_guest'])) {
+            $guestId = (new \App\Models\User())->createGuest();
+            if ($guestId) {
+                $_SESSION['user_id'] = (int) $guestId;
+                $_SESSION['username'] = 'guest_' . $guestId;
+            } else {
+                echo json_encode(['success' => false, 'message' => '無法建立訪客帳號']);
+                return;
+            }
+        }
+        $user_id = $_SESSION['user_id'] ?? 0;
         $diary_date = $input['diary_date'] ?? null;
         $mood = $input['mood'] ?? '📝';
 
@@ -299,7 +319,7 @@ class DiaryController
         }
 
         // 速率限制：每 60 秒最多 1 次
-        $user_id = $_SESSION['user_id'] ?? 1;
+        $user_id = $_SESSION['user_id'] ?? 0;
         $rateKey = 'ai_gen_last_' . $user_id;
         if (isset($_SESSION[$rateKey]) && (time() - $_SESSION[$rateKey]) < 60) {
             $wait = 60 - (time() - $_SESSION[$rateKey]);
@@ -356,7 +376,7 @@ class DiaryController
     // ============================================================
     public function dashboard()
     {
-        $user_id = $_SESSION['user_id'] ?? 1;
+        $user_id = $_SESSION['user_id'] ?? 0;
         $diaries = $this->diaryModel->findAllByUserId($user_id);
 
         // 圖表需要 date 與 mood_score，但資料表只存 emoji mood / diary_date，
@@ -401,7 +421,7 @@ class DiaryController
     private function showCreateForm()
     {
         // 一天只能一篇：若指定日期已有日記，直接導向編輯既有日記
-        $user_id = $_SESSION['user_id'] ?? 1;
+        $user_id = $_SESSION['user_id'] ?? 0;
         $requestedDate = $_GET['date'] ?? date('Y-m-d');
         $existing = $this->diaryModel->getDiariesByDate($user_id, $requestedDate);
         if (!empty($existing)) {
@@ -615,12 +635,50 @@ class DiaryController
         header('Content-Type: application/json; charset=utf-8');
         try {
             $payload = json_decode(file_get_contents('php://input'), true);
-            $diaries = $payload['diaries'] ?? [];
 
+            // CSRF 驗證
+            $token = $payload['csrf_token'] ?? $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
+            if (!validateCsrfToken($token)) {
+                echo json_encode(['success' => false, 'message' => '安全驗證失敗']);
+                return;
+            }
+
+            $user_id = $_SESSION['user_id'] ?? null;
+            if (!$user_id) {
+                echo json_encode(['success' => false, 'message' => '請先登入或建立日記']);
+                return;
+            }
+
+            // 速率限制：每 10 分鐘只能呼叫一次，限制存於檔案（不放 Session）
+            $rateDir = defined('LOGS_PATH') ? LOGS_PATH : sys_get_temp_dir();
+            if (!is_dir($rateDir)) @mkdir($rateDir, 0755, true);
+            $rateFile = $rateDir . '/rate_limit_ai_insight_' . md5($user_id) . '.txt';
+
+            if (file_exists($rateFile)) {
+                $lastTime = (int)file_get_contents($rateFile);
+                if (time() - $lastTime < 600) { // 600 秒 = 10 分鐘
+                    $wait = 600 - (time() - $lastTime);
+                    echo json_encode(['success' => false, 'message' => "請求過於頻繁，請等待 {$wait} 秒後再試"]);
+                    return;
+                }
+            }
+
+            // 寫入當前時間
+            file_put_contents($rateFile, time());
+
+            // 直接從資料庫讀取使用者的日記
+            $diaries = $this->diaryModel->findAllByUserId($user_id);
             if (empty($diaries) || !is_array($diaries)) {
                 echo json_encode(['success' => false, 'message' => '沒有足夠的日記資料']);
                 return;
             }
+
+            // 補齊 mood_score 與 date (跟 dashboard 邏輯一樣)
+            foreach ($diaries as &$d) {
+                $d['date'] = $d['diary_date'] ?? '';
+                $d['mood_score'] = $this->moodToScore($d['mood'] ?? '');
+            }
+            unset($d);
 
             // 整理近期最多 30 筆餵給 AI，避免 prompt 過長
             $recent = array_slice($diaries, 0, 30);
