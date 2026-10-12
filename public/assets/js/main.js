@@ -34,25 +34,27 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     // ================================================================
-    // 動畫：頁面載入時卡片淡入
+    // 動畫：頁面載入時卡片淡入（尊重偏好減少動態與 GSAP）
     // ================================================================
-    var bentoCards = document.querySelectorAll('.bento-card');
-    if (bentoCards.length > 0) {
-        var observer = new IntersectionObserver(function (entries) {
-            entries.forEach(function (entry) {
-                if (entry.isIntersecting) {
-                    entry.target.style.opacity = '1';
-                    entry.target.style.transform = 'translateY(0)';
-                }
-            });
-        }, { threshold: 0.1 });
+    if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches && typeof window.gsap === 'undefined') {
+        var bentoCards = document.querySelectorAll('.bento-card');
+        if (bentoCards.length > 0 && 'IntersectionObserver' in window) {
+            var observer = new IntersectionObserver(function (entries) {
+                entries.forEach(function (entry) {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            }, { threshold: 0.1 });
 
-        bentoCards.forEach(function (card) {
-            card.style.opacity = '0';
-            card.style.transform = 'translateY(20px)';
-            card.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
-            observer.observe(card);
-        });
+            bentoCards.forEach(function (card) {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                card.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+                observer.observe(card);
+            });
+        }
     }
 
     // ================================================================
@@ -67,23 +69,44 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // ================================================================
-    // Navbar 手機版漢堡選單切換
+    // Navbar 手機版漢堡選單切換（含無障礙 Esc 關閉與點擊外部關閉）
     // ================================================================
     var toggler = document.getElementById('navbar-toggler');
     var nav = document.getElementById('navbar-nav');
     if (toggler && nav) {
+        function closeNav() {
+            nav.classList.remove('open');
+            toggler.classList.remove('active');
+            toggler.setAttribute('aria-expanded', 'false');
+            toggler.setAttribute('aria-label', '開啟選單');
+        }
+
         toggler.addEventListener('click', function () {
             var isOpen = nav.classList.toggle('open');
             toggler.classList.toggle('active', isOpen);
             toggler.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
             toggler.setAttribute('aria-label', isOpen ? '關閉選單' : '開啟選單');
         });
+
         // 點選單連結後自動收起（手機 UX）
         nav.addEventListener('click', function (e) {
             if (e.target.closest('a') && window.innerWidth < 768) {
-                nav.classList.remove('open');
-                toggler.classList.remove('active');
-                toggler.setAttribute('aria-expanded', 'false');
+                closeNav();
+            }
+        });
+
+        // 點擊外部自動收起
+        document.addEventListener('click', function (e) {
+            if (nav.classList.contains('open') && !nav.contains(e.target) && !toggler.contains(e.target)) {
+                closeNav();
+            }
+        });
+
+        // 按 Escape 鍵關閉選單
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && nav.classList.contains('open')) {
+                closeNav();
+                toggler.focus();
             }
         });
     }

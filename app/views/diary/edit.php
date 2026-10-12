@@ -22,8 +22,8 @@ $metaDescription = '修改你的心情日記';
         
         <div class="form-grid">
             <div class="form-group">
-                <label>📅 日期</label>
-                <input type="date" value="<?php echo htmlspecialchars($diary['diary_date'] ?? ''); ?>" disabled>
+                <label for="edit_diary_date">📅 日期</label>
+                <input type="date" id="edit_diary_date" value="<?php echo htmlspecialchars($diary['diary_date'] ?? ''); ?>" disabled>
             </div>
             <div class="form-group">
                 <label for="mood">😊 心情</label>

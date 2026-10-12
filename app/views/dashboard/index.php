@@ -1,9 +1,16 @@
 <?php
 // app/views/dashboard/index.php
 
-require_once BASE_PATH . '/app/views/layout/header.php';
+$pageTitle = $pageTitle ?? '心情觀測儀表板';
+$metaDescription = '分析並觀測心情日記趨勢、年度熱力圖與 AI 心情洞察。';
 
+require_once BASE_PATH . '/app/views/layout/header.php';
 ?>
+
+<div class="dashboard-header" style="margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+    <h1 class="display-title" style="font-size: 1.75rem; margin: 0;">📊 心情觀測儀表板</h1>
+    <a href="index.php?action=home" class="btn btn-secondary">← 返回日曆</a>
+</div>
 
 <div class="bento-grid dashboard-grid">
     <div class="bento-card" id="heatmap-container">
@@ -36,7 +43,5 @@ require_once BASE_PATH . '/app/views/layout/header.php';
 <script src="<?php echo APP_URL; ?>/public/assets/js/dashboard.js" defer></script>
 
 <?php
-
 require_once BASE_PATH . '/app/views/layout/footer.php';
-
 ?>

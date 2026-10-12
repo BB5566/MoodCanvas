@@ -45,7 +45,7 @@ $aiGenerating = ($ai_generating ?? false);
 <div class="diary-card-wrapper">
     
     <!-- 翻轉卡片本體 -->
-    <div class="flip-card" id="flip-card">
+    <div class="flip-card" id="flip-card" role="button" tabindex="0" aria-label="點擊翻轉拍立得卡片">
         <div class="flip-card-inner" id="flip-card-inner">
             
             <!-- 正面：拍立得照片（圖片 / Emoji）-->
@@ -53,7 +53,7 @@ $aiGenerating = ($ai_generating ?? false);
                 <div class="polaroid-photo">
                     <?php if ($hasImage): ?>
                         <img src="<?php echo htmlspecialchars($imageUrl, ENT_QUOTES); ?>"
-                             alt="AI 生成圖片"
+                             alt="<?php echo htmlspecialchars($title, ENT_QUOTES); ?> - AI 生成插畫"
                              class="card-image"
                              loading="lazy"
                              id="card-image-el"
@@ -78,7 +78,7 @@ $aiGenerating = ($ai_generating ?? false);
                 </div>
 
                 <!-- 翻轉提示 -->
-                <div class="flip-hint">
+                <div class="flip-hint" aria-hidden="true">
                     <span>點擊翻轉 ↻</span>
                 </div>
             </div>
@@ -111,7 +111,7 @@ $aiGenerating = ($ai_generating ?? false);
                 </div>
                 
                 <!-- 翻轉提示 -->
-                <div class="flip-hint">
+                <div class="flip-hint" aria-hidden="true">
                     <span>點擊翻轉 ↻</span>
                 </div>
             </div>

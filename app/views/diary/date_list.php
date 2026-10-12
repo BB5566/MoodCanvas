@@ -9,7 +9,7 @@ $pageTitle = $dateFormatted . ' 的日記列表';
 $metaDescription = '瀏覽 ' . $dateFormatted . ' 所有心情日記，快速檢視多篇內容與 AI 洞察。';
 ?>
 
-<div class="container" style="max-width: 900px; margin: 0 auto; padding: 2rem;">
+<div class="container date-list-container" style="max-width: 900px; margin: 0 auto;">
     <div class="date-list-header">
         <h1>📅 <?php echo htmlspecialchars($dateFormatted); ?> 的日記</h1>
         <a href="index.php?action=home" class="btn btn-secondary">
@@ -22,14 +22,14 @@ $metaDescription = '瀏覽 ' . $dateFormatted . ' 所有心情日記，快速檢
     <?php else: ?>
     <div class="diaries-list">
         <?php foreach ($diaries as $index => $diary): ?>
-            <div class="diary-card">
-                <div class="diary-card-header">
+            <article class="diary-card">
+                <header class="diary-card-header">
                     <div class="diary-meta">
-                        <span class="mood-emoji"><?php echo htmlspecialchars($diary['mood'] ?? '📝'); ?></span>
+                        <span class="mood-emoji" role="img" aria-label="心情"><?php echo htmlspecialchars($diary['mood'] ?? '📝'); ?></span>
                         <h3><?php echo htmlspecialchars($diary['title']); ?></h3>
-                        <span class="diary-time"><?php echo date('H:i', strtotime($diary['created_at'])); ?></span>
+                        <time class="diary-time"><?php echo date('H:i', strtotime($diary['created_at'])); ?></time>
                     </div>
-                </div>
+                </header>
                 
                 <div class="diary-card-content">
                     <p><?php echo nl2br(htmlspecialchars(mb_substr($diary['content'], 0, 150))); ?><?php echo mb_strlen($diary['content']) > 150 ? '...' : ''; ?></p>
@@ -54,196 +54,20 @@ $metaDescription = '瀏覽 ' . $dateFormatted . ' 所有心情日記，快速檢
                         }
                         ?>
                         <div class="diary-image-preview">
-                            <img src="<?php echo htmlspecialchars($imgUrl); ?>" alt="日記配圖" />
+                            <img src="<?php echo htmlspecialchars($imgUrl); ?>" alt="<?php echo htmlspecialchars($diary['title']); ?> 配圖" loading="lazy" />
                         </div>
                     <?php endif; ?>
                 </div>
                 
-                <div class="diary-card-actions">
-                    <a href="index.php?action=diary_detail&id=<?php echo $diary['id']; ?>" class="btn btn-primary">
+                <footer class="diary-card-actions">
+                    <a href="index.php?action=diary_detail&id=<?php echo $diary['id']; ?>" class="btn btn-primary" aria-label="完整查看：<?php echo htmlspecialchars($diary['title']); ?>">
                         完整查看
                     </a>
-                </div>
-            </div>
+                </footer>
+            </article>
         <?php endforeach; ?>
     </div>
     <?php endif; ?>
 </div>
-
-<style>
-.date-list-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 2rem;
-    padding-bottom: 1rem;
-    border-bottom: 2px solid rgba(255, 255, 255, 0.1);
-}
-
-.date-list-header h1 {
-    color: var(--color-text-primary);
-    font-size: 2rem;
-    margin: 0;
-}
-
-.diaries-list {
-    display: grid;
-    gap: 1.5rem;
-}
-
-.diary-card {
-    background: var(--color-surface);
-    border: var(--color-border-light);
-    border-radius: var(--border-radius-lg);
-    backdrop-filter: 10px;
-    padding: 1.5rem;
-    transition: all 0.3s ease;
-}
-
-.diary-card:hover {
-    transform: translateY(-5px);
-    box-shadow: var(--shadow-card);
-    background: rgba(255, 255, 255, 0.15);
-}
-
-.diary-card-header {
-    margin-bottom: 1rem;
-}
-
-.diary-meta {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-}
-
-.diary-meta .mood-emoji {
-    font-size: 2rem;
-}
-
-.diary-meta h3 {
-    flex-grow: 1;
-    color: var(--color-text-primary);
-    margin: 0;
-    font-size: 1.3rem;
-}
-
-.diary-time {
-    color: var(--color-text-secondary);
-    font-size: 0.9rem;
-    background: rgba(255, 255, 255, 0.1);
-    padding: 0.3rem 0.8rem;
-    border-radius: 20px;
-}
-
-.diary-card-content {
-    margin-bottom: 1.5rem;
-}
-
-.diary-card-content p {
-    color: var(--color-text-primary);
-    line-height: 1.6;
-    margin-bottom: 1rem;
-}
-
-.ai-insight {
-    background: rgba(77, 208, 225, 0.1);
-    border-left: 3px solid var(--color-accent);
-    padding: 1rem;
-    border-radius: var(--border-radius-sm);
-    margin-top: 1rem;
-}
-
-.ai-insight strong {
-    color: var(--color-accent);
-    display: block;
-    margin-bottom: 0.5rem;
-}
-
-.ai-insight p {
-    color: var(--color-text-secondary);
-    margin: 0;
-    font-size: 0.9rem;
-}
-
-/* 拍立得白框照片 */
-.diary-image-preview {
-    margin-top: 1.25rem;
-    display: inline-block;
-    background: var(--color-surface);
-    padding: 10px 10px 28px;
-    border-radius: 3px;
-    box-shadow: var(--shadow-polaroid);
-    transform: rotate(-1.5deg);
-    transition: transform var(--transition-speed) var(--ease-soft), box-shadow var(--transition-speed) var(--ease-soft);
-}
-.diary-image-preview:hover {
-    transform: rotate(0deg) translateY(-3px);
-    box-shadow: 0 8px 20px rgba(70, 58, 44, 0.2);
-}
-.diary-image-preview img {
-    display: block;
-    width: 200px;
-    max-width: 60vw;
-    height: 200px;
-    object-fit: cover;
-    border-radius: 2px;
-    box-shadow: none;
-}
-
-.diary-card-actions {
-    display: flex;
-    justify-content: flex-end;
-}
-
-.btn {
-    padding: 0.6rem 1.2rem;
-    border: none;
-    border-radius: var(--border-radius-sm);
-    text-decoration: none;
-    font-weight: 500;
-    transition: all 0.3s ease;
-    cursor: pointer;
-    display: inline-block;
-}
-
-.btn-primary {
-    background: linear-gradient(135deg, var(--color-primary-btn), var(--color-accent));
-    color: white;
-}
-
-.btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-subtle);
-}
-
-.btn-secondary {
-    background: rgba(255, 255, 255, 0.1);
-    color: var(--color-text-primary);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-}
-
-.btn-secondary:hover {
-    background: rgba(255, 255, 255, 0.2);
-    border-color: rgba(255, 255, 255, 0.5);
-}
-
-@media (max-width: 768px) {
-    .date-list-header {
-        flex-direction: column;
-        gap: 1rem;
-        text-align: center;
-    }
-    
-    .diary-meta {
-        flex-direction: column;
-        gap: 0.5rem;
-        text-align: center;
-    }
-    
-    .diary-meta h3 {
-        font-size: 1.1rem;
-    }
-}
-</style>
 
 <?php require_once BASE_PATH . '/app/views/layout/footer.php'; ?>

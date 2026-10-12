@@ -1,8 +1,11 @@
 <?php
 // app/views/layout/footer.php
 ?>
-        </main> <!-- .content-wrapper -->
-    </div> <!-- .page-wrapper -->
+    </main> <!-- #main -->
+
+    <footer class="site-footer" role="contentinfo">
+        <p>© <?php echo date('Y'); ?> MoodCanvas · 記錄每一刻的心情</p>
+    </footer>
 
     <!-- 全站共用的 JavaScript -->
     <script src="<?php echo APP_URL; ?>/public/assets/js/main.js?v=<?php echo filemtime(BASE_PATH . '/public/assets/js/main.js'); ?>"></script>
