@@ -3,7 +3,21 @@
  * 圖片縮小工具 - 將現有的大圖片壓縮成較小尺寸
  */
 
+$isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+    || (($_SERVER['SERVER_PORT'] ?? '') == 443)
+    || (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https')
+    || str_starts_with(getenv('APP_URL') ?: '', 'https://');
+
+session_set_cookie_params([
+    'httponly' => true,
+    'secure'   => $isHttps,
+    'samesite' => 'Strict',
+]);
+session_name($isHttps ? '__Secure-MoodCanvas-Admin-SID' : 'MoodCanvas-Admin-SID');
 session_start();
+
+require_once dirname(__DIR__) . '/config/config.php';
+require_once dirname(__DIR__) . '/app/helpers/rate_limiter.php';
 
 // 安全檢查 - 需要管理員密碼 (從環境變數讀取)
 // 注意：必須設定 ADMIN_PASSWORD 環境變數才能使用本工具；未設定時一律拒絕存取（fail closed）
@@ -11,26 +25,100 @@ $adminPassword = getenv('ADMIN_PASSWORD') ?: '';
 
 $loginError = '';
 
+function getLoginRateLimitEntries($ipOrGlobal) {
+    $dir = defined('LOGS_PATH') ? LOGS_PATH : sys_get_temp_dir();
+    if (!is_dir($dir)) {
+        @mkdir($dir, 0755, true);
+    }
+    $file = $dir . '/admin_login_fail_' . md5($ipOrGlobal) . '.json';
+    $entries = [];
+    if (is_file($file)) {
+        $fh = @fopen($file, 'r');
+        if ($fh) {
+            if (flock($fh, LOCK_SH)) {
+                $raw = stream_get_contents($fh);
+                flock($fh, LOCK_UN);
+                $decoded = json_decode($raw, true);
+                if (is_array($decoded)) {
+                    $entries = array_values($decoded);
+                }
+            }
+            fclose($fh);
+        }
+    }
+    $cutoff = time() - 900; // 15 minutes
+    return array_values(array_filter($entries, function ($ts) use ($cutoff) {
+        return is_int($ts) && $ts > $cutoff;
+    }));
+}
+
+function addLoginRateLimitEntry($ipOrGlobal) {
+    $dir = defined('LOGS_PATH') ? LOGS_PATH : sys_get_temp_dir();
+    if (!is_dir($dir)) {
+        @mkdir($dir, 0755, true);
+    }
+    $file = $dir . '/admin_login_fail_' . md5($ipOrGlobal) . '.json';
+
+    $entries = [];
+    $fh = @fopen($file, 'c+');
+    if ($fh) {
+        if (flock($fh, LOCK_EX)) {
+            $raw = stream_get_contents($fh);
+            $decoded = json_decode($raw, true);
+            if (is_array($decoded)) {
+                $entries = array_values($decoded);
+            }
+            $cutoff = time() - 900;
+            $entries = array_values(array_filter($entries, function ($ts) use ($cutoff) {
+                return is_int($ts) && $ts > $cutoff;
+            }));
+
+            $entries[] = time();
+
+            ftruncate($fh, 0);
+            rewind($fh);
+            fwrite($fh, json_encode($entries));
+            fflush($fh);
+            flock($fh, LOCK_UN);
+        }
+        fclose($fh);
+    }
+    return count($entries);
+}
+
+function clearLoginRateLimitEntries($ipOrGlobal) {
+    $dir = defined('LOGS_PATH') ? LOGS_PATH : sys_get_temp_dir();
+    $file = $dir . '/admin_login_fail_' . md5($ipOrGlobal) . '.json';
+    if (is_file($file)) {
+        @unlink($file);
+    }
+}
+
+$clientIp = rateLimitClientIp();
+
 // 檢查是否被鎖定
-if (isset($_SESSION['login_lockout']) && time() < $_SESSION['login_lockout']) {
-    $remaining = ceil(($_SESSION['login_lockout'] - time()) / 60);
+$globalEntries = getLoginRateLimitEntries('global');
+if (count($globalEntries) >= 20) {
+    die("<html><head><title>鎖定中</title></head><body><div style='max-width:400px;margin:100px auto;font-family:Arial;color:red;'>全站登入失敗次數過多，請稍後再試。</div></body></html>");
+}
+
+$ipEntries = getLoginRateLimitEntries($clientIp);
+if (count($ipEntries) >= 5) {
+    $oldest = $ipEntries[0] ?? time();
+    $remaining = ceil((900 - (time() - $oldest)) / 60);
     die("<html><head><title>鎖定中</title></head><body><div style='max-width:400px;margin:100px auto;font-family:Arial;color:red;'>登入失敗次數過多，請等待 $remaining 分鐘後再試。</div></body></html>");
-} elseif (isset($_SESSION['login_lockout']) && time() >= $_SESSION['login_lockout']) {
-    unset($_SESSION['login_lockout']);
-    unset($_SESSION['login_attempts']);
 }
 
 if (isset($_POST['admin_password'])) {
     // 若未設定 ADMIN_PASSWORD，一律拒絕（fail closed）；密碼比對使用 hash_equals 防時序攻擊
     if ($adminPassword !== '' && hash_equals($adminPassword, $_POST['admin_password'] ?? '')) {
         $_SESSION['admin_auth'] = true;
-        unset($_SESSION['login_attempts']);
+        clearLoginRateLimitEntries($clientIp);
     } else {
-        $attempts = isset($_SESSION['login_attempts']) ? $_SESSION['login_attempts'] + 1 : 1;
-        $_SESSION['login_attempts'] = $attempts;
+        addLoginRateLimitEntry('global');
+        $attempts = addLoginRateLimitEntry($clientIp);
 
         if ($attempts >= 5) {
-            $_SESSION['login_lockout'] = time() + 900; // 15 分鐘
             die("<html><head><title>鎖定中</title></head><body><div style='max-width:400px;margin:100px auto;font-family:Arial;color:red;'>登入失敗次數過多，請等待 15 分鐘後再試。</div></body></html>");
         }
 
@@ -59,8 +147,6 @@ if (!isset($_SESSION['admin_auth'])) {
 if (!isset($_SESSION['admin_auth'])) {
     die('未授權訪問');
 }
-
-require_once dirname(__DIR__) . '/config/config.php';
 
 // 處理登出
 if (isset($_GET['logout'])) {
@@ -92,6 +178,10 @@ $images = glob($imageDir . '/*.{png,jpg,jpeg,PNG,JPG,JPEG}', GLOB_BRACE);
 echo "<span class='info'>找到 " . count($images) . " 張圖片</span><br><br>";
 
 if (isset($_GET['action']) && $_GET['action'] === 'resize' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (empty($_POST['csrf_token']) || empty($_SESSION['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
+        die("<span class='error'>錯誤：CSRF 驗證失敗。請返回重試。</span><br><a href='?'>返回</a>");
+    }
+
     // 執行壓縮
     $processed = 0;
     $totalSaved = 0;
@@ -143,11 +233,16 @@ if (isset($_GET['action']) && $_GET['action'] === 'resize' && $_SERVER['REQUEST_
     echo "<p><a href='?'>返回</a></p>";
 
 } elseif (isset($_GET['action']) && $_GET['action'] === 'confirm') {
+    if (empty($_SESSION['csrf_token'])) {
+        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+    }
+
     // 顯示確認表單
     echo "<h2>確認壓縮</h2>";
     echo "<p style='color:red;font-weight:bold;'>確定要壓縮所有圖片嗎？此操作不可逆！</p>";
     echo "<p>壓縮操作將會覆蓋原始檔案，並轉換為 JPEG 格式。</p>";
     echo "<form method='post' action='?action=resize'>";
+    echo "<input type='hidden' name='csrf_token' value='" . htmlspecialchars($_SESSION['csrf_token'], ENT_QUOTES, 'UTF-8') . "'>";
     echo "<button type='submit' style='background:#ff6b35;color:white;padding:10px 20px;border:none;border-radius:5px;cursor:pointer;font-size:16px;'>確定壓縮所有圖片</button>";
     echo "&nbsp;&nbsp;<a href='?' style='padding:10px 20px;text-decoration:none;border:1px solid #ccc;border-radius:5px;color:#333;'>取消並返回</a>";
     echo "</form>";
