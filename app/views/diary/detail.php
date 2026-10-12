@@ -56,7 +56,7 @@ $aiGenerating = ($ai_generating ?? false);
                              alt="AI 生成圖片"
                              class="card-image"
                              loading="lazy"
-                             onerror="this.parentElement.innerHTML='<div class=\'card-emoji-fallback\'><?php echo $mood; ?></div>'">
+                             data-fallback-emoji="<?php echo htmlspecialchars($mood, ENT_QUOTES); ?>">
                     <?php else: ?>
                         <div class="card-emoji-fallback" id="card-emoji">
                             <span class="card-emoji"><?php echo $mood; ?></span>
@@ -127,7 +127,7 @@ $aiGenerating = ($ai_generating ?? false);
 
 <?php if (!$aiGenerating && !$hasImage): ?>
 <div class="diary-actions" style="margin-top:0.5rem">
-    <button class="btn btn-secondary" style="font-size:0.85rem" onclick="regenerateAI(<?php echo $diaryId; ?>, event)">🔄 重新生成 AI</button>
+    <button class="btn btn-secondary" style="font-size:0.85rem" data-regenerate-ai="<?php echo (int)$diaryId; ?>">🔄 重新生成 AI</button>
 </div>
 <?php endif; ?>
 
