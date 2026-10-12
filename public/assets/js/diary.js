@@ -207,7 +207,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
                             var meta = document.createElement('div');
                             meta.className = 'card-front-meta';
-                            meta.innerHTML = '<span class="card-date">' + cardDate + '</span><span class="card-mood-tag">' + cardMood + '</span>';
+                            // 日期和心情是使用者資料，用 textContent 放，不用 innerHTML（避免 XSS）
+                            var dateSpan = document.createElement('span');
+                            dateSpan.className = 'card-date';
+                            dateSpan.textContent = cardDate;
+                            var moodSpan = document.createElement('span');
+                            moodSpan.className = 'card-mood-tag';
+                            moodSpan.textContent = cardMood;
+                            meta.append(dateSpan, moodSpan);
                             emojiContainer.appendChild(meta);
 
                             emojiContainer.classList.remove('card-emoji-fallback');
