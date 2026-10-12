@@ -56,7 +56,8 @@ $aiGenerating = ($ai_generating ?? false);
                              alt="AI 生成圖片"
                              class="card-image"
                              loading="lazy"
-                             onerror="this.parentElement.innerHTML='<div class=\'card-emoji-fallback\'><?php echo $mood; ?></div>'">
+                             id="card-image-el"
+                             data-fallback-mood="<?php echo $mood; ?>">
                     <?php else: ?>
                         <div class="card-emoji-fallback" id="card-emoji">
                             <span class="card-emoji"><?php echo $mood; ?></span>
@@ -127,7 +128,7 @@ $aiGenerating = ($ai_generating ?? false);
 
 <?php if (!$aiGenerating && !$hasImage): ?>
 <div class="diary-actions" style="margin-top:0.5rem">
-    <button class="btn btn-secondary" style="font-size:0.85rem" onclick="regenerateAI(<?php echo $diaryId; ?>, event)">🔄 重新生成 AI</button>
+    <button id="regenerate-ai-btn" class="btn btn-secondary" style="font-size:0.85rem" data-diary-id="<?php echo (int) $diaryId; ?>">🔄 重新生成 AI</button>
 </div>
 <?php endif; ?>
 
@@ -136,7 +137,7 @@ $aiGenerating = ($ai_generating ?? false);
      data-ai-generating="true"
      data-diary-id="<?php echo (int) $diaryId; ?>"
      data-app-url="<?php echo htmlspecialchars(APP_URL, ENT_QUOTES); ?>"
-     data-card-date="<?php echo $date->format('Y.m.d'); ?>"
+     data-card-date="<?php echo htmlspecialchars($date->format('Y.m.d'), ENT_QUOTES); ?>"
      data-card-mood="<?php echo $mood; ?>">
 </div>
 <?php endif; ?>

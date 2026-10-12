@@ -78,6 +78,52 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // ================================================================
+    // Regenerate AI button binding
+    // ================================================================
+    var regenBtn = document.getElementById('regenerate-ai-btn');
+    if (regenBtn) {
+        regenBtn.addEventListener('click', function(e) {
+            var btn = e.currentTarget;
+            var id = btn.getAttribute('data-diary-id');
+            if (!id) return;
+
+            btn.disabled = true;
+            btn.textContent = '生成中...';
+            fetch('index.php?action=generate_card_content&id=' + id)
+                .then(function(r) { return r.json(); })
+                .then(function(d) {
+                    if (d.success) location.reload();
+                    else { btn.textContent = '失敗，點此重試'; btn.disabled = false; }
+                })
+                .catch(function() { btn.textContent = '失敗，點此重試'; btn.disabled = false; });
+        });
+    }
+
+    // ================================================================
+    // Detail Page Image Fallback
+    // ================================================================
+    var cardImage = document.getElementById('card-image-el');
+    if (cardImage) {
+        var fallbackMood = cardImage.getAttribute('data-fallback-mood') || '📝';
+
+        function handleImageError() {
+            var parent = cardImage.parentElement;
+            if (parent) {
+                var fallbackDiv = document.createElement('div');
+                fallbackDiv.className = 'card-emoji-fallback';
+                fallbackDiv.textContent = fallbackMood;
+                parent.replaceChild(fallbackDiv, cardImage);
+            }
+        }
+
+        if (cardImage.complete && cardImage.naturalWidth === 0) {
+            handleImageError();
+        } else {
+            cardImage.addEventListener('error', handleImageError);
+        }
+    }
+
+    // ================================================================
     // AI 非同步生成卡片內容 (detail 頁面)
     // ================================================================
     var aiData = document.getElementById('ai-generating-data');
@@ -229,17 +275,3 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
 });
-
-// Global function for retrying AI generation
-window.regenerateAI = function(id, event) {
-    var btn = event ? event.target : window.event.target;
-    btn.disabled = true;
-    btn.textContent = '生成中...';
-    fetch('index.php?action=generate_card_content&id=' + id)
-        .then(function(r) { return r.json(); })
-        .then(function(d) {
-            if (d.success) location.reload();
-            else { btn.textContent = '失敗，點此重試'; btn.disabled = false; }
-        })
-        .catch(function() { btn.textContent = '失敗，點此重試'; btn.disabled = false; });
-};
