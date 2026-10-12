@@ -59,7 +59,7 @@ if (!defined('APP_URL')) {
             <ul class="navbar-nav" id="navbar-nav">
                 <?php if (isset($_SESSION['user_id']) || !empty($_SESSION['is_guest'])): ?>
                     <li class="nav-item nav-user-greeting">
-                        <span>您好, <?php echo htmlspecialchars($_SESSION['username']); ?>!</span>
+                        <span>您好, <?php echo htmlspecialchars($_SESSION['username'] ?? '訪客'); ?>!</span>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="<?php echo APP_URL; ?>/public/index.php?action=diary_create">✏️ 寫日記</a>

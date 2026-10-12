@@ -18,38 +18,49 @@ if (!function_exists('rateLimitClientIp')) {
         $remoteAddr = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
 
         // Read TRUSTED_PROXIES from environment (comma-separated list of IPs or CIDRs) or constant
-        $trustedProxiesEnv = getenv('TRUSTED_PROXIES') ?: (defined('TRUSTED_PROXIES') ? TRUSTED_PROXIES : '127.0.0.1,::1');
+        $trustedProxiesEnv = getenv('TRUSTED_PROXIES') ?: (defined('TRUSTED_PROXIES') ? TRUSTED_PROXIES : '10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,127.0.0.0/8,::1');
+
+        $trustedProxies = [];
         if (is_string($trustedProxiesEnv)) {
             $trustedProxies = array_map('trim', explode(',', $trustedProxiesEnv));
-        } else {
-            $trustedProxies = is_array($trustedProxiesEnv) ? $trustedProxiesEnv : ['127.0.0.1', '::1'];
+        } else if (is_array($trustedProxiesEnv)) {
+            $trustedProxies = $trustedProxiesEnv;
         }
 
-        $isTrusted = false;
-        foreach ($trustedProxies as $proxy) {
-            if (strpos($proxy, '/') !== false) {
-                // CIDR check
-                list($subnet, $bits) = explode('/', $proxy);
-                if (filter_var($subnet, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
-                    $ip = ip2long($remoteAddr);
-                    $subnet = ip2long($subnet);
-                    $mask = -1 << (32 - $bits);
-                    $subnet &= $mask;
-                    if (($ip & $mask) == $subnet) {
-                        $isTrusted = true;
-                        break;
+        $isIpTrusted = function($testIp, $proxies) {
+            if (!filter_var($testIp, FILTER_VALIDATE_IP)) return false;
+
+            foreach ($proxies as $proxy) {
+                if (strpos($proxy, '/') !== false) {
+                    list($subnet, $bits) = explode('/', $proxy);
+                    $isIpv4 = filter_var($subnet, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4);
+                    $testIsIpv4 = filter_var($testIp, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4);
+
+                    if ($isIpv4 && $testIsIpv4) {
+                        $ipLong = ip2long($testIp);
+                        $subnetLong = ip2long($subnet);
+                        if ($ipLong !== false && $subnetLong !== false) {
+                            $mask = -1 << (32 - $bits);
+                            $subnetLong &= $mask;
+                            if (($ipLong & $mask) == $subnetLong) {
+                                return true;
+                            }
+                        }
+                    }
+                    // IPv6 CIDR is complex, usually we just exact match or trust private IPv4.
+                    // This simplified version skips IPv6 CIDR.
+                } else {
+                    if ($testIp === $proxy) {
+                        return true;
                     }
                 }
-            } else {
-                if ($remoteAddr === $proxy) {
-                    $isTrusted = true;
-                    break;
-                }
             }
-        }
+            return false;
+        };
+
+        $isTrusted = $isIpTrusted($remoteAddr, $trustedProxies);
 
         if ($isTrusted) {
-            // Cloudflare priority if available
             if (!empty($_SERVER['HTTP_CF_CONNECTING_IP'])) {
                 return $_SERVER['HTTP_CF_CONNECTING_IP'];
             }
@@ -57,29 +68,7 @@ if (!function_exists('rateLimitClientIp')) {
                 $parts = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']);
                 for ($i = count($parts) - 1; $i >= 0; $i--) {
                     $ip = trim($parts[$i]);
-                    $hopTrusted = false;
-                    foreach ($trustedProxies as $proxy) {
-                        if (strpos($proxy, '/') !== false) {
-                            list($subnet, $bits) = explode('/', $proxy);
-                            if (filter_var($subnet, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
-                                $ipLong = ip2long($ip);
-                                $subnetLong = ip2long($subnet);
-                                $mask = -1 << (32 - $bits);
-                                $subnetLong &= $mask;
-                                if ($ipLong !== false && ($ipLong & $mask) == $subnetLong) {
-                                    $hopTrusted = true;
-                                    break;
-                                }
-                            }
-                        } else {
-                            if ($ip === $proxy) {
-                                $hopTrusted = true;
-                                break;
-                            }
-                        }
-                    }
-
-                    if (!$hopTrusted) {
+                    if (!$isIpTrusted($ip, $trustedProxies)) {
                         return $ip;
                     }
                 }

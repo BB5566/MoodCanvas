@@ -673,6 +673,9 @@ class DiaryController
                 return;
             }
 
+            // 寫入當前時間，只在確認有日記時寫入，避免沒有日記還被鎖 10 分鐘
+            file_put_contents($rateFile, time());
+
             // 補齊 mood_score 與 date (跟 dashboard 邏輯一樣)
             foreach ($diaries as &$d) {
                 $d['date'] = $d['diary_date'] ?? '';
