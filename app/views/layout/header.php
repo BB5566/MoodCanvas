@@ -57,7 +57,7 @@ if (!defined('APP_URL')) {
                 <span class="toggler-bar"></span>
             </button>
             <ul class="navbar-nav" id="navbar-nav">
-                <?php if (isset($_SESSION['user_id'])): ?>
+                <?php if (isset($_SESSION['user_id']) || !empty($_SESSION['is_guest'])): ?>
                     <li class="nav-item nav-user-greeting">
                         <span>您好, <?php echo htmlspecialchars($_SESSION['username']); ?>!</span>
                     </li>
@@ -79,7 +79,7 @@ if (!defined('APP_URL')) {
         </nav>
     </header>
 
-    <main class="main-container" id="main" data-logged-in="<?php echo isset($_SESSION['user_id']) ? 'true' : 'false'; ?>">
+    <main class="main-container" id="main" data-logged-in="<?php echo (isset($_SESSION['user_id']) || !empty($_SESSION['is_guest'])) ? 'true' : 'false'; ?>">
 
         <?php if (!empty($_SESSION['is_guest'])): ?>
             <div id="demo-banner" style="background:#fff3cd;border:1px solid #ffeeba;color:#856404;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;">

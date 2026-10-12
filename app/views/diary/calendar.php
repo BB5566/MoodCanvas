@@ -156,7 +156,7 @@ if (isset($diaries)) {
                             } else {
                                 $currentDate = sprintf('%04d-%02d-%02d', $year, $month, $currentDay);
                                 // 只有已登入使用者才允許新增日記；訪客會看到提示
-                                if (isset($_SESSION['user_id'])) {
+                                if (isset($_SESSION['user_id']) || !empty($_SESSION['is_guest'])) {
                                     echo "<a href='index.php?action=diary_create&date={$currentDate}' class='no-diary' title='新增日記'>";
                                     echo "<span class='add-diary-btn'>+</span>";
                                     echo "</a>";
@@ -226,7 +226,7 @@ if (isset($diaries)) {
         <div class="bento-card">
             <h3>⚡ 快速操作</h3>
             <div class="quick-actions">
-                <?php if (isset($_SESSION['user_id'])): ?>
+                <?php if (isset($_SESSION['user_id']) || !empty($_SESSION['is_guest'])): ?>
                     <a href="index.php?action=diary_create" class="quick-btn">
                         <span class="quick-btn-icon">✏️</span>
                         <span>寫新日記</span>

@@ -127,6 +127,8 @@ class AuthController {
                     // 轉移後銷毀 session，讓使用者得到乾淨的新狀態並重新登入
                     session_unset();
                     session_destroy();
+                } else {
+                    unset($_SESSION['is_guest']);
                 }
 
                 // 註冊成功後直接導向登入頁面
@@ -172,8 +174,8 @@ class AuthController {
                     if (!empty($_SESSION['is_guest']) && isset($_SESSION['user_id'])) {
                         $guestId = $_SESSION['user_id'];
                         $this->migrateGuestData($guestId, $user['id']);
-                        unset($_SESSION['is_guest']);
                     }
+                    unset($_SESSION['is_guest']);
 
                     // 登入成功，設定 session
                     session_regenerate_id(true); // 防止 Session Fixation
@@ -205,7 +207,7 @@ class AuthController {
             $db = getDbConnection();
             if ($db) {
                 try {
-                    $delStmt = $db->prepare("DELETE FROM users WHERE id = ?");
+                    $delStmt = $db->prepare("DELETE FROM users WHERE id = ? AND username LIKE 'guest\_%'");
                     $delStmt->execute([$_SESSION['user_id']]);
                 } catch (\PDOException $e) {
                     error_log("Failed to delete guest on logout: " . $e->getMessage());
