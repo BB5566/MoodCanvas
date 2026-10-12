@@ -1,26 +1,6 @@
 // public/assets/js/diary.js
 
 document.addEventListener('DOMContentLoaded', function () {
-    // 取代 detail.php 原本的 inline onerror／onclick（CSP 不允許 inline 事件）
-    document.querySelectorAll('img[data-fallback-emoji]').forEach(function (img) {
-        function showFallback() {
-            var box = document.createElement('div');
-            box.className = 'card-emoji-fallback';
-            box.textContent = img.dataset.fallbackEmoji;
-            img.parentElement.replaceChildren(box);
-        }
-        if (img.complete && img.naturalWidth === 0) {
-            showFallback(); // 腳本載入前圖片就已經載入失敗
-        } else {
-            img.addEventListener('error', showFallback);
-        }
-    });
-    document.querySelectorAll('[data-regenerate-ai]').forEach(function (button) {
-        button.addEventListener('click', function (event) {
-            window.regenerateAI(button.dataset.regenerateAi, event);
-        });
-    });
-
 
     // ================================================================
     // 字數計數（edit / create 頁面）
@@ -207,14 +187,17 @@ document.addEventListener('DOMContentLoaded', function () {
 
                             var meta = document.createElement('div');
                             meta.className = 'card-front-meta';
-                            // 日期和心情是使用者資料，用 textContent 放，不用 innerHTML（避免 XSS）
+
                             var dateSpan = document.createElement('span');
                             dateSpan.className = 'card-date';
                             dateSpan.textContent = cardDate;
+                            meta.appendChild(dateSpan);
+
                             var moodSpan = document.createElement('span');
                             moodSpan.className = 'card-mood-tag';
                             moodSpan.textContent = cardMood;
-                            meta.append(dateSpan, moodSpan);
+                            meta.appendChild(moodSpan);
+
                             emojiContainer.appendChild(meta);
 
                             emojiContainer.classList.remove('card-emoji-fallback');

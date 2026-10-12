@@ -271,8 +271,7 @@ async function fetchAIInsight(diaries) {
 
     } catch (error) {
         console.error('Fetch AI Insight Error:', error);
-        insightContainer.textContent = '😔 無法載入 AI 洞察。';
-        insightContainer.append(document.createElement('br'), '(' + error.message + ')');
+        insightContainer.innerHTML = `😔 無法載入 AI 洞察。 <br>(${error.message})`;
         insightContainer.classList.add('error-message');
     }
 }
