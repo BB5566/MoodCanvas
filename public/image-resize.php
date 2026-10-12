@@ -9,11 +9,43 @@ session_start();
 // 注意：必須設定 ADMIN_PASSWORD 環境變數才能使用本工具；未設定時一律拒絕存取（fail closed）
 $adminPassword = getenv('ADMIN_PASSWORD') ?: '';
 
-if (!isset($_POST['admin_password']) && !isset($_SESSION['admin_auth'])) {
+$loginError = '';
+
+// 檢查是否被鎖定
+if (isset($_SESSION['login_lockout']) && time() < $_SESSION['login_lockout']) {
+    $remaining = ceil(($_SESSION['login_lockout'] - time()) / 60);
+    die("<html><head><title>鎖定中</title></head><body><div style='max-width:400px;margin:100px auto;font-family:Arial;color:red;'>登入失敗次數過多，請等待 $remaining 分鐘後再試。</div></body></html>");
+} elseif (isset($_SESSION['login_lockout']) && time() >= $_SESSION['login_lockout']) {
+    unset($_SESSION['login_lockout']);
+    unset($_SESSION['login_attempts']);
+}
+
+if (isset($_POST['admin_password'])) {
+    // 若未設定 ADMIN_PASSWORD，一律拒絕（fail closed）；密碼比對使用 hash_equals 防時序攻擊
+    if ($adminPassword !== '' && hash_equals($adminPassword, $_POST['admin_password'] ?? '')) {
+        $_SESSION['admin_auth'] = true;
+        unset($_SESSION['login_attempts']);
+    } else {
+        $attempts = isset($_SESSION['login_attempts']) ? $_SESSION['login_attempts'] + 1 : 1;
+        $_SESSION['login_attempts'] = $attempts;
+
+        if ($attempts >= 5) {
+            $_SESSION['login_lockout'] = time() + 900; // 15 分鐘
+            die("<html><head><title>鎖定中</title></head><body><div style='max-width:400px;margin:100px auto;font-family:Arial;color:red;'>登入失敗次數過多，請等待 15 分鐘後再試。</div></body></html>");
+        }
+
+        $loginError = '密碼錯誤！剩餘嘗試次數：' . (5 - $attempts);
+    }
+}
+
+if (!isset($_SESSION['admin_auth'])) {
     // 顯示密碼輸入表單
     echo '<html><head><title>圖片壓縮工具 - 管理員登入</title></head><body>';
     echo '<div style="max-width:400px;margin:100px auto;font-family:Arial;">';
     echo '<h2>圖片壓縮工具</h2>';
+    if ($loginError) {
+        echo '<div style="color:red;margin-bottom:10px;">' . htmlspecialchars($loginError, ENT_QUOTES, 'UTF-8') . '</div>';
+    }
     echo '<p>此工具需要管理員權限，請輸入密碼：</p>';
     echo '<form method="post">';
     echo '<input type="password" name="admin_password" placeholder="管理員密碼" style="padding:10px;width:100%;margin:10px 0;">';
@@ -23,14 +55,6 @@ if (!isset($_POST['admin_password']) && !isset($_SESSION['admin_auth'])) {
     exit;
 }
 
-if (isset($_POST['admin_password'])) {
-    // 若未設定 ADMIN_PASSWORD，一律拒絕（fail closed）；密碼比對使用 hash_equals 防時序攻擊
-    if ($adminPassword !== '' && hash_equals($adminPassword, $_POST['admin_password'] ?? '')) {
-        $_SESSION['admin_auth'] = true;
-    } else {
-        die('<script>alert("密碼錯誤！"); history.back();</script>');
-    }
-}
 
 if (!isset($_SESSION['admin_auth'])) {
     die('未授權訪問');
@@ -67,7 +91,7 @@ $imageDir = dirname(__DIR__) . '/public/storage/generated_images';
 $images = glob($imageDir . '/*.{png,jpg,jpeg,PNG,JPG,JPEG}', GLOB_BRACE);
 echo "<span class='info'>找到 " . count($images) . " 張圖片</span><br><br>";
 
-if (isset($_GET['action']) && $_GET['action'] === 'resize') {
+if (isset($_GET['action']) && $_GET['action'] === 'resize' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     // 執行壓縮
     $processed = 0;
     $totalSaved = 0;
@@ -118,6 +142,16 @@ if (isset($_GET['action']) && $_GET['action'] === 'resize') {
     echo "總共節省: " . formatBytes($totalSaved) . "<br>";
     echo "<p><a href='?'>返回</a></p>";
 
+} elseif (isset($_GET['action']) && $_GET['action'] === 'confirm') {
+    // 顯示確認表單
+    echo "<h2>確認壓縮</h2>";
+    echo "<p style='color:red;font-weight:bold;'>確定要壓縮所有圖片嗎？此操作不可逆！</p>";
+    echo "<p>壓縮操作將會覆蓋原始檔案，並轉換為 JPEG 格式。</p>";
+    echo "<form method='post' action='?action=resize'>";
+    echo "<button type='submit' style='background:#ff6b35;color:white;padding:10px 20px;border:none;border-radius:5px;cursor:pointer;font-size:16px;'>確定壓縮所有圖片</button>";
+    echo "&nbsp;&nbsp;<a href='?' style='padding:10px 20px;text-decoration:none;border:1px solid #ccc;border-radius:5px;color:#333;'>取消並返回</a>";
+    echo "</form>";
+
 } else {
     // 顯示預覽和操作選項
     echo "<h2>圖片列表 (前10張)</h2>";
@@ -156,7 +190,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'resize') {
     echo "<li><span style='color:red;'>直接覆蓋原始檔案 (不可逆)</span></li>";
     echo "</ul>";
 
-    echo "<p><a href='?action=resize' style='background:#ff6b35;color:white;padding:10px 20px;text-decoration:none;border-radius:5px;' onclick='return confirm(\"確定要壓縮所有圖片嗎？此操作不可逆！\")'>開始壓縮所有圖片</a></p>";
+    echo "<p><a href='?action=confirm' style='background:#ff6b35;color:white;padding:10px 20px;text-decoration:none;border-radius:5px;'>開始壓縮所有圖片</a></p>";
 }
 
 /**
