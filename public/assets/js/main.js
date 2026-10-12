@@ -66,4 +66,53 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    // ================================================================
+    // Navbar 手機版漢堡選單切換
+    // ================================================================
+    var toggler = document.getElementById('navbar-toggler');
+    var nav = document.getElementById('navbar-nav');
+    if (toggler && nav) {
+        toggler.addEventListener('click', function () {
+            var isOpen = nav.classList.toggle('open');
+            toggler.classList.toggle('active', isOpen);
+            toggler.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+            toggler.setAttribute('aria-label', isOpen ? '關閉選單' : '開啟選單');
+        });
+        // 點選單連結後自動收起（手機 UX）
+        nav.addEventListener('click', function (e) {
+            if (e.target.closest('a') && window.innerWidth < 768) {
+                nav.classList.remove('open');
+                toggler.classList.remove('active');
+                toggler.setAttribute('aria-expanded', 'false');
+            }
+        });
+    }
+
+    // ================================================================
+    // 示範模式 Banner
+    // ================================================================
+    try {
+        var key = 'moodcanvas_demo_banner_hidden';
+        var banner = document.getElementById('demo-banner');
+        var dismissBtn = document.getElementById('demo-banner-dismiss');
+        if (banner && dismissBtn) {
+            if (localStorage && localStorage.getItem(key) === '1') {
+                banner.style.display = 'none';
+            } else {
+                dismissBtn.addEventListener('click', function() {
+                    if (localStorage) localStorage.setItem(key, '1');
+                    banner.style.display = 'none';
+                });
+            }
+        }
+    } catch (e) {}
+
+    // ================================================================
+    // __IS_LOGGED_IN__ 全域變數初始化（從 data-logged-in 讀取）
+    // ================================================================
+    var mainContainer = document.getElementById('main');
+    if (mainContainer && mainContainer.hasAttribute('data-logged-in')) {
+        window.__IS_LOGGED_IN__ = mainContainer.getAttribute('data-logged-in') === 'true';
+    }
+
 });
