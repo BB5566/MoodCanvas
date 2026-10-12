@@ -58,11 +58,7 @@ $metaDescription = '修改你的心情日記';
     </form>
 </div>
 
-<script>
-document.getElementById('content').addEventListener('input', function() {
-    document.getElementById('content-char-count').textContent = this.value.length + ' / 1000';
-});
-</script>
+<script src="<?php echo APP_URL; ?>/public/assets/js/diary.js" defer></script>
 
 <?php
 require_once BASE_PATH . '/app/views/layout/footer.php';

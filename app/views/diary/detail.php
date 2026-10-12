@@ -125,186 +125,23 @@ $aiGenerating = ($ai_generating ?? false);
     </div>
 </div>
 
-<script>
-// --- 翻轉卡片互動 ---
-(function() {
-    var card = document.getElementById('flip-card');
-    var inner = document.getElementById('flip-card-inner');
-    var flipped = false;
-    
-    card.addEventListener('click', function() {
-        flipped = !flipped;
-        inner.classList.toggle('flipped', flipped);
-    });
-    
-    // 鍵盤支援
-    card.setAttribute('tabindex', '0');
-    card.setAttribute('role', 'button');
-    card.setAttribute('aria-label', '點擊翻轉卡片');
-    card.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            card.click();
-        }
-    });
-})();
-
-<?php if ($aiGenerating): ?>
-// --- AI 非同步生成卡片內容（含 timeout + 重試）---
-(function() {
-    var diaryId = <?php echo $diaryId; ?>;
-    var statusEl = document.querySelector('.ai-generating-badge span');
-    var emojiContainer = document.getElementById('card-emoji');
-    var quoteLoading = document.getElementById('quote-loading');
-    var quoteText = document.getElementById('quote-text');
-    var badge = document.querySelector('.ai-generating-badge');
-    var startTime = Date.now();
-    var timerInterval = null;
-    var aborted = false;
-    
-    function updateStatus(msg) {
-        if (statusEl) statusEl.textContent = msg;
-    }
-    
-    function updateTimer() {
-        var elapsed = Math.floor((Date.now() - startTime) / 1000);
-        updateStatus('AI 創作中... ' + elapsed + 's');
-    }
-    
-    timerInterval = setInterval(updateTimer, 1000);
-    updateStatus('AI 創作中...');
-    
-    function showRetry() {
-        clearInterval(timerInterval);
-        if (aborted) return;
-        updateStatus('AI 生成逾時');
-        if (badge) {
-            badge.style.background = 'rgba(255,235,238,0.95)';
-            badge.style.color = '#c62828';
-            var retryBtn = document.createElement('button');
-            retryBtn.textContent = '🔄 重試';
-            retryBtn.style.cssText = 'margin-left:0.5rem;padding:0.2rem 0.6rem;border:1px solid #c62828;border-radius:12px;background:#fff;color:#c62828;cursor:pointer;font-size:0.8rem';
-            retryBtn.onclick = function() {
-                badge.style.background = 'rgba(255,255,255,0.85)';
-                badge.style.color = 'var(--color-text-secondary)';
-                retryBtn.remove();
-                startTime = Date.now();
-                timerInterval = setInterval(updateTimer, 1000);
-                doGenerate();
-            };
-            badge.appendChild(retryBtn);
-        }
-    }
-    
-    function doGenerate() {
-        var controller = new AbortController();
-        var timeout = setTimeout(function() {
-            controller.abort();
-            showRetry();
-        }, 45000);
-        
-        fetch('index.php?action=generate_card_content&id=' + diaryId, { signal: controller.signal })
-            .then(function(res) { return res.json(); })
-            .then(function(data) {
-                clearTimeout(timeout);
-                clearInterval(timerInterval);
-                if (aborted) return;
-                
-                if (!data.success) {
-                    if (data.message && data.message.indexOf('請等待') !== -1) {
-                        updateStatus('⏳ ' + data.message);
-                        if (badge) badge.style.background = 'rgba(255,243,205,0.95)';
-                        setTimeout(function() {
-                            startTime = Date.now();
-                            timerInterval = setInterval(updateTimer, 1000);
-                            doGenerate();
-                        }, 2000);
-                        return;
-                    }
-                    updateStatus('AI 生成完成 ✨');
-                    if (quoteLoading) quoteLoading.style.display = 'none';
-                    if (badge) setTimeout(function() { badge.style.opacity = '0'; }, 2000);
-                    return;
-                }
-                
-                // 更新圖片
-                if (data.image_url) {
-                    var imgUrl = data.image_url;
-                    if (imgUrl.indexOf('http') !== 0 && imgUrl.indexOf('public/') !== 0) {
-                        imgUrl = '<?php echo APP_URL; ?>/public/' + imgUrl.replace(/^\//, '');
-                    }
-                    
-                    if (emojiContainer) {
-                        var img = document.createElement('img');
-                        img.src = imgUrl;
-                        img.alt = 'AI 生成圖片';
-                        img.className = 'card-image';
-                        img.loading = 'lazy';
-                        img.onerror = function() { this.style.display = 'none'; };
-                        img.onload = function() { this.style.animation = 'fadeIn 0.6s ease'; };
-                        
-                        emojiContainer.innerHTML = '';
-                        emojiContainer.appendChild(img);
-                        
-                        var hint = document.createElement('div');
-                        hint.className = 'flip-hint';
-                        hint.innerHTML = '<span>點擊翻轉 ↻</span>';
-                        emojiContainer.appendChild(hint);
-                        
-                        var meta = document.createElement('div');
-                        meta.className = 'card-front-meta';
-                        meta.innerHTML = '<span class="card-date"><?php echo $date->format('Y.m.d'); ?></span><span class="card-mood-tag"><?php echo $mood; ?></span>';
-                        emojiContainer.appendChild(meta);
-                        
-                        emojiContainer.classList.remove('card-emoji-fallback');
-                    }
-                    updateStatus('🎨 圖片完成');
-                }
-                
-                // 更新短語
-                if (data.quote) {
-                    if (quoteText) {
-                        quoteText.textContent = data.quote;
-                        quoteText.style.display = 'block';
-                        quoteText.style.animation = 'fadeIn 0.5s ease';
-                    }
-                    if (quoteLoading) quoteLoading.style.display = 'none';
-                }
-                
-                updateStatus('✨ 完成');
-                if (badge) setTimeout(function() { badge.style.opacity = '0'; }, 2000);
-            })
-            .catch(function(err) {
-                clearTimeout(timeout);
-                if (err.name === 'AbortError') return;
-                showRetry();
-            });
-    }
-    
-    doGenerate();
-})();
-<?php endif; ?>
-
 <?php if (!$aiGenerating && !$hasImage): ?>
 <div class="diary-actions" style="margin-top:0.5rem">
-    <button class="btn btn-secondary" style="font-size:0.85rem" onclick="regenerateAI(<?php echo $diaryId; ?>)">🔄 重新生成 AI</button>
+    <button class="btn btn-secondary" style="font-size:0.85rem" onclick="regenerateAI(<?php echo $diaryId; ?>, event)">🔄 重新生成 AI</button>
 </div>
-<script>
-function regenerateAI(id) {
-    var btn = event.target;
-    btn.disabled = true;
-    btn.textContent = '生成中...';
-    fetch('index.php?action=generate_card_content&id=' + id)
-        .then(function(r) { return r.json(); })
-        .then(function(d) {
-            if (d.success) location.reload();
-            else { btn.textContent = '失敗，點此重試'; btn.disabled = false; }
-        })
-        .catch(function() { btn.textContent = '失敗，點此重試'; btn.disabled = false; });
-}
-</script>
 <?php endif; ?>
-</script>
+
+<?php if ($aiGenerating): ?>
+<div id="ai-generating-data" style="display:none;"
+     data-ai-generating="true"
+     data-diary-id="<?php echo $diaryId; ?>"
+     data-app-url="<?php echo APP_URL; ?>"
+     data-card-date="<?php echo $date->format('Y.m.d'); ?>"
+     data-card-mood="<?php echo $mood; ?>">
+</div>
+<?php endif; ?>
+
+<script src="<?php echo APP_URL; ?>/public/assets/js/diary.js" defer></script>
 
 <?php
 require_once BASE_PATH . '/app/views/layout/footer.php';

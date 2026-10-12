@@ -79,33 +79,7 @@ if (!defined('APP_URL')) {
         </nav>
     </header>
 
-    <script>
-        // 手機版漢堡選單切換
-        (function () {
-            var toggler = document.getElementById('navbar-toggler');
-            var nav = document.getElementById('navbar-nav');
-            if (!toggler || !nav) return;
-            toggler.addEventListener('click', function () {
-                var isOpen = nav.classList.toggle('open');
-                toggler.classList.toggle('active', isOpen);
-                toggler.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-                toggler.setAttribute('aria-label', isOpen ? '關閉選單' : '開啟選單');
-            });
-            // 點選單連結後自動收起（手機 UX）
-            nav.addEventListener('click', function (e) {
-                if (e.target.closest('a') && window.innerWidth < 768) {
-                    nav.classList.remove('open');
-                    toggler.classList.remove('active');
-                    toggler.setAttribute('aria-expanded', 'false');
-                }
-            });
-        })();
-    </script>
-
-    <main class="main-container" id="main">
-        <script>
-            window.__IS_LOGGED_IN__ = <?php echo isset($_SESSION['user_id']) ? 'true' : 'false'; ?>;
-        </script>
+    <main class="main-container" id="main" data-logged-in="<?php echo isset($_SESSION['user_id']) ? 'true' : 'false'; ?>">
 
         <?php if (!empty($_SESSION['is_guest'])): ?>
             <div id="demo-banner" style="background:#fff3cd;border:1px solid #ffeeba;color:#856404;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;">
@@ -117,21 +91,4 @@ if (!defined('APP_URL')) {
                     <button id="demo-banner-dismiss" style="background:transparent;border:1px solid #856404;color:#856404;padding:6px 10px;border-radius:6px;cursor:pointer;">我知道了</button>
                 </div>
             </div>
-            <script>
-                (function() {
-                    try {
-                        var key = 'moodcanvas_demo_banner_hidden';
-                        var banner = document.getElementById('demo-banner');
-                        if (!banner) return;
-                        if (localStorage && localStorage.getItem(key) === '1') {
-                            banner.style.display = 'none';
-                            return;
-                        }
-                        document.getElementById('demo-banner-dismiss').addEventListener('click', function() {
-                            if (localStorage) localStorage.setItem(key, '1');
-                            banner.style.display = 'none';
-                        });
-                    } catch (e) {}
-                })();
-            </script>
         <?php endif; ?>

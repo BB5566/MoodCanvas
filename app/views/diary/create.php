@@ -93,41 +93,7 @@ $metaDescription = '一鍵寫下你的心情日記，AI 會自動為你生成專
     </form>
 </div>
 
-<script>
-// Character counter
-document.getElementById('content').addEventListener('input', function() {
-    document.getElementById('content-char-count').textContent = this.value.length + ' / 1000';
-});
-
-// Submit loading state
-document.getElementById('diary-form').addEventListener('submit', function() {
-    var btn = document.getElementById('submit-diary-btn');
-    var overlay = document.getElementById('submit-overlay');
-    var status = document.getElementById('submit-status');
-    
-    btn.disabled = true;
-    btn.querySelector('.btn-text').textContent = '處理中...';
-    overlay.style.display = 'flex';
-    
-    // Animate status messages
-    var messages = [
-        '正在儲存日記...',
-        'AI 正在生成圖片...',
-        'AI 正在撰寫短語...',
-        '即將完成...'
-    ];
-    var i = 0;
-    var interval = setInterval(function() {
-        i = (i + 1) % messages.length;
-        status.textContent = messages[i];
-    }, 2000);
-    
-    // Clean up on page unload
-    window.addEventListener('beforeunload', function() {
-        clearInterval(interval);
-    });
-});
-</script>
+<script src="<?php echo APP_URL; ?>/public/assets/js/diary.js" defer></script>
 
 <?php
 require_once BASE_PATH . '/app/views/layout/footer.php';
