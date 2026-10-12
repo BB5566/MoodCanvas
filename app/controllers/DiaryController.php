@@ -649,22 +649,29 @@ class DiaryController
                 return;
             }
 
-            // 速率限制：每 10 分鐘只能呼叫一次，限制存於檔案（不放 Session）
+            // 速率限制與快取：每 10 分鐘只能呼叫一次，限制存於檔案（不放 Session）
             $rateDir = defined('LOGS_PATH') ? LOGS_PATH : sys_get_temp_dir();
             if (!is_dir($rateDir)) @mkdir($rateDir, 0755, true);
             $rateFile = $rateDir . '/rate_limit_ai_insight_' . md5($user_id) . '.txt';
 
             if (file_exists($rateFile)) {
-                $lastTime = (int)file_get_contents($rateFile);
-                if (time() - $lastTime < 600) { // 600 秒 = 10 分鐘
-                    $wait = 600 - (time() - $lastTime);
-                    echo json_encode(['success' => false, 'message' => "請求過於頻繁，請等待 {$wait} 秒後再試"]);
-                    return;
+                $cacheData = @json_decode(file_get_contents($rateFile), true);
+                if (is_array($cacheData) && isset($cacheData['ts'])) {
+                    $lastTime = (int)$cacheData['ts'];
+                    if (time() - $lastTime < 600) { // 600 秒 = 10 分鐘
+                        if (!empty($cacheData['insight'])) {
+                            // 有快取洞察，直接回傳
+                            echo json_encode(['success' => true, 'insight' => $cacheData['insight']]);
+                            return;
+                        } else {
+                            // 沒有快取洞察 (例如上次失敗)，回傳等待訊息
+                            $wait = 600 - (time() - $lastTime);
+                            echo json_encode(['success' => false, 'message' => "請求過於頻繁，請等待 {$wait} 秒後再試"]);
+                            return;
+                        }
+                    }
                 }
             }
-
-            // 寫入當前時間
-            file_put_contents($rateFile, time());
 
             // 直接從資料庫讀取使用者的日記
             $diaries = $this->diaryModel->findAllByUserId($user_id);
@@ -672,9 +679,6 @@ class DiaryController
                 echo json_encode(['success' => false, 'message' => '沒有足夠的日記資料']);
                 return;
             }
-
-            // 寫入當前時間，只在確認有日記時寫入，避免沒有日記還被鎖 10 分鐘
-            file_put_contents($rateFile, time());
 
             // 補齊 mood_score 與 date (跟 dashboard 邏輯一樣)
             foreach ($diaries as &$d) {
@@ -695,8 +699,12 @@ class DiaryController
 
             $insight = $this->callAIInsightGeneration($summary);
             if ($insight) {
+                // 成功時寫入快取 (LOCK_EX 避免併發寫壞)
+                @file_put_contents($rateFile, json_encode(['ts' => time(), 'insight' => $insight]), LOCK_EX);
                 echo json_encode(['success' => true, 'insight' => $insight]);
             } else {
+                // 失敗時只寫入時間避免被無限重試打爆，但不存 insight
+                @file_put_contents($rateFile, json_encode(['ts' => time(), 'insight' => null]), LOCK_EX);
                 echo json_encode(['success' => false, 'message' => 'AI 分析暫時無法使用']);
             }
         } catch (Exception $e) {
@@ -706,9 +714,7 @@ class DiaryController
     }
 
     // ============================================================
-    // 內部：透過 Pioneer API 呼叫 DeepSeek V4 Pro 產生心情洞察
-    // ============================================================
-    private function callAIInsightGeneration($summary)
+    // 內部：透過 Pioneer API 呼叫 DeepSeek V4 Pro 產生心情洞察private function callAIInsightGeneration($summary)
     {
         $apiKey = getenv('PIONEER_API_KEY');
         if (empty($apiKey)) throw new Exception('PIONEER_API_KEY not configured');
