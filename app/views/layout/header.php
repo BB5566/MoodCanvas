@@ -49,7 +49,7 @@ if (!defined('APP_URL')) {
     <a href="#main" class="skip-link">跳至主要內容</a>
 
     <header class="glass-header">
-        <nav class="navbar">
+        <nav class="navbar" aria-label="主要導覽">
             <a class="navbar-brand" href="<?php echo APP_URL; ?>/public/index.php?action=home">🎨 MoodCanvas</a>
             <button class="navbar-toggler" id="navbar-toggler" type="button" aria-label="開啟選單" aria-expanded="false" aria-controls="navbar-nav">
                 <span class="toggler-bar"></span>
@@ -82,13 +82,11 @@ if (!defined('APP_URL')) {
     <main class="main-container" id="main" data-logged-in="<?php echo isset($_SESSION['user_id']) ? 'true' : 'false'; ?>">
 
         <?php if (!empty($_SESSION['is_guest'])): ?>
-            <div id="demo-banner" style="background:#fff3cd;border:1px solid #ffeeba;color:#856404;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;">
-                <div style="display:flex;gap:12px;align-items:center;">
+            <div id="demo-banner" class="demo-banner" role="region" aria-label="訪客模式提示">
+                <div class="demo-banner-content">
                     <strong style="font-size:0.98rem;">示範模式（訪客檢視）</strong>
-                    <span style="font-size:0.92rem;color:#705b00;">您目前以訪客身份使用。未註冊的資料會在登出或過期後消失。請註冊或登入以永久保存您的日記。</span>
+                    <span style="font-size:0.92rem;">您目前以訪客身份使用。未註冊的資料會在登出或過期後消失。請註冊或登入以永久保存您的日記。</span>
                 </div>
-                <div style="display:flex;gap:8px;align-items:center;">
-                    <button id="demo-banner-dismiss" style="background:transparent;border:1px solid #856404;color:#856404;padding:6px 10px;border-radius:6px;cursor:pointer;">我知道了</button>
-                </div>
+                <button id="demo-banner-dismiss" class="demo-banner-dismiss" type="button" aria-label="關閉訪客模式提示">我知道了</button>
             </div>
         <?php endif; ?>

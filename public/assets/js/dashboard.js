@@ -15,13 +15,22 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     if (diaries.length > 0) {
-        // 處理日記資料，確保日期格式正確並排序
-        const processedData = diaries.map(d => ({
-            date: new Date(d.date),
-            mood_score: parseInt(d.mood_score, 10),
-            content: d.content,
-            tags: d.tags ? d.tags.split(',') : []
-        })).sort((a, b) => a.date - b.date);
+        // 處理日記資料，確保日期格式正確並排序（防止跨時區日期偏差）
+        const processedData = diaries.map(d => {
+            let dateObj;
+            if (typeof d.date === 'string' && d.date.indexOf('-') !== -1) {
+                const parts = d.date.split('-');
+                dateObj = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+            } else {
+                dateObj = new Date(d.date);
+            }
+            return {
+                date: dateObj,
+                mood_score: parseInt(d.mood_score, 10),
+                content: d.content || '',
+                tags: d.tags ? d.tags.split(',') : []
+            };
+        }).sort((a, b) => a.date - b.date);
 
         generateHeatmap(processedData);
         generateMoodChart(processedData);
@@ -53,7 +62,9 @@ function generateHeatmap(data) {
     const width = container.node().getBoundingClientRect().width;
     if (width <= 0) return; // 如果容器不可見，則不渲染
 
-    const cellSize = (width - 30) / 53; // 減去 padding
+    const minCellSize = 11;
+    const cellSize = Math.max(minCellSize, (width - 40) / 53);
+    const svgWidth = Math.max(width, cellSize * 53 + 45);
     const yearHeight = cellSize * 7 + 25;
 
     const dataByYear = d3.group(data, d => d.date.getFullYear());
@@ -65,7 +76,7 @@ function generateHeatmap(data) {
         const yearData = dataByYear.get(year);
 
         const svg = container.append("svg")
-            .attr("width", width)
+            .attr("width", svgWidth)
             .attr("height", yearHeight)
             .append("g")
             .attr("transform", `translate(30, 20)`); // 留出左側年份文字空間
@@ -109,6 +120,11 @@ function generateHeatmap(data) {
 function generateMoodChart(data) {
     const ctx = document.getElementById('mood-chart');
     if (!ctx) return;
+    if (typeof Chart === 'undefined') {
+        const chartContainer = document.getElementById('mood-chart-container');
+        if (chartContainer) chartContainer.innerHTML = '<h3>📈 心情趨勢</h3><p class="placeholder-text">圖表組件載入中...</p>';
+        return;
+    }
 
     const labels = data.map(d => d.date.toLocaleDateString('zh-TW', { month: 'numeric', day: 'numeric' }));
     const scores = data.map(d => d.mood_score);
@@ -168,6 +184,10 @@ function generateMoodChart(data) {
 function generateWordCloud(data) {
     const container = d3.select("#wordcloud");
     if (container.empty() || !container.node().getBoundingClientRect) return;
+    if (typeof d3 === 'undefined' || !d3.layout || typeof d3.layout.cloud !== 'function') {
+        container.html('<p class="placeholder-text">詞雲組件載入中...</p>');
+        return;
+    }
     // 無印大地色盤（取代鮮豔的 schemeCategory10）
     const muji = ['#8A9480', '#B79B7C', '#6F7A66', '#C2746A', '#A3AC98', '#9C8E78', '#C99E6E', '#75866F'];
 

@@ -61,14 +61,14 @@ if (isset($diaries)) {
 ?>
 
 <?php if ($showSuccessMessage): ?>
-    <div class="alert alert-success" style="text-align: center; margin: 1rem auto; max-width: 600px; padding: 1rem; background: rgba(76, 175, 80, 0.2); border: 1px solid rgba(76, 175, 80, 0.5); border-radius: 8px; color: #4CAF50;">
+    <div class="alert alert-success text-center">
         <?php echo htmlspecialchars($successMessage); ?>
     </div>
 <?php endif; ?>
 
 <?php if (($totalDiaries ?? 0) === 0): ?>
     <div class="empty-welcome">
-        <span class="empty-welcome__mark">✎</span>
+        <span class="empty-welcome__mark" aria-hidden="true">✎</span>
         <div class="empty-welcome__text">
             <p class="empty-welcome__title">這個月，還是空白的一頁</p>
             <p class="empty-welcome__sub">點任一天的 <strong>＋</strong>，寫下第一篇心情，讓 AI 為你沖洗一張屬於今天的拍立得。</p>
@@ -83,22 +83,22 @@ if (isset($diaries)) {
             <div class="calendar-header">
                 <h2><?php echo $monthName; ?></h2>
                 <div class="calendar-nav">
-                    <a href="<?php echo $prevMonthLink; ?>" class="nav-arrow" title="上個月">‹</a>
-                    <a href="index.php?action=home" class="today-link">今天</a>
-                    <a href="<?php echo $nextMonthLink; ?>" class="nav-arrow" title="下個月">›</a>
+                    <a href="<?php echo $prevMonthLink; ?>" class="nav-arrow" title="上個月" aria-label="上個月">‹</a>
+                    <a href="index.php?action=home" class="today-link" aria-label="返回今日">今天</a>
+                    <a href="<?php echo $nextMonthLink; ?>" class="nav-arrow" title="下個月" aria-label="下個月">›</a>
                 </div>
             </div>
 
-            <table class="calendar">
+            <table class="calendar" aria-label="<?php echo $monthName; ?> 心情日曆">
                 <thead>
                     <tr>
-                        <th>日</th>
-                        <th>一</th>
-                        <th>二</th>
-                        <th>三</th>
-                        <th>四</th>
-                        <th>五</th>
-                        <th>六</th>
+                        <th scope="col">日</th>
+                        <th scope="col">一</th>
+                        <th scope="col">二</th>
+                        <th scope="col">三</th>
+                        <th scope="col">四</th>
+                        <th scope="col">五</th>
+                        <th scope="col">六</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -125,22 +125,23 @@ if (isset($diaries)) {
                                 if ($diaryCount === 1) {
                                     // 只有一篇日記，若有 image_path 顯示縮圖，否則顯示 mood emoji
                                     $diary = $dayDiaries[0];
+                                    $diaryTitle = htmlspecialchars($diary['title'] ?? '無標題');
                                     $moodEmoji = htmlspecialchars($diary['mood'] ?? '📝');
                                     $imagePath = $diary['image_path'] ?? '';
                                     if (!empty($imagePath)) {
                                         // 構建圖片 URL（如果是相對路徑則補上 public）
                                         $imgUrl = (strpos($imagePath, 'http') === 0) ? $imagePath : (strpos($imagePath, 'public/') === 0 ? APP_URL . '/' . $imagePath : APP_URL . '/public/' . $imagePath);
-                                        echo "<a href='index.php?action=diary_detail&id={$diary['id']}' class='diary-entry' title='" . htmlspecialchars($diary['title']) . "'>";
-                                        echo "<img class='diary-thumb' loading='lazy' src='" . htmlspecialchars($imgUrl) . "' alt='" . htmlspecialchars($diary['title']) . "'/>";
+                                        echo "<a href='index.php?action=diary_detail&id={$diary['id']}' class='diary-entry' title='{$diaryTitle}' aria-label='查看日記：{$diaryTitle}'>";
+                                        echo "<img class='diary-thumb' loading='lazy' src='" . htmlspecialchars($imgUrl) . "' alt='{$diaryTitle} 縮圖'/>";
                                         echo "</a>";
                                     } else {
-                                        echo "<a href='index.php?action=diary_detail&id={$diary['id']}' class='diary-entry' title='" . htmlspecialchars($diary['title']) . "'>";
+                                        echo "<a href='index.php?action=diary_detail&id={$diary['id']}' class='diary-entry' title='{$diaryTitle}' aria-label='查看日記：{$diaryTitle}'>";
                                         echo "<span class='mood-emoji' role='img' aria-label='心情'>{$moodEmoji}</span>";
                                         echo "</a>";
                                     }
                                 } else {
                                     // 多篇日記，點擊查看日期列表
-                                    echo "<a href='index.php?action=diary_by_date&date={$currentDate}' class='multiple-diaries' title='查看該日的 {$diaryCount} 篇日記'>";
+                                    echo "<a href='index.php?action=diary_by_date&date={$currentDate}' class='multiple-diaries' title='查看該日的 {$diaryCount} 篇日記' aria-label='查看 {$currentDate} 的 {$diaryCount} 篇日記'>";
                                     foreach ($dayDiaries as $index => $diary) {
                                         if ($index >= 3) break; // 最多顯示3個
                                         $moodEmoji = htmlspecialchars($diary['mood'] ?? '📝');
@@ -157,12 +158,12 @@ if (isset($diaries)) {
                                 $currentDate = sprintf('%04d-%02d-%02d', $year, $month, $currentDay);
                                 // 只有已登入使用者才允許新增日記；訪客會看到提示
                                 if (isset($_SESSION['user_id'])) {
-                                    echo "<a href='index.php?action=diary_create&date={$currentDate}' class='no-diary' title='新增日記'>";
-                                    echo "<span class='add-diary-btn'>+</span>";
+                                    echo "<a href='index.php?action=diary_create&date={$currentDate}' class='no-diary' data-date='{$currentDate}' title='新增日記' aria-label='新增 {$currentDate} 日記'>";
+                                    echo "<span class='add-diary-btn' aria-hidden='true'>+</span>";
                                     echo "</a>";
                                 } else {
-                                    echo "<div class='no-diary-guest' title='需登入才能新增日記' style='opacity:0.6;'>";
-                                    echo "<span class='add-diary-btn'>+</span>";
+                                    echo "<div class='no-diary no-diary-guest' data-date='{$currentDate}' title='需登入才能新增日記' aria-label='需登入才能新增日記' style='opacity:0.6;'>";
+                                    echo "<span class='add-diary-btn' aria-hidden='true'>+</span>";
                                     echo "</div>";
                                 }
                             }

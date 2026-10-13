@@ -111,7 +111,11 @@ document.addEventListener('DOMContentLoaded', function () {
             if (parent) {
                 var fallbackDiv = document.createElement('div');
                 fallbackDiv.className = 'card-emoji-fallback';
-                fallbackDiv.textContent = fallbackMood;
+                fallbackDiv.id = 'card-emoji';
+                var span = document.createElement('span');
+                span.className = 'card-emoji';
+                span.textContent = fallbackMood;
+                fallbackDiv.appendChild(span);
                 parent.replaceChild(fallbackDiv, cardImage);
             }
         }
@@ -217,35 +221,15 @@ document.addEventListener('DOMContentLoaded', function () {
                         if (emojiContainer) {
                             var img = document.createElement('img');
                             img.src = imgUrl;
-                            img.alt = 'AI 生成圖片';
+                            img.alt = 'AI 生成插畫';
                             img.className = 'card-image';
+                            img.id = 'card-image-el';
                             img.loading = 'lazy';
                             img.onerror = function() { this.style.display = 'none'; };
                             img.onload = function() { this.style.animation = 'fadeIn 0.6s ease'; };
 
                             emojiContainer.innerHTML = '';
                             emojiContainer.appendChild(img);
-
-                            var hint = document.createElement('div');
-                            hint.className = 'flip-hint';
-                            hint.innerHTML = '<span>點擊翻轉 ↻</span>';
-                            emojiContainer.appendChild(hint);
-
-                            var meta = document.createElement('div');
-                            meta.className = 'card-front-meta';
-
-                            var dateSpan = document.createElement('span');
-                            dateSpan.className = 'card-date';
-                            dateSpan.textContent = cardDate;
-                            meta.appendChild(dateSpan);
-
-                            var moodSpan = document.createElement('span');
-                            moodSpan.className = 'card-mood-tag';
-                            moodSpan.textContent = cardMood;
-                            meta.appendChild(moodSpan);
-
-                            emojiContainer.appendChild(meta);
-
                             emojiContainer.classList.remove('card-emoji-fallback');
                         }
                         updateStatus('🎨 圖片完成');

@@ -37,19 +37,19 @@ require_once BASE_PATH . '/app/views/layout/header.php';
     <form action="index.php?action=register" method="POST" autocomplete="off">
         <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(generateCsrfToken()); ?>">
         <div class="form-group">
-            <label for="username">使用者名稱 <span style="color:#f55;">*</span></label>
+            <label for="username">使用者名稱 <span class="required-star">*</span></label>
             <input type="text" id="username" name="username" class="form-control" required maxlength="30" aria-label="使用者名稱，必填，最多30字">
         </div>
         <div class="form-group">
-            <label for="email">電子郵件 <span style="color:#f55;">*</span></label>
+            <label for="email">電子郵件 <span class="required-star">*</span></label>
             <input type="email" id="email" name="email" class="form-control" required maxlength="80" aria-label="電子郵件，必填，最多80字">
         </div>
         <div class="form-group">
-            <label for="password">密碼 (至少8個字元) <span style="color:#f55;">*</span></label>
+            <label for="password">密碼 (至少8個字元) <span class="required-star">*</span></label>
             <input type="password" id="password" name="password" class="form-control" required minlength="8" maxlength="50" aria-label="密碼，必填，8-50字">
         </div>
         <div class="form-group">
-            <label for="confirm_password">確認密碼 <span style="color:#f55;">*</span></label>
+            <label for="confirm_password">確認密碼 <span class="required-star">*</span></label>
             <input type="password" id="confirm_password" name="confirm_password" class="form-control" required minlength="8" maxlength="50" aria-label="確認密碼，必填，8-50字">
         </div>
         <div class="form-group">

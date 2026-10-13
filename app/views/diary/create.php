@@ -61,6 +61,7 @@ $metaDescription = '一鍵寫下你的心情日記，AI 會自動為你生成專
         <details class="art-style-details" open>
             <summary>🎨 圖片風格 <span class="summary-hint">— AI 會根據內容自動選擇，也可手動指定</span></summary>
             <div class="form-group" style="margin-top: 0.8rem;">
+                <label for="image-style">風格偏好</label>
                 <select id="image-style" name="image_style">
                     <option value="random">🎲 讓 AI 自己決定</option>
                     <option value="photographic">📷 真實攝影</option>
