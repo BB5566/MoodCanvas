@@ -18,7 +18,7 @@ if (!function_exists('rateLimitClientIp')) {
         $remoteAddr = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
 
         // Read TRUSTED_PROXIES from environment (comma-separated list of IPs or CIDRs) or constant
-        $trustedProxiesEnv = getenv('TRUSTED_PROXIES') ?: (defined('TRUSTED_PROXIES') ? TRUSTED_PROXIES : '10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,127.0.0.0/8,::1');
+        $trustedProxiesEnv = getenv('TRUSTED_PROXIES') ?: (defined('TRUSTED_PROXIES') ? TRUSTED_PROXIES : '127.0.0.1,::1');
 
         $trustedProxies = [];
         if (is_string($trustedProxiesEnv)) {
@@ -60,8 +60,9 @@ if (!function_exists('rateLimitClientIp')) {
 
         $isTrusted = $isIpTrusted($remoteAddr, $trustedProxies);
 
+        $trustCf = getenv('TRUST_CF_CONNECTING_IP') === 'true';
         if ($isTrusted) {
-            if (!empty($_SERVER['HTTP_CF_CONNECTING_IP'])) {
+            if ($trustCf && !empty($_SERVER['HTTP_CF_CONNECTING_IP'])) {
                 return $_SERVER['HTTP_CF_CONNECTING_IP'];
             }
             if (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
