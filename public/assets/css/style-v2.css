@@ -821,6 +821,8 @@ textarea { resize: vertical; min-height: 100px; }
   text-decoration: none;
   font-size: 0.9rem;
   font-weight: 500;
+  white-space: nowrap;
+  flex-shrink: 0;
   transition: background var(--transition-speed) ease, color var(--transition-speed) ease;
 }
 .today-link:hover {
@@ -1277,6 +1279,16 @@ textarea { resize: vertical; min-height: 100px; }
   }
 }
 
+@media (max-width: 600px) {
+  .demo-banner {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .calendar-header h2 {
+    font-size: 1.3rem;
+  }
+}
+
 @media (max-width: 480px) {
   body { padding-top: 66px; }
   .glass-header { padding: 0.5rem 0.8rem; }
@@ -1296,7 +1308,7 @@ textarea { resize: vertical; min-height: 100px; }
 
   /* 390px 極端窄螢幕月曆適應 */
   .calendar th { font-size: 0.75rem; }
-  .calendar td { height: 54px; }
+  .calendar td { height: 54px; padding: 1px; }
   .day-number { font-size: 0.7rem; top: 2px; left: 3px; }
   .calendar td.today .day-number { min-width: 16px; height: 16px; font-size: 0.68rem; }
   .diary-thumb {
