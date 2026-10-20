@@ -4,6 +4,19 @@
 document.addEventListener('DOMContentLoaded', function () {
 
     // ================================================================
+    // 字體非同步載入（避免 CSP 行內腳本錯誤）
+    // ================================================================
+    var asyncFonts = document.getElementById('async-google-fonts');
+    if (asyncFonts) {
+        var setMediaAll = function () { asyncFonts.media = 'all'; };
+        if (asyncFonts.sheet) {
+            setMediaAll();
+        } else {
+            asyncFonts.addEventListener('load', setMediaAll);
+        }
+    }
+
+    // ================================================================
     // 全域 Toast 通知
     // ================================================================
     window.showToast = function (message, type) {
