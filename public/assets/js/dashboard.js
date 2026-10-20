@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', function() {
             diaries = JSON.parse(diariesData);
         }
     } catch (e) {
-        console.error("Failed to parse diaries data", e);
+        console.warn("Failed to parse diaries data", e);
     }
 
     if (diaries.length > 0) {
@@ -290,7 +290,7 @@ async function fetchAIInsight(diaries) {
         }
 
     } catch (error) {
-        console.error('Fetch AI Insight Error:', error);
+        console.warn('Fetch AI Insight Error:', error);
         insightContainer.textContent = '😔 無法載入 AI 洞察。 ';
         insightContainer.appendChild(document.createElement('br'));
         insightContainer.appendChild(document.createTextNode(`(${error.message})`));

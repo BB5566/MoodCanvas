@@ -45,7 +45,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 }, 2000);
 
                 // Clean up on page unload
-                window.addEventListener('beforeunload', function() {
+                window.addEventListener('pagehide', function() {
                     clearInterval(interval);
                 });
             }

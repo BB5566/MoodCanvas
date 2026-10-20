@@ -32,7 +32,7 @@ require_once BASE_PATH . '/app/views/layout/header.php';
 </div>
 
 <div id="dashboard-container" style="display:none;"
-     data-diaries="<?php echo htmlspecialchars(json_encode($diaries ?? [])); ?>"
+     data-diaries="<?php echo htmlspecialchars(json_encode($diaries ?? []), ENT_QUOTES, 'UTF-8'); ?>"
      data-api-url="<?php echo rtrim(APP_URL, '/'); ?>/public/index.php?action=get_ai_insight">
 </div>
 
