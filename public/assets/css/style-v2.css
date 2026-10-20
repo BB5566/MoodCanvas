@@ -734,6 +734,15 @@ textarea { resize: vertical; min-height: 100px; }
   .empty-welcome__mark { width: 46px; height: 46px; font-size: 1.6rem; }
   .empty-welcome__title { font-size: 1.05rem; }
   .empty-welcome__sub { font-size: 0.85rem; }
+
+  .demo-banner {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .calendar-header h2 {
+    font-size: 1.3rem;
+  }
 }
 
 .calendar-container { height: 100%; display: flex; flex-direction: column; width: 100%; }
@@ -821,6 +830,8 @@ textarea { resize: vertical; min-height: 100px; }
   text-decoration: none;
   font-size: 0.9rem;
   font-weight: 500;
+  white-space: nowrap;
+  flex-shrink: 0;
   transition: background var(--transition-speed) ease, color var(--transition-speed) ease;
 }
 .today-link:hover {
@@ -1232,9 +1243,12 @@ textarea { resize: vertical; min-height: 100px; }
   }
 
   /* 消除手機月曆橫向捲動：寬度自適應 100% */
-  .calendar-container { overflow-x: visible; }
+  .calendar-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
   .calendar {
-    min-width: 0;
+    min-width: 450px;
     width: 100%;
   }
   .calendar th { font-size: 0.8rem; padding-bottom: 0.4rem; }
