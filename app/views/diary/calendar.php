@@ -22,7 +22,7 @@ if ($message === 'diary_deleted') {
 $year = $_GET['year'] ?? date('Y');
 $month = $_GET['month'] ?? date('m');
 $date = new DateTime("$year-$month-01");
-$monthName = $date->format('F Y');
+$monthName = $date->format('Y') . ' 年 ' . $date->format('n') . ' 月';
 $firstDayOfWeek = (int)$date->format('w');
 $daysInMonth = (int)$date->format('t');
 

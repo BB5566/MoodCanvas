@@ -926,11 +926,18 @@ textarea { resize: vertical; min-height: 100px; }
 .add-diary-btn {
   font-size: 1.8rem;
   color: var(--color-text-muted);
-  transition: color var(--transition-speed) ease, transform var(--transition-speed) ease;
+  opacity: 0;
+  transition: opacity var(--transition-speed) ease, color var(--transition-speed) ease, transform var(--transition-speed) ease;
 }
-.no-diary:hover .add-diary-btn {
-  color: var(--color-accent);
-  transform: scale(1.15);
+@media (hover: hover) {
+  .no-diary:hover .add-diary-btn {
+    opacity: 1;
+    color: var(--color-accent);
+    transform: scale(1.15);
+  }
+}
+.no-diary:focus-visible .add-diary-btn {
+  opacity: 1;
 }
 .no-diary:focus-visible,
 .diary-entry:focus-visible,
@@ -1007,24 +1014,41 @@ textarea { resize: vertical; min-height: 100px; }
   gap: 0.75rem;
   align-items: center;
   flex-wrap: wrap;
+  flex: 1;
+}
+.demo-banner-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.demo-banner-cta {
+  padding: 0.4rem 1rem;
+  font-size: 0.9rem;
+  min-height: var(--touch-target-min);
+  border-radius: var(--border-radius-sm);
+  white-space: nowrap;
 }
 .demo-banner-dismiss {
   background: transparent;
-  border: 1px solid #996A19;
+  border: none;
   color: #7A4D00;
-  padding: 0.4rem 0.85rem;
+  padding: 0.4rem;
   min-height: var(--touch-target-min);
+  min-width: var(--touch-target-min);
   border-radius: var(--border-radius-sm);
   cursor: pointer;
-  font-size: 0.88rem;
-  font-weight: 500;
+  font-size: 1.2rem;
+  line-height: 1;
+  font-weight: bold;
   transition: all var(--transition-speed) ease;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  opacity: 0.7;
 }
 .demo-banner-dismiss:hover {
   background: rgba(153, 106, 25, 0.12);
+  opacity: 1;
 }
 
 /* --- 表單/通用工具 class --- */

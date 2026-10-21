@@ -91,6 +91,9 @@ if (!defined('APP_URL')) {
                     <strong style="font-size:0.98rem;">示範模式（訪客檢視）</strong>
                     <span style="font-size:0.92rem;">您目前以訪客身份使用。未註冊的資料會在登出或過期後消失。請註冊或登入以永久保存您的日記。</span>
                 </div>
-                <button id="demo-banner-dismiss" class="demo-banner-dismiss" type="button" aria-label="關閉訪客模式提示">我知道了</button>
+                <div class="demo-banner-actions">
+                    <a href="<?php echo APP_URL; ?>/public/index.php?action=register" class="btn btn-primary demo-banner-cta">立即註冊 / 登入</a>
+                    <button id="demo-banner-dismiss" class="demo-banner-dismiss" type="button" aria-label="關閉訪客模式提示" title="關閉">✕</button>
+                </div>
             </div>
         <?php endif; ?>
