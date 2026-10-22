@@ -1010,7 +1010,7 @@ textarea { resize: vertical; min-height: 100px; }
   background: #FCF7EE;
   border: 1px solid #EEDBB3;
   color: #7A4D00;
-  padding: 0.75rem 2.5rem 0.75rem 1rem;
+  padding: 0.75rem 1rem;
   border-radius: var(--border-radius-md);
   margin-bottom: 1.5rem;
   display: flex;
@@ -1030,8 +1030,6 @@ textarea { resize: vertical; min-height: 100px; }
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  width: 100%;
-  margin-top: 0.5rem;
 }
 .demo-banner-cta {
   padding: 0.4rem 1rem;
@@ -1039,13 +1037,8 @@ textarea { resize: vertical; min-height: 100px; }
   min-height: var(--touch-target-min);
   border-radius: var(--border-radius-sm);
   white-space: nowrap;
-  width: 100%;
-  text-align: center;
 }
 .demo-banner-dismiss {
-  position: absolute;
-  top: 0.5rem;
-  right: 0.5rem;
   background: transparent;
   border: none;
   color: #7A4D00;
@@ -1324,7 +1317,22 @@ textarea { resize: vertical; min-height: 100px; }
   .demo-banner {
     flex-direction: column;
     align-items: stretch;
+    padding: 0.75rem 2.5rem 0.75rem 1rem;
   }
+  .demo-banner-actions {
+    width: 100%;
+    margin-top: 0.5rem;
+  }
+  .demo-banner-cta {
+    width: 100%;
+    text-align: center;
+  }
+  .demo-banner-dismiss {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+  }
+
   .calendar-header h2 {
     font-size: 1.3rem;
   }
