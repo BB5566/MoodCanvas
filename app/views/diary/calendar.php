@@ -38,6 +38,7 @@ if (isset($diaries)) {
 }
 
 $prevMonth = (new DateTime("$year-$month-01"))->modify('-1 month');
+$prevMonthDays = (int)$prevMonth->format('t');
 $prevMonthLink = 'index.php?action=home&year=' . $prevMonth->format('Y') . '&month=' . $prevMonth->format('m');
 
 $nextMonth = (new DateTime("$year-$month-01"))->modify('+1 month');
@@ -71,7 +72,7 @@ if (isset($diaries)) {
         <span class="empty-welcome__mark" aria-hidden="true">✎</span>
         <div class="empty-welcome__text">
             <p class="empty-welcome__title">這個月，還是空白的一頁</p>
-            <p class="empty-welcome__sub">點任一天的 <strong>＋</strong>，寫下第一篇心情，讓 AI 為你沖洗一張屬於今天的拍立得。</p>
+            <p class="empty-welcome__sub">點選任一日期，寫下第一篇心情，讓 AI 為你沖洗一張屬於今天的拍立得。</p>
         </div>
     </div>
 <?php endif; ?>
@@ -105,7 +106,10 @@ if (isset($diaries)) {
                     <tr>
                         <?php
                         // 填充空白
-                        for ($i = 0; $i < $firstDayOfWeek; $i++) echo "<td></td>";
+                        for ($i = 0; $i < $firstDayOfWeek; $i++) {
+                            $prevDayNum = $prevMonthDays - $firstDayOfWeek + $i + 1;
+                            echo "<td class='other-month'><div class='day-number'>{$prevDayNum}</div></td>";
+                        }
 
                         $currentDay = 1;
                         while ($currentDay <= $daysInMonth) {
@@ -174,7 +178,12 @@ if (isset($diaries)) {
 
                         // 填充結尾空白
                         $remainingDays = 7 - (($daysInMonth + $firstDayOfWeek) % 7);
-                        if ($remainingDays < 7) for ($i = 0; $i < $remainingDays; $i++) echo "<td></td>";
+                        if ($remainingDays < 7) {
+                            for ($i = 0; $i < $remainingDays; $i++) {
+                                $nextDayNum = $i + 1;
+                                echo "<td class='other-month'><div class='day-number'>{$nextDayNum}</div></td>";
+                            }
+                        }
                         ?>
                     </tr>
                 </tbody>
