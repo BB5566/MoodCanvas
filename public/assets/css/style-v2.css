@@ -856,6 +856,15 @@ textarea { resize: vertical; min-height: 100px; }
   background-color: var(--color-surface-hover);
 }
 
+.calendar td.other-month {
+  background: repeating-linear-gradient(45deg, transparent, transparent 5px, rgba(0,0,0,0.02) 5px, rgba(0,0,0,0.02) 10px);
+  color: #ccc;
+}
+
+.calendar td.other-month .day-number {
+  color: #ccc;
+}
+
 .day-number {
   position: absolute;
   top: 6px;
@@ -926,7 +935,7 @@ textarea { resize: vertical; min-height: 100px; }
 .add-diary-btn {
   font-size: 1.8rem;
   color: var(--color-text-muted);
-  opacity: 0;
+  opacity: 0.2;
   transition: opacity var(--transition-speed) ease, color var(--transition-speed) ease, transform var(--transition-speed) ease;
 }
 @media (hover: hover) {
@@ -997,10 +1006,11 @@ textarea { resize: vertical; min-height: 100px; }
 
 /* --- 訪客示範橫幅 --- */
 .demo-banner {
+  position: relative;
   background: #FCF7EE;
   border: 1px solid #EEDBB3;
   color: #7A4D00;
-  padding: 0.75rem 1rem;
+  padding: 0.75rem 2.5rem 0.75rem 1rem;
   border-radius: var(--border-radius-md);
   margin-bottom: 1.5rem;
   display: flex;
@@ -1020,6 +1030,8 @@ textarea { resize: vertical; min-height: 100px; }
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  width: 100%;
+  margin-top: 0.5rem;
 }
 .demo-banner-cta {
   padding: 0.4rem 1rem;
@@ -1027,8 +1039,13 @@ textarea { resize: vertical; min-height: 100px; }
   min-height: var(--touch-target-min);
   border-radius: var(--border-radius-sm);
   white-space: nowrap;
+  width: 100%;
+  text-align: center;
 }
 .demo-banner-dismiss {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
   background: transparent;
   border: none;
   color: #7A4D00;
