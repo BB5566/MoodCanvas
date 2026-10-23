@@ -69,10 +69,8 @@ if (isset($diaries)) {
 
 <?php if (($totalDiaries ?? 0) === 0): ?>
     <div class="empty-welcome">
-        <span class="empty-welcome__mark" aria-hidden="true">✎</span>
         <div class="empty-welcome__text">
-            <p class="empty-welcome__title">這個月，還是空白的一頁</p>
-            <p class="empty-welcome__sub">點選任一日期，寫下第一篇心情，讓 AI 為你沖洗一張屬於今天的拍立得。</p>
+            <p class="empty-welcome__sub"><strong>這個月，還是空白的一頁</strong> — 點選任一日期寫下心情，讓 AI 為你沖洗一張拍立得。</p>
         </div>
     </div>
 <?php endif; ?>
@@ -232,22 +230,6 @@ if (isset($diaries)) {
             </div>
         <?php endif; ?>
 
-        <!-- 快速操作 -->
-        <div class="bento-card">
-            <h3>⚡ 快速操作</h3>
-            <div class="quick-actions">
-                <?php if (isset($_SESSION['user_id'])): ?>
-                    <a href="index.php?action=diary_create" class="quick-btn">
-                        <span class="quick-btn-icon">✏️</span>
-                        <span>寫新日記</span>
-                    </a>
-                <?php else: ?>
-                    <div class="quick-btn" style="opacity:0.8; padding:0.55rem 1rem; border-radius:8px; display:inline-flex; align-items:center; gap:0.5rem;">
-                        <span style="font-size:0.95rem;">需登入才能新增或刪除日記</span>
-                    </div>
-                <?php endif; ?>
-            </div>
-        </div>
     </div>
 </div>
 
