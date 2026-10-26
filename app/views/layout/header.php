@@ -62,15 +62,26 @@ if (!defined('APP_URL')) {
             </button>
             <ul class="navbar-nav" id="navbar-nav">
                 <?php if (isset($_SESSION['user_id'])): ?>
-                    <li class="nav-item nav-user-greeting">
-                        <span>您好, <?php echo htmlspecialchars($_SESSION['username']); ?>!</span>
-                    </li>
+                    <?php if (empty($_SESSION['is_guest'])): ?>
+                        <li class="nav-item nav-user-greeting">
+                            <span>您好, <?php echo htmlspecialchars($_SESSION['username']); ?>!</span>
+                        </li>
+                    <?php endif; ?>
                     <li class="nav-item">
                         <a class="nav-link" href="<?php echo APP_URL; ?>/public/index.php?action=diary_create">✏️ 寫日記</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="<?php echo APP_URL; ?>/public/index.php?action=logout">👋 登出</a>
-                    </li>
+                    <?php if (empty($_SESSION['is_guest'])): ?>
+                        <li class="nav-item">
+                            <a class="nav-link" href="<?php echo APP_URL; ?>/public/index.php?action=logout">👋 登出</a>
+                        </li>
+                    <?php else: ?>
+                        <li class="nav-item">
+                            <a class="nav-link" href="<?php echo APP_URL; ?>/public/index.php?action=login">登入</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="<?php echo APP_URL; ?>/public/index.php?action=register">註冊</a>
+                        </li>
+                    <?php endif; ?>
                 <?php else: ?>
                     <li class="nav-item">
                         <a class="nav-link" href="<?php echo APP_URL; ?>/public/index.php?action=login">登入</a>
