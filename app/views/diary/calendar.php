@@ -67,14 +67,6 @@ if (isset($diaries)) {
     </div>
 <?php endif; ?>
 
-<?php if (($totalDiaries ?? 0) === 0): ?>
-    <div class="empty-welcome">
-        <div class="empty-welcome__text">
-            <p class="empty-welcome__sub"><strong>這個月，還是空白的一頁</strong> — 點選任一日期寫下心情，讓 AI 為你沖洗一張拍立得。</p>
-        </div>
-    </div>
-<?php endif; ?>
-
 <div class="bento-grid">
     <!-- 日曆主區域 -->
     <div class="bento-card bento-calendar">
@@ -87,6 +79,10 @@ if (isset($diaries)) {
                     <a href="<?php echo $nextMonthLink; ?>" class="nav-arrow" title="下個月" aria-label="下個月">›</a>
                 </div>
             </div>
+
+            <?php if (($totalDiaries ?? 0) === 0): ?>
+                <p class="empty-welcome__sub" style="font-size:0.85rem; margin-bottom: 0.5rem; text-align: center; color: var(--color-text-secondary);"><strong>這個月，還是空白的一頁</strong> — 點選任一日期寫下心情</p>
+            <?php endif; ?>
 
             <table class="calendar" aria-label="<?php echo $monthName; ?> 心情日曆">
                 <thead>
