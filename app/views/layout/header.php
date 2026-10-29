@@ -99,10 +99,10 @@ if (!defined('APP_URL')) {
         <?php if (!empty($_SESSION['is_guest'])): ?>
             <div id="demo-banner" class="demo-banner" role="region" aria-label="訪客模式提示">
                 <div class="demo-banner-content">
-                    <span style="font-size:0.92rem;"><strong>示範模式（訪客檢視）</strong>未註冊資料不保留，請登入以永久保存。</span>
+                    <span style="font-size:0.92rem;"><strong>示範模式</strong> 未註冊資料不保留，請登入以永久保存。</span>
                 </div>
                 <div class="demo-banner-actions">
-                    <a href="<?php echo APP_URL; ?>/public/index.php?action=register" class="btn btn-primary demo-banner-cta">立即註冊 / 登入</a>
+                    <a href="<?php echo APP_URL; ?>/public/index.php?action=register" class="btn btn-primary demo-banner-cta">註冊 / 登入</a>
                     <button id="demo-banner-dismiss" class="demo-banner-dismiss" type="button" aria-label="關閉訪客模式提示" title="關閉">✕</button>
                 </div>
             </div>
