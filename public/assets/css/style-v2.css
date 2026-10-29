@@ -736,7 +736,7 @@ textarea { resize: vertical; min-height: 100px; }
   .empty-welcome__sub { font-size: 0.85rem; }
 }
 
-.calendar-container { height: 100%; display: flex; flex-direction: column; width: 100%; }
+.calendar-container { height: auto; display: flex; flex-direction: column; width: 100%; }
 .calendar-header {
   display: flex; justify-content: space-between; align-items: center;
   margin-bottom: 1.5rem; padding: 0 0.5rem;
@@ -933,20 +933,28 @@ textarea { resize: vertical; min-height: 100px; }
 .mood-emoji { font-size: 2.3rem; transition: transform var(--transition-speed) ease; }
 .diary-entry:hover .mood-emoji { transform: scale(1.1); }
 .add-diary-btn {
-  font-size: 1.8rem;
-  color: #888;
-  opacity: 0.6;
-  transition: opacity var(--transition-speed) ease, color var(--transition-speed) ease, transform var(--transition-speed) ease;
+  font-size: 1.5rem;
+  color: var(--color-text-secondary);
+  background: rgba(70, 58, 44, 0.08);
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  opacity: 1;
+  transition: background var(--transition-speed) ease, color var(--transition-speed) ease, transform var(--transition-speed) ease;
 }
 @media (hover: hover) {
   .no-diary:hover .add-diary-btn {
-    opacity: 1;
-    color: var(--color-accent);
+    background: var(--color-accent);
+    color: #FFFFFF;
     transform: scale(1.15);
   }
 }
 .no-diary:focus-visible .add-diary-btn {
-  opacity: 1;
+  background: var(--color-accent);
+  color: #FFFFFF;
 }
 .no-diary:focus-visible,
 .diary-entry:focus-visible,
@@ -1268,7 +1276,7 @@ textarea { resize: vertical; min-height: 100px; }
   }
 
   /* 消除手機月曆橫向捲動：寬度自適應 100% */
-  .calendar-container { overflow-x: visible; }
+  .calendar-container { overflow-x: visible; height: auto; }
   .calendar {
     min-width: 0;
     width: 100%;
@@ -1288,7 +1296,7 @@ textarea { resize: vertical; min-height: 100px; }
     border-radius: 9px;
   }
   .mood-emoji { font-size: 1.35rem; }
-  .add-diary-btn { opacity: 0.6; font-size: 1.2rem; }
+  .add-diary-btn { width: 28px; height: 28px; font-size: 1.2rem; }
   .diary-entry, .no-diary, .multiple-diaries {
     padding-top: 15px;
   }
@@ -1315,22 +1323,32 @@ textarea { resize: vertical; min-height: 100px; }
 
 @media (max-width: 600px) {
   .demo-banner {
-    flex-direction: column;
-    align-items: stretch;
-    padding: 0.75rem 2.5rem 0.75rem 1rem;
+    flex-direction: row;
+    align-items: center;
+    padding: 0.5rem 2rem 0.5rem 0.75rem;
+    flex-wrap: nowrap;
+  }
+  .demo-banner-content {
+    font-size: 0.85rem;
+  }
+  .demo-banner-content span {
+    font-size: 0.85rem !important;
   }
   .demo-banner-actions {
-    width: 100%;
-    margin-top: 0.5rem;
+    width: auto;
+    margin-top: 0;
   }
   .demo-banner-cta {
-    width: 100%;
-    text-align: center;
+    width: auto;
+    padding: 0.2rem 0.5rem;
+    font-size: 0.8rem;
+    min-height: 32px;
   }
   .demo-banner-dismiss {
     position: absolute;
-    top: 0.5rem;
-    right: 0.5rem;
+    top: 50%;
+    right: 0.2rem;
+    transform: translateY(-50%);
   }
 
   .calendar-header h2 {
@@ -1370,7 +1388,7 @@ textarea { resize: vertical; min-height: 100px; }
     border-width: 1.5px;
   }
   .mood-emoji { font-size: 1.2rem; }
-  .add-diary-btn { opacity: 0.6; font-size: 1.2rem; }
+  .add-diary-btn { width: 28px; height: 28px; font-size: 1.2rem; }
 
   .stats-grid { gap: 0.25rem; }
   .stat-number { font-size: 1.85rem; }
