@@ -836,13 +836,17 @@ textarea { resize: vertical; min-height: 100px; }
   flex-grow: 1;
   border-radius: var(--border-radius-md);
   overflow: hidden;
+  border: 1px solid var(--color-border-light);
 }
 .calendar th {
-  padding-bottom: 0.75rem;
+  padding: 0.5rem 0;
   text-align: center;
   font-weight: 600;
   color: var(--color-text-secondary);
   font-size: 0.85rem;
+  border: 1px solid var(--color-border-light);
+  background: var(--color-surface);
+  border-bottom-width: 2px;
 }
 .calendar td {
   border: 1px solid var(--color-border-light);
@@ -942,17 +946,19 @@ textarea { resize: vertical; min-height: 100px; }
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  opacity: 1;
-  transition: background var(--transition-speed) ease, color var(--transition-speed) ease, transform var(--transition-speed) ease;
+  opacity: 0;
+  transition: opacity var(--transition-speed) ease, background var(--transition-speed) ease, color var(--transition-speed) ease, transform var(--transition-speed) ease;
 }
 @media (hover: hover) {
   .no-diary:hover .add-diary-btn {
+    opacity: 1;
     background: var(--color-accent);
     color: #FFFFFF;
     transform: scale(1.15);
   }
 }
 .no-diary:focus-visible .add-diary-btn {
+  opacity: 1;
   background: var(--color-accent);
   color: #FFFFFF;
 }
@@ -1323,9 +1329,9 @@ textarea { resize: vertical; min-height: 100px; }
 
 @media (max-width: 600px) {
   .demo-banner {
-    flex-direction: row;
-    align-items: center;
-    padding: 0.5rem 2rem 0.5rem 0.75rem;
+    flex-direction: column;
+    align-items: stretch;
+    padding: 0.75rem;
     flex-wrap: nowrap;
   }
   .demo-banner-content {
@@ -1343,12 +1349,13 @@ textarea { resize: vertical; min-height: 100px; }
     padding: 0.2rem 0.5rem;
     font-size: 0.8rem;
     min-height: 32px;
+    align-self: flex-start;
+    margin-top: 0.5rem;
   }
   .demo-banner-dismiss {
     position: absolute;
-    top: 50%;
+    top: 0.2rem;
     right: 0.2rem;
-    transform: translateY(-50%);
   }
 
   .calendar-header h2 {
