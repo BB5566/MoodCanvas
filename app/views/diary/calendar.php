@@ -160,7 +160,7 @@ if (isset($diaries)) {
                                     echo "<span class='add-diary-btn' aria-hidden='true'>+</span>";
                                     echo "</a>";
                                 } else {
-                                    echo "<div class='no-diary no-diary-guest' data-date='{$currentDate}' title='需登入才能新增日記' aria-label='需登入才能新增日記' style='opacity:0.6;'>";
+                                    echo "<div class='no-diary no-diary-guest' data-date='{$currentDate}' title='需登入才能新增日記' aria-label='需登入才能新增日記'>";
                                     echo "<span class='add-diary-btn' aria-hidden='true'>+</span>";
                                     echo "</div>";
                                 }
