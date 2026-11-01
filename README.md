@@ -120,7 +120,24 @@ graph TB
 - **至少 512MB 記憶體**
 - **1GB 可用硬碟空間**
 
-### 快速安裝
+### Docker 安裝 (建議)
+
+使用 Docker 部署時，**請務必掛載持久化 Volume**，以免容器重建時遺失 SQLite 資料庫、生成的圖片與系統日誌。
+若使用 MySQL (`DB_TYPE=mysql`)，則至少需掛載圖片與日誌目錄。
+
+#### 透過 docker run 部署
+
+```bash
+docker run -d \
+  --name moodcanvas \
+  -p 8080:80 \
+  -v $(pwd)/database:/var/www/html/database \
+  -v $(pwd)/public/storage/generated_images:/var/www/html/public/storage/generated_images \
+  -v $(pwd)/logs:/var/www/html/logs \
+  moodcanvas-image
+```
+
+### 快速安裝 (傳統方式)
 
 #### 1. 下載專案
 ```bash
