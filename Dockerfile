@@ -1,5 +1,6 @@
 FROM php:8.2-apache
-RUN apt-get update && apt-get install -y cron && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y cron libjpeg-dev libpng-dev && rm -rf /var/lib/apt/lists/*
+RUN docker-php-ext-configure gd --with-jpeg && docker-php-ext-install gd
 RUN docker-php-ext-install pdo_mysql
 RUN a2enmod rewrite
 RUN mkdir -p /var/www/html/logs /var/www/html/data /var/www/html/public/storage/generated_images && \
