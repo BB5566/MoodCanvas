@@ -110,7 +110,12 @@ class DiaryController
     // ============================================================
     public function edit()
     {
-        $user_id = $_SESSION['user_id'] ?? 1;
+        $user_id = $_SESSION['user_id'] ?? 0;
+        if ($user_id <= 0) {
+            header('Location: ' . APP_URL . '/public/index.php?action=login');
+            exit;
+        }
+
         $diary_id = sanitizeInt($_GET['id'] ?? null, 0);
 
         if ($diary_id <= 0) {
@@ -212,7 +217,11 @@ class DiaryController
             return;
         }
 
-        $user_id = $_SESSION['user_id'] ?? 1;
+        $user_id = $_SESSION['user_id'] ?? 0;
+        if ($user_id <= 0) {
+            header('Location: ' . APP_URL . '/public/index.php?action=login');
+            exit;
+        }
         $diary_id = sanitizeInt($_GET['id'] ?? null, 0);
         if ($diary_id <= 0) {
             $diary_id = sanitizeInt($_POST['id'] ?? null, 0);
@@ -297,6 +306,14 @@ class DiaryController
     public function generateCardContent()
     {
         header('Content-Type: application/json');
+
+        $user_id = $_SESSION['user_id'] ?? 0;
+        if ($user_id <= 0) {
+            http_response_code(403);
+            echo json_encode(['success' => false, 'message' => '未授權']);
+            return;
+        }
+
         // AI 串接耗時，放寬執行時間並忽略使用者中斷，避免被 max_execution_time 截斷成非法 JSON
         @set_time_limit(0);
         ignore_user_abort(true);

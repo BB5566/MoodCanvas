@@ -41,21 +41,6 @@ setSecurityHeaders();
 // 此為獨立於 security.php（已停用之 100/hr）的較嚴格限制；採 X-Forwarded-For 感知 IP。
 enforceRateLimit(30, 60);
 
-if (!isset($_SESSION['user_id'])) {
-    // 免登陸試用：為每位訪客建立獨立的 guest 帳號，資料彼此隔離，
-    // 不會看到或刪除其他訪客的日記
-    $guestId = (new \App\Models\User())->createGuest();
-    if ($guestId) {
-        $_SESSION['user_id'] = (int) $guestId;
-        $_SESSION['username'] = 'guest_' . $guestId;
-        $_SESSION['is_guest'] = true;
-    } else {
-        // 建立失敗就停在這裡；不能退回共用 user_id=1，否則所有訪客會看到彼此的日記
-        http_response_code(503);
-        exit('系統暫時無法建立訪客帳號，請稍後再試。');
-    }
-}
-
 use App\Controllers\AuthController;
 use App\Controllers\DiaryController;
 
