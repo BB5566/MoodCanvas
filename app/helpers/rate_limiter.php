@@ -15,11 +15,23 @@ if (!function_exists('rateLimitClientIp')) {
      * @return string
      */
     function rateLimitClientIp() {
-        if (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
-            $parts = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']);
-            return trim($parts[0]);
+        $remote_addr = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+
+        // Trusted proxies: localhost, private networks, docker networks
+        $trusted_proxies = ['127.0.0.1', '::1'];
+        $is_trusted = in_array($remote_addr, $trusted_proxies) ||
+                      preg_match('/^(10\.|172\.(1[6-9]|2[0-9]|3[0-1])\.|192\.168\.)/', $remote_addr);
+
+        if ($is_trusted) {
+            if (!empty($_SERVER['HTTP_CF_CONNECTING_IP'])) {
+                return trim($_SERVER['HTTP_CF_CONNECTING_IP']);
+            }
+            if (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+                $parts = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']);
+                return trim(end($parts));
+            }
         }
-        return $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+        return $remote_addr;
     }
 }
 
@@ -106,59 +118,94 @@ if (!function_exists('checkAILimit')) {
         $maxDailyRequests = $is_guest ? 5 : 20; // 訪客每日5次，一般用戶20次
         $maxGlobalRequests = 500; // 全站每日上限
 
+        $globalFile = $dir . '/ai_limit_global_' . $today . '.json';
+
+        // Read current values without updating
         $entries = 0;
-        $fh = @fopen($file, 'c+');
-        if ($fh && flock($fh, LOCK_EX)) {
-            $raw = stream_get_contents($fh);
-            $decoded = json_decode($raw, true);
-            if (is_array($decoded) && isset($decoded['count'])) {
-                $entries = (int)$decoded['count'];
-            }
-            if ($entries >= $maxDailyRequests) {
+        if (is_file($file)) {
+            $fh = @fopen($file, 'r');
+            if ($fh && flock($fh, LOCK_SH)) {
+                $raw = stream_get_contents($fh);
                 flock($fh, LOCK_UN);
                 fclose($fh);
-                http_response_code(429);
-                header('Content-Type: application/json; charset=utf-8');
-                die(json_encode(['success' => false, 'message' => 'AI 額度已耗盡，請明天再試。']));
+                $decoded = json_decode($raw, true);
+                if (is_array($decoded) && isset($decoded['count'])) {
+                    $entries = (int)$decoded['count'];
+                }
+            } elseif ($fh) {
+                fclose($fh);
             }
-            $entries++;
-            ftruncate($fh, 0);
-            rewind($fh);
-            fwrite($fh, json_encode(['count' => $entries]));
-            fflush($fh);
-            flock($fh, LOCK_UN);
-            fclose($fh);
-        } elseif ($fh) {
-            fclose($fh);
         }
 
-        // Check Global Limits
-        $globalFile = $dir . '/ai_limit_global_' . $today . '.json';
         $globalEntries = 0;
+        if (is_file($globalFile)) {
+            $fhGlobal = @fopen($globalFile, 'r');
+            if ($fhGlobal && flock($fhGlobal, LOCK_SH)) {
+                $raw = stream_get_contents($fhGlobal);
+                flock($fhGlobal, LOCK_UN);
+                fclose($fhGlobal);
+                $decoded = json_decode($raw, true);
+                if (is_array($decoded) && isset($decoded['count'])) {
+                    $globalEntries = (int)$decoded['count'];
+                }
+            } elseif ($fhGlobal) {
+                fclose($fhGlobal);
+            }
+        }
+
+        if ($entries >= $maxDailyRequests) {
+            http_response_code(429);
+            header('Content-Type: application/json; charset=utf-8');
+            die(json_encode(['success' => false, 'message' => 'AI 額度已耗盡，請明天再試。']));
+        }
+
+        if ($globalEntries >= $maxGlobalRequests) {
+            http_response_code(429);
+            header('Content-Type: application/json; charset=utf-8');
+            die(json_encode(['success' => false, 'message' => '全站 AI 額度已耗盡，請明天再試。']));
+        }
+
+        // Update both if neither exceeded
         $fhGlobal = @fopen($globalFile, 'c+');
         if ($fhGlobal && flock($fhGlobal, LOCK_EX)) {
             $raw = stream_get_contents($fhGlobal);
             $decoded = json_decode($raw, true);
-            if (is_array($decoded) && isset($decoded['count'])) {
-                $globalEntries = (int)$decoded['count'];
-            }
-            if ($globalEntries >= $maxGlobalRequests) {
+            $currentGlobal = (is_array($decoded) && isset($decoded['count'])) ? (int)$decoded['count'] : 0;
+
+            if ($currentGlobal >= $maxGlobalRequests) {
                 flock($fhGlobal, LOCK_UN);
                 fclose($fhGlobal);
-                // 雖然個人可能沒超過，但全站超過了。為求嚴謹應該將個人的減回去，但此處簡單化處理
                 http_response_code(429);
                 header('Content-Type: application/json; charset=utf-8');
                 die(json_encode(['success' => false, 'message' => '全站 AI 額度已耗盡，請明天再試。']));
             }
-            $globalEntries++;
+
+            $currentGlobal++;
             ftruncate($fhGlobal, 0);
             rewind($fhGlobal);
-            fwrite($fhGlobal, json_encode(['count' => $globalEntries]));
+            fwrite($fhGlobal, json_encode(['count' => $currentGlobal]));
             fflush($fhGlobal);
             flock($fhGlobal, LOCK_UN);
             fclose($fhGlobal);
         } elseif ($fhGlobal) {
             fclose($fhGlobal);
+        }
+
+        $fh = @fopen($file, 'c+');
+        if ($fh && flock($fh, LOCK_EX)) {
+            $raw = stream_get_contents($fh);
+            $decoded = json_decode($raw, true);
+            $current = (is_array($decoded) && isset($decoded['count'])) ? (int)$decoded['count'] : 0;
+
+            $current++;
+            ftruncate($fh, 0);
+            rewind($fh);
+            fwrite($fh, json_encode(['count' => $current]));
+            fflush($fh);
+            flock($fh, LOCK_UN);
+            fclose($fh);
+        } elseif ($fh) {
+            fclose($fh);
         }
 
         return true;
