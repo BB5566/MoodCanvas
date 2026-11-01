@@ -27,8 +27,17 @@ if (!function_exists('rateLimitClientIp')) {
                 return trim($_SERVER['HTTP_CF_CONNECTING_IP']);
             }
             if (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
-                $parts = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']);
-                return trim(end($parts));
+                $parts = array_map('trim', explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']));
+                // 從最右側（最近的代理）往前找第一個不受信任的 IP
+                $parts = array_reverse($parts);
+                foreach ($parts as $ip) {
+                    $is_ip_trusted = in_array($ip, $trusted_proxies) || preg_match('/^(10\.|172\.(1[6-9]|2[0-9]|3[0-1])\.|192\.168\.)/', $ip);
+                    if (!$is_ip_trusted) {
+                        return $ip;
+                    }
+                }
+                // 如果全部都是受信任的，只好回傳最左邊的
+                return end($parts);
             }
         }
         return $remote_addr;

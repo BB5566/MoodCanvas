@@ -25,11 +25,11 @@ class DiaryController
     // ============================================================
     public function index()
     {
-        $user_id = $_SESSION['user_id'] ?? 1;
+        $user_id = $_SESSION['user_id'] ?? 0;
         $year = (int)($_GET['year'] ?? date('Y'));
         $month = str_pad((int)($_GET['month'] ?? date('m')), 2, '0', STR_PAD_LEFT);
 
-        $diaries = $this->diaryModel->getDiariesByMonth($user_id, $year, $month);
+        $diaries = $user_id > 0 ? $this->diaryModel->getDiariesByMonth($user_id, $year, $month) : [];
         $pageTitle = '心情日曆';
         include BASE_PATH . '/app/views/diary/calendar.php';
     }
@@ -163,7 +163,7 @@ class DiaryController
     // ============================================================
     public function show()
     {
-        $user_id = $_SESSION['user_id'] ?? 1;
+        $user_id = $_SESSION['user_id'] ?? 0;
         $diary_id = sanitizeInt($_GET['id'] ?? null, 0);
 
         if ($diary_id <= 0) {
@@ -171,7 +171,7 @@ class DiaryController
             return;
         }
 
-        $diary = $this->diaryModel->findById($diary_id, $user_id);
+        $diary = $user_id > 0 ? $this->diaryModel->findById($diary_id, $user_id) : null;
         if (!$diary) {
             $this->showError('找不到該日記');
             return;
@@ -188,10 +188,10 @@ class DiaryController
     // ============================================================
     public function showByDate()
     {
-        $user_id = $_SESSION['user_id'] ?? 1;
+        $user_id = $_SESSION['user_id'] ?? 0;
         $date = $_GET['date'] ?? date('Y-m-d');
 
-        $diaries = $this->diaryModel->getDiariesByDate($user_id, $date);
+        $diaries = $user_id > 0 ? $this->diaryModel->getDiariesByDate($user_id, $date) : [];
         $pageTitle = $date . ' 的日記';
         include BASE_PATH . '/app/views/diary/date_list.php';
     }
@@ -243,6 +243,7 @@ class DiaryController
         $input = json_decode(file_get_contents('php://input'), true) ?: [];
         $token = $input['csrf_token'] ?? '';
         if (!validateCsrfToken($token)) {
+            http_response_code(403);
             echo json_encode(['success' => false, 'message' => '安全驗證失敗']);
             return;
         }
@@ -258,6 +259,7 @@ class DiaryController
 
         $validation = $this->validateDiaryData($input);
         if (!$validation['success']) {
+            http_response_code(400);
             echo json_encode(['success' => false, 'message' => $validation['message']]);
             return;
         }
@@ -370,7 +372,11 @@ class DiaryController
     // ============================================================
     public function dashboard()
     {
-        $user_id = $_SESSION['user_id'] ?? 1;
+        $user_id = $_SESSION['user_id'] ?? 0;
+        if ($user_id <= 0) {
+            header('Location: ' . APP_URL . '/public/index.php?action=login');
+            exit;
+        }
         $diaries = $this->diaryModel->findAllByUserId($user_id);
 
         // 圖表需要 date 與 mood_score，但資料表只存 emoji mood / diary_date，
@@ -503,9 +509,9 @@ class DiaryController
     private function showCreateForm()
     {
         // 一天只能一篇：若指定日期已有日記，直接導向編輯既有日記
-        $user_id = $_SESSION['user_id'] ?? 1;
+        $user_id = $_SESSION['user_id'] ?? 0;
         $requestedDate = $_GET['date'] ?? date('Y-m-d');
-        $existing = $this->diaryModel->getDiariesByDate($user_id, $requestedDate);
+        $existing = $user_id > 0 ? $this->diaryModel->getDiariesByDate($user_id, $requestedDate) : [];
         if (!empty($existing)) {
             header('Location: ' . APP_URL . '/public/index.php?action=diary_edit&id=' . $existing[0]['id'] . '&notice=date_exists');
             exit;
