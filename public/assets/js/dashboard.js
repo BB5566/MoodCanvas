@@ -35,7 +35,14 @@ document.addEventListener('DOMContentLoaded', function() {
         generateHeatmap(processedData);
         generateMoodChart(processedData);
         generateWordCloud(processedData);
-        fetchAIInsight(diaries);
+
+        const insightContainer = document.getElementById('ai-insight-text');
+        if (insightContainer) {
+            insightContainer.innerHTML = '<button id="btn-fetch-insight" class="btn btn-secondary">點此產生 AI 洞察</button>';
+            document.getElementById('btn-fetch-insight').addEventListener('click', function() {
+                fetchAIInsight(diaries);
+            });
+        }
     } else {
         document.getElementById('heatmap').innerHTML = '<p class="placeholder-text">沒有足夠的日記資料來產生熱力圖</p>';
         const chartContainer = document.getElementById('mood-chart-container');
@@ -262,8 +269,7 @@ async function fetchAIInsight(diaries) {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ diaries: diaries.map(d => ({ date: d.date, mood_score: d.mood_score, content: d.content })) }) // 只傳送必要的資料
+            }
         });
 
         if (!response.ok) {

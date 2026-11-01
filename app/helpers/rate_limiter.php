@@ -15,11 +15,32 @@ if (!function_exists('rateLimitClientIp')) {
      * @return string
      */
     function rateLimitClientIp() {
-        if (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
-            $parts = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']);
-            return trim($parts[0]);
+        $remote_addr = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+
+        // Trusted proxies: localhost, private networks, docker networks
+        $trusted_proxies = ['127.0.0.1', '::1'];
+        $is_trusted = in_array($remote_addr, $trusted_proxies) ||
+                      preg_match('/^(10\.|172\.(1[6-9]|2[0-9]|3[0-1])\.|192\.168\.)/', $remote_addr);
+
+        if ($is_trusted) {
+            if (!empty($_SERVER['HTTP_CF_CONNECTING_IP'])) {
+                return trim($_SERVER['HTTP_CF_CONNECTING_IP']);
+            }
+            if (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+                $parts = array_map('trim', explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']));
+                // 從最右側（最近的代理）往前找第一個不受信任的 IP
+                $parts = array_reverse($parts);
+                foreach ($parts as $ip) {
+                    $is_ip_trusted = in_array($ip, $trusted_proxies) || preg_match('/^(10\.|172\.(1[6-9]|2[0-9]|3[0-1])\.|192\.168\.)/', $ip);
+                    if (!$is_ip_trusted) {
+                        return $ip;
+                    }
+                }
+                // 如果全部都是受信任的，只好回傳最左邊的
+                return end($parts);
+            }
         }
-        return $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+        return $remote_addr;
     }
 }
 
@@ -43,49 +64,156 @@ if (!function_exists('enforceRateLimit')) {
         $now   = time();
         $cutoff = $now - $window;
 
-        // 讀取既有時間戳（共享鎖）
+        // 讀取既有時間戳（獨佔鎖）
         $entries = [];
+        $fh = @fopen($file, 'c+');
+        if ($fh && flock($fh, LOCK_EX)) {
+            $raw = stream_get_contents($fh);
+            $decoded = json_decode($raw, true);
+            if (is_array($decoded)) {
+                $entries = array_values($decoded);
+            }
+
+            // 濾除視窗外的舊紀錄
+            $entries = array_values(array_filter($entries, function ($ts) use ($cutoff) {
+                return is_int($ts) && $ts > $cutoff;
+            }));
+
+            if (count($entries) >= $maxRequests) {
+                $oldest = $entries[0] ?? $now;
+                $retry  = max(1, $window - ($now - $oldest));
+                flock($fh, LOCK_UN);
+                fclose($fh);
+                http_response_code(429);
+                header('Retry-After: ' . $retry);
+                header('Content-Type: text/plain; charset=utf-8');
+                echo '429 Too Many Requests — 請稍後再試。';
+                exit;
+            }
+
+            // 記錄本次請求
+            $entries[] = $now;
+            ftruncate($fh, 0);
+            rewind($fh);
+            fwrite($fh, json_encode($entries));
+            fflush($fh);
+            flock($fh, LOCK_UN);
+            fclose($fh);
+        } elseif ($fh) {
+            fclose($fh);
+        }
+
+        return true;
+    }
+}
+
+if (!function_exists('checkAILimit')) {
+    /**
+     * AI 額度限制：依據真實 IP 加全站每日上限，防護濫用
+     * @return bool 永遠回傳 true（超過時會先 exit 回傳 JSON）
+     */
+    function checkAILimit() {
+        $ip = rateLimitClientIp();
+        $is_guest = $_SESSION['is_guest'] ?? false;
+
+        $dir = defined('LOGS_PATH') ? LOGS_PATH : sys_get_temp_dir();
+        if (!is_dir($dir)) {
+            @mkdir($dir, 0755, true);
+        }
+
+        $today = date('Y-m-d');
+        $file = $dir . '/ai_limit_' . md5($ip) . '_' . $today . '.json';
+
+        $maxDailyRequests = $is_guest ? 5 : 20; // 訪客每日5次，一般用戶20次
+        $maxGlobalRequests = 500; // 全站每日上限
+
+        $globalFile = $dir . '/ai_limit_global_' . $today . '.json';
+
+        // Read current values without updating
+        $entries = 0;
         if (is_file($file)) {
             $fh = @fopen($file, 'r');
-            if ($fh) {
-                if (flock($fh, LOCK_SH)) {
-                    $raw = stream_get_contents($fh);
-                    flock($fh, LOCK_UN);
-                    $decoded = json_decode($raw, true);
-                    if (is_array($decoded)) {
-                        $entries = array_values($decoded);
-                    }
+            if ($fh && flock($fh, LOCK_SH)) {
+                $raw = stream_get_contents($fh);
+                flock($fh, LOCK_UN);
+                fclose($fh);
+                $decoded = json_decode($raw, true);
+                if (is_array($decoded) && isset($decoded['count'])) {
+                    $entries = (int)$decoded['count'];
                 }
+            } elseif ($fh) {
                 fclose($fh);
             }
         }
 
-        // 濾除視窗外的舊紀錄
-        $entries = array_values(array_filter($entries, function ($ts) use ($cutoff) {
-            return is_int($ts) && $ts > $cutoff;
-        }));
-
-        if (count($entries) >= $maxRequests) {
-            $oldest = $entries[0] ?? $now;
-            $retry  = max(1, $window - ($now - $oldest));
-            http_response_code(429);
-            header('Retry-After: ' . $retry);
-            header('Content-Type: text/plain; charset=utf-8');
-            echo '429 Too Many Requests — 請稍後再試。';
-            exit;
+        $globalEntries = 0;
+        if (is_file($globalFile)) {
+            $fhGlobal = @fopen($globalFile, 'r');
+            if ($fhGlobal && flock($fhGlobal, LOCK_SH)) {
+                $raw = stream_get_contents($fhGlobal);
+                flock($fhGlobal, LOCK_UN);
+                fclose($fhGlobal);
+                $decoded = json_decode($raw, true);
+                if (is_array($decoded) && isset($decoded['count'])) {
+                    $globalEntries = (int)$decoded['count'];
+                }
+            } elseif ($fhGlobal) {
+                fclose($fhGlobal);
+            }
         }
 
-        // 記錄本次請求（獨佔鎖）
-        $entries[] = $now;
-        $fh = @fopen($file, 'c');
-        if ($fh) {
-            if (flock($fh, LOCK_EX)) {
-                ftruncate($fh, 0);
-                rewind($fh);
-                fwrite($fh, json_encode($entries));
-                fflush($fh);
-                flock($fh, LOCK_UN);
+        if ($entries >= $maxDailyRequests) {
+            http_response_code(429);
+            header('Content-Type: application/json; charset=utf-8');
+            die(json_encode(['success' => false, 'message' => 'AI 額度已耗盡，請明天再試。']));
+        }
+
+        if ($globalEntries >= $maxGlobalRequests) {
+            http_response_code(429);
+            header('Content-Type: application/json; charset=utf-8');
+            die(json_encode(['success' => false, 'message' => '全站 AI 額度已耗盡，請明天再試。']));
+        }
+
+        // Update both if neither exceeded
+        $fhGlobal = @fopen($globalFile, 'c+');
+        if ($fhGlobal && flock($fhGlobal, LOCK_EX)) {
+            $raw = stream_get_contents($fhGlobal);
+            $decoded = json_decode($raw, true);
+            $currentGlobal = (is_array($decoded) && isset($decoded['count'])) ? (int)$decoded['count'] : 0;
+
+            if ($currentGlobal >= $maxGlobalRequests) {
+                flock($fhGlobal, LOCK_UN);
+                fclose($fhGlobal);
+                http_response_code(429);
+                header('Content-Type: application/json; charset=utf-8');
+                die(json_encode(['success' => false, 'message' => '全站 AI 額度已耗盡，請明天再試。']));
             }
+
+            $currentGlobal++;
+            ftruncate($fhGlobal, 0);
+            rewind($fhGlobal);
+            fwrite($fhGlobal, json_encode(['count' => $currentGlobal]));
+            fflush($fhGlobal);
+            flock($fhGlobal, LOCK_UN);
+            fclose($fhGlobal);
+        } elseif ($fhGlobal) {
+            fclose($fhGlobal);
+        }
+
+        $fh = @fopen($file, 'c+');
+        if ($fh && flock($fh, LOCK_EX)) {
+            $raw = stream_get_contents($fh);
+            $decoded = json_decode($raw, true);
+            $current = (is_array($decoded) && isset($decoded['count'])) ? (int)$decoded['count'] : 0;
+
+            $current++;
+            ftruncate($fh, 0);
+            rewind($fh);
+            fwrite($fh, json_encode(['count' => $current]));
+            fflush($fh);
+            flock($fh, LOCK_UN);
+            fclose($fh);
+        } elseif ($fh) {
             fclose($fh);
         }
 
