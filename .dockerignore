@@ -1,0 +1,6 @@
+data/
+*.sqlite
+.env
+logs/
+public/storage/generated_images/
+.git
