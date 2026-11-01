@@ -262,8 +262,7 @@ async function fetchAIInsight(diaries) {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ diaries: diaries.map(d => ({ date: d.date, mood_score: d.mood_score, content: d.content })) }) // 只傳送必要的資料
+            }
         });
 
         if (!response.ok) {

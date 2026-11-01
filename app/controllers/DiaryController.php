@@ -67,26 +67,21 @@ class DiaryController
             return;
         }
 
+        if (!isset($_SESSION['user_id'])) {
+            $this->setupGuestAccount();
+        }
         $user_id = $_SESSION['user_id'] ?? 1;
-        $title = trim($_POST['title'] ?? '');
-        $content = trim($_POST['content'] ?? '');
-        $mood = $_POST['mood'] ?? '😊';
-        if (!$this->isValidMood($mood)) {
-            $mood = '😊'; // 不在白名單內 → 退回預設心情
-        }
-        $diary_date = $this->validateDiaryDate($_POST['diary_date'] ?? null);
 
-        if (empty($content)) {
-            $this->showError('日記內容不能為空');
+        $validation = $this->validateDiaryData($_POST);
+        if (!$validation['success']) {
+            $this->showError($validation['message']);
             return;
         }
-        if (mb_strlen($content) > 1000) {
-            $this->showError('日記內容不能超過 1000 字');
-            return;
-        }
-        if (empty($title)) {
-            $title = '無標題日記';
-        }
+
+        $title = $validation['title'];
+        $content = $validation['content'];
+        $mood = $validation['mood'];
+        $diary_date = $validation['diary_date'];
 
         // 一天只能一篇：該日期已有日記則導向編輯既有日記，不再新增
         $existing = $this->diaryModel->getDiariesByDate($user_id, $diary_date);
@@ -136,24 +131,23 @@ class DiaryController
                 return;
             }
 
-            $title = trim($_POST['title'] ?? '');
-            $content = trim($_POST['content'] ?? '');
-            $mood = $_POST['mood'] ?? $diary['mood'];
-            if (!$this->isValidMood($mood)) {
-                $mood = ($diary['mood'] ?? '') ?: '😊';
-            }
+            // 若沒有傳入 diary_date，編輯時保留原本日期供驗證，雖然更新不改日期
+            $postData = $_POST;
+            $postData['diary_date'] = $diary['diary_date'] ?? date('Y-m-d');
+            if (empty($postData['mood'])) $postData['mood'] = $diary['mood'];
 
-            if (empty($content)) {
-                $error = '日記內容不能為空';
+            $validation = $this->validateDiaryData($postData);
+            if (!$validation['success']) {
+                $error = $validation['message'];
                 $pageTitle = '編輯日記';
                 include BASE_PATH . '/app/views/diary/edit.php';
                 return;
             }
 
             $this->diaryModel->update($diary_id, [
-                'title' => $title ?: '無標題日記',
-                'content' => $content,
-                'mood' => $mood,
+                'title' => $validation['title'],
+                'content' => $validation['content'],
+                'mood' => $validation['mood'],
             ]);
 
             header('Location: ' . APP_URL . '/public/index.php?action=diary_detail&id=' . $diary_id);
@@ -246,15 +240,30 @@ class DiaryController
     {
         header('Content-Type: application/json');
 
-        $input = json_decode(file_get_contents('php://input'), true);
-        $user_id = $_SESSION['user_id'] ?? 1;
-        $diary_date = $input['diary_date'] ?? null;
-        $mood = $input['mood'] ?? '📝';
-
-        if (!$diary_date) {
-            echo json_encode(['success' => false, 'message' => '日期為必填項']);
+        $input = json_decode(file_get_contents('php://input'), true) ?: [];
+        $token = $input['csrf_token'] ?? '';
+        if (!validateCsrfToken($token)) {
+            echo json_encode(['success' => false, 'message' => '安全驗證失敗']);
             return;
         }
+
+        if (!isset($_SESSION['user_id'])) {
+            $this->setupGuestAccount();
+        }
+        $user_id = $_SESSION['user_id'] ?? 1;
+
+        // 快速紀錄預設標題
+        if (empty($input['title'])) $input['title'] = '快速記錄';
+        if (empty($input['content'])) $input['content'] = '快速記錄'; // 避免 content 為空
+
+        $validation = $this->validateDiaryData($input);
+        if (!$validation['success']) {
+            echo json_encode(['success' => false, 'message' => $validation['message']]);
+            return;
+        }
+
+        $diary_date = $validation['diary_date'];
+        $mood = $validation['mood'];
 
         // 一天只能一篇：該日期已有日記則回傳既有日記 id，不再新增
         $existing = $this->diaryModel->getDiariesByDate($user_id, $diary_date);
@@ -266,8 +275,8 @@ class DiaryController
         try {
             $diary_id = $this->diaryModel->create(
                 $user_id,
-                $input['title'] ?? '快速記錄',
-                $input['content'] ?? '',
+                $validation['title'],
+                $validation['content'],
                 $mood,
                 $diary_date,
                 null,
@@ -275,7 +284,8 @@ class DiaryController
             );
             echo json_encode(['success' => true, 'diary_id' => $diary_id]);
         } catch (Exception $e) {
-            echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+            logMessage("快速建立日記失敗: " . $e->getMessage(), 'ERROR');
+            echo json_encode(['success' => false, 'message' => '建立失敗，請稍後再試']);
         }
     }
 
@@ -306,6 +316,10 @@ class DiaryController
             echo json_encode(['success' => false, 'message' => "請等待 {$wait} 秒再生成"]);
             return;
         }
+
+        // AI 防護機制：每日及全站額度
+        checkAILimit();
+
         $_SESSION[$rateKey] = time();
 
         $diary = $this->diaryModel->findById($diary_id, $user_id);
@@ -393,6 +407,94 @@ class DiaryController
             '😢' => 1, '😡' => 1,             // 傷心 / 憤怒
         ];
         return $map[$mood] ?? 3;
+    }
+
+    // ============================================================
+    // 內部：共用日記資料驗證
+    // ============================================================
+    private function validateDiaryData($data)
+    {
+        $title = trim($data['title'] ?? '');
+        $content = trim($data['content'] ?? '');
+        $mood = $data['mood'] ?? '😊';
+        if (!$this->isValidMood($mood)) {
+            $mood = '😊'; // 不在白名單內 → 退回預設心情
+        }
+        $diary_date = $this->validateDiaryDate($data['diary_date'] ?? null);
+
+        if (empty($content)) {
+            return ['success' => false, 'message' => '日記內容不能為空'];
+        }
+        if (mb_strlen($content) > 1000) {
+            return ['success' => false, 'message' => '日記內容不能超過 1000 字'];
+        }
+        if (empty($title)) {
+            $title = '無標題日記';
+        }
+
+        return [
+            'success' => true,
+            'title' => $title,
+            'content' => $content,
+            'mood' => $mood,
+            'diary_date' => $diary_date
+        ];
+    }
+
+    // ============================================================
+    // 內部：建立訪客帳號（限制建立頻率）
+    // ============================================================
+    private function setupGuestAccount()
+    {
+        // 限制每個 IP 建立訪客帳號的頻率：例如每小時最多 5 次
+        $ip = rateLimitClientIp();
+        $cacheFile = (defined('LOGS_PATH') ? LOGS_PATH : sys_get_temp_dir()) . '/guest_limit_' . md5($ip) . '.json';
+
+        $now = time();
+        $window = 3600; // 1 hr
+        $maxGuests = 5;
+
+        $entries = [];
+        $fh = @fopen($cacheFile, 'c+');
+        if ($fh && flock($fh, LOCK_EX)) {
+            $raw = stream_get_contents($fh);
+            $decoded = json_decode($raw, true);
+            if (is_array($decoded)) {
+                $entries = $decoded;
+            }
+
+            $entries = array_values(array_filter($entries, function ($ts) use ($now, $window) {
+                return is_int($ts) && $ts > ($now - $window);
+            }));
+
+            if (count($entries) >= $maxGuests) {
+                flock($fh, LOCK_UN);
+                fclose($fh);
+                http_response_code(429);
+                header('Content-Type: application/json');
+                die(json_encode(['success' => false, 'message' => '建立訪客帳號過於頻繁，請稍後再試。']));
+            }
+
+            $entries[] = $now;
+            ftruncate($fh, 0);
+            rewind($fh);
+            fwrite($fh, json_encode($entries));
+            fflush($fh);
+            flock($fh, LOCK_UN);
+            fclose($fh);
+        } elseif ($fh) {
+            fclose($fh);
+        }
+
+        $guestId = (new \App\Models\User())->createGuest();
+        if ($guestId) {
+            $_SESSION['user_id'] = (int) $guestId;
+            $_SESSION['username'] = 'guest_' . $guestId;
+            $_SESSION['is_guest'] = true;
+        } else {
+            http_response_code(503);
+            die('系統暫時無法建立訪客帳號，請稍後再試。');
+        }
     }
 
     // ============================================================
@@ -614,8 +716,26 @@ class DiaryController
     {
         header('Content-Type: application/json; charset=utf-8');
         try {
-            $payload = json_decode(file_get_contents('php://input'), true);
-            $diaries = $payload['diaries'] ?? [];
+            $user_id = $_SESSION['user_id'] ?? 0;
+            if ($user_id <= 0) {
+                echo json_encode(['success' => false, 'message' => '未授權']);
+                return;
+            }
+
+            // 速率限制：每 60 秒最多 1 次 (共用 rate_limiter，或是直接判斷)
+            $rateKey = 'ai_insight_last_' . $user_id;
+            if (isset($_SESSION[$rateKey]) && (time() - $_SESSION[$rateKey]) < 60) {
+                $wait = 60 - (time() - $_SESSION[$rateKey]);
+                echo json_encode(['success' => false, 'message' => "請等待 {$wait} 秒再分析"]);
+                return;
+            }
+
+            // AI 防護機制：每日及全站額度
+            checkAILimit();
+            $_SESSION[$rateKey] = time();
+
+            // 從資料庫讀取使用者的日記，而非信任 Client 傳入的 POST
+            $diaries = $this->diaryModel->findAllByUserId($user_id);
 
             if (empty($diaries) || !is_array($diaries)) {
                 echo json_encode(['success' => false, 'message' => '沒有足夠的日記資料']);
@@ -626,8 +746,9 @@ class DiaryController
             $recent = array_slice($diaries, 0, 30);
             $summary = '';
             foreach ($recent as $d) {
-                $date = $d['date'] ?? '';
-                $score = $d['mood_score'] ?? 3;
+                $date = $d['diary_date'] ?? '';
+                $mood = $d['mood'] ?? '';
+                $score = $this->moodToScore($mood);
                 $text = mb_substr((string)($d['content'] ?? ''), 0, 60);
                 $summary .= "- {$date}（心情分數 {$score}/5）：{$text}\n";
             }

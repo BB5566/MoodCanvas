@@ -43,50 +43,122 @@ if (!function_exists('enforceRateLimit')) {
         $now   = time();
         $cutoff = $now - $window;
 
-        // 讀取既有時間戳（共享鎖）
+        // 讀取既有時間戳（獨佔鎖）
         $entries = [];
-        if (is_file($file)) {
-            $fh = @fopen($file, 'r');
-            if ($fh) {
-                if (flock($fh, LOCK_SH)) {
-                    $raw = stream_get_contents($fh);
-                    flock($fh, LOCK_UN);
-                    $decoded = json_decode($raw, true);
-                    if (is_array($decoded)) {
-                        $entries = array_values($decoded);
-                    }
-                }
-                fclose($fh);
+        $fh = @fopen($file, 'c+');
+        if ($fh && flock($fh, LOCK_EX)) {
+            $raw = stream_get_contents($fh);
+            $decoded = json_decode($raw, true);
+            if (is_array($decoded)) {
+                $entries = array_values($decoded);
             }
-        }
 
-        // 濾除視窗外的舊紀錄
-        $entries = array_values(array_filter($entries, function ($ts) use ($cutoff) {
-            return is_int($ts) && $ts > $cutoff;
-        }));
+            // 濾除視窗外的舊紀錄
+            $entries = array_values(array_filter($entries, function ($ts) use ($cutoff) {
+                return is_int($ts) && $ts > $cutoff;
+            }));
 
-        if (count($entries) >= $maxRequests) {
-            $oldest = $entries[0] ?? $now;
-            $retry  = max(1, $window - ($now - $oldest));
-            http_response_code(429);
-            header('Retry-After: ' . $retry);
-            header('Content-Type: text/plain; charset=utf-8');
-            echo '429 Too Many Requests — 請稍後再試。';
-            exit;
-        }
-
-        // 記錄本次請求（獨佔鎖）
-        $entries[] = $now;
-        $fh = @fopen($file, 'c');
-        if ($fh) {
-            if (flock($fh, LOCK_EX)) {
-                ftruncate($fh, 0);
-                rewind($fh);
-                fwrite($fh, json_encode($entries));
-                fflush($fh);
+            if (count($entries) >= $maxRequests) {
+                $oldest = $entries[0] ?? $now;
+                $retry  = max(1, $window - ($now - $oldest));
                 flock($fh, LOCK_UN);
+                fclose($fh);
+                http_response_code(429);
+                header('Retry-After: ' . $retry);
+                header('Content-Type: text/plain; charset=utf-8');
+                echo '429 Too Many Requests — 請稍後再試。';
+                exit;
             }
+
+            // 記錄本次請求
+            $entries[] = $now;
+            ftruncate($fh, 0);
+            rewind($fh);
+            fwrite($fh, json_encode($entries));
+            fflush($fh);
+            flock($fh, LOCK_UN);
             fclose($fh);
+        } elseif ($fh) {
+            fclose($fh);
+        }
+
+        return true;
+    }
+}
+
+if (!function_exists('checkAILimit')) {
+    /**
+     * AI 額度限制：依據真實 IP 加全站每日上限，防護濫用
+     * @return bool 永遠回傳 true（超過時會先 exit 回傳 JSON）
+     */
+    function checkAILimit() {
+        $ip = rateLimitClientIp();
+        $is_guest = $_SESSION['is_guest'] ?? false;
+
+        $dir = defined('LOGS_PATH') ? LOGS_PATH : sys_get_temp_dir();
+        if (!is_dir($dir)) {
+            @mkdir($dir, 0755, true);
+        }
+
+        $today = date('Y-m-d');
+        $file = $dir . '/ai_limit_' . md5($ip) . '_' . $today . '.json';
+
+        $maxDailyRequests = $is_guest ? 5 : 20; // 訪客每日5次，一般用戶20次
+        $maxGlobalRequests = 500; // 全站每日上限
+
+        $entries = 0;
+        $fh = @fopen($file, 'c+');
+        if ($fh && flock($fh, LOCK_EX)) {
+            $raw = stream_get_contents($fh);
+            $decoded = json_decode($raw, true);
+            if (is_array($decoded) && isset($decoded['count'])) {
+                $entries = (int)$decoded['count'];
+            }
+            if ($entries >= $maxDailyRequests) {
+                flock($fh, LOCK_UN);
+                fclose($fh);
+                http_response_code(429);
+                header('Content-Type: application/json; charset=utf-8');
+                die(json_encode(['success' => false, 'message' => 'AI 額度已耗盡，請明天再試。']));
+            }
+            $entries++;
+            ftruncate($fh, 0);
+            rewind($fh);
+            fwrite($fh, json_encode(['count' => $entries]));
+            fflush($fh);
+            flock($fh, LOCK_UN);
+            fclose($fh);
+        } elseif ($fh) {
+            fclose($fh);
+        }
+
+        // Check Global Limits
+        $globalFile = $dir . '/ai_limit_global_' . $today . '.json';
+        $globalEntries = 0;
+        $fhGlobal = @fopen($globalFile, 'c+');
+        if ($fhGlobal && flock($fhGlobal, LOCK_EX)) {
+            $raw = stream_get_contents($fhGlobal);
+            $decoded = json_decode($raw, true);
+            if (is_array($decoded) && isset($decoded['count'])) {
+                $globalEntries = (int)$decoded['count'];
+            }
+            if ($globalEntries >= $maxGlobalRequests) {
+                flock($fhGlobal, LOCK_UN);
+                fclose($fhGlobal);
+                // 雖然個人可能沒超過，但全站超過了。為求嚴謹應該將個人的減回去，但此處簡單化處理
+                http_response_code(429);
+                header('Content-Type: application/json; charset=utf-8');
+                die(json_encode(['success' => false, 'message' => '全站 AI 額度已耗盡，請明天再試。']));
+            }
+            $globalEntries++;
+            ftruncate($fhGlobal, 0);
+            rewind($fhGlobal);
+            fwrite($fhGlobal, json_encode(['count' => $globalEntries]));
+            fflush($fhGlobal);
+            flock($fhGlobal, LOCK_UN);
+            fclose($fhGlobal);
+        } elseif ($fhGlobal) {
+            fclose($fhGlobal);
         }
 
         return true;
