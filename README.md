@@ -139,6 +139,7 @@ docker build -t moodcanvas .
 docker run -d \
   --name moodcanvas \
   -p 8080:80 \
+  -e DB_PATH=/var/www/html/data/moodcanvas.sqlite \
   -v moodcanvas_db:/var/www/html/data \
   -v moodcanvas_images:/var/www/html/public/storage/generated_images \
   -v moodcanvas_logs:/var/www/html/logs \
@@ -146,6 +147,7 @@ docker run -d \
 ```
 
 > **注意：** 若您選擇使用 bind mount (例如 `-v $(pwd)/data:/var/www/html/data`)，請務必在主機端先建立好資料夾，並執行 `chown -R 33:33 data public/storage/generated_images logs` 確保容器內的 `www-data` 使用者有權限寫入。
+> **舊版遷移指南：** 系統已將預設資料庫路徑移至 `data/moodcanvas.sqlite`，以避免與 `database/schema.sqlite.sql` 衝突。如果您已有舊版的 `database/moodcanvas.sqlite` 且未設定 `DB_PATH`，系統會繼續讀取舊檔（相容模式）；但若是使用 Docker，強烈建議您將舊的 `.sqlite` 檔案手動搬移至掛載的 `data` 目錄中，並確保設定環境變數 `-e DB_PATH=/var/www/html/data/moodcanvas.sqlite`，確保資料正確持久化。
 
 ### 快速安裝 (傳統方式)
 

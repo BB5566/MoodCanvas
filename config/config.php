@@ -138,7 +138,18 @@ function getDbConnection()
     try {
         if ($dbType === 'sqlite') {
             // SQLite 連線設定
-            $dbPath = getenv('DB_PATH') ?: BASE_PATH . '/data/moodcanvas.sqlite';
+            $dbPath = getenv('DB_PATH');
+            if (!$dbPath) {
+                $oldPath = BASE_PATH . '/database/moodcanvas.sqlite';
+                $newPath = BASE_PATH . '/data/moodcanvas.sqlite';
+
+                // 相容舊版：如果舊路徑有檔案且新路徑沒有，則繼續使用舊路徑
+                if (file_exists($oldPath) && !file_exists($newPath)) {
+                    $dbPath = $oldPath;
+                } else {
+                    $dbPath = $newPath;
+                }
+            }
 
             // 確保資料庫目錄存在
             $dbDir = dirname($dbPath);
