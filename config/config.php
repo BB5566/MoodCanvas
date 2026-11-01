@@ -138,7 +138,7 @@ function getDbConnection()
     try {
         if ($dbType === 'sqlite') {
             // SQLite 連線設定
-            $dbPath = getenv('DB_PATH') ?: BASE_PATH . '/database/moodcanvas.sqlite';
+            $dbPath = getenv('DB_PATH') ?: BASE_PATH . '/data/moodcanvas.sqlite';
 
             // 確保資料庫目錄存在
             $dbDir = dirname($dbPath);

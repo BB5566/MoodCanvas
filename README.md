@@ -127,15 +127,25 @@ graph TB
 
 #### 透過 docker run 部署
 
+首先，建置 Docker 映像檔：
+
+```bash
+docker build -t moodcanvas .
+```
+
+然後，使用 named volume 啟動容器 (推薦，可避免主機目錄權限問題)：
+
 ```bash
 docker run -d \
   --name moodcanvas \
   -p 8080:80 \
-  -v $(pwd)/database:/var/www/html/database \
-  -v $(pwd)/public/storage/generated_images:/var/www/html/public/storage/generated_images \
-  -v $(pwd)/logs:/var/www/html/logs \
-  moodcanvas-image
+  -v moodcanvas_db:/var/www/html/data \
+  -v moodcanvas_images:/var/www/html/public/storage/generated_images \
+  -v moodcanvas_logs:/var/www/html/logs \
+  moodcanvas
 ```
+
+> **注意：** 若您選擇使用 bind mount (例如 `-v $(pwd)/data:/var/www/html/data`)，請務必在主機端先建立好資料夾，並執行 `chown -R 33:33 data public/storage/generated_images logs` 確保容器內的 `www-data` 使用者有權限寫入。
 
 ### 快速安裝 (傳統方式)
 
