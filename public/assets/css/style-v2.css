@@ -748,7 +748,9 @@ textarea { resize: vertical; min-height: 100px; }
 .calendar-nav { display: flex; align-items: center; gap: 0.6rem; }
 
 .nav-arrow {
-  font-size: 1.8rem; color: var(--color-text-secondary);
+  font-size: 1.8rem; color: var(--color-text-primary);
+  background-color: var(--color-border-light);
+  padding: 0.4rem;
   text-decoration: none;
   min-width: var(--touch-target-min);
   min-height: var(--touch-target-min);
@@ -760,8 +762,7 @@ textarea { resize: vertical; min-height: 100px; }
 }
 .nav-arrow:hover {
   color: var(--color-accent);
-  background: var(--color-surface-hover);
-  transform: scale(1.08);
+  background-color: var(--color-border-medium);
 }
 
 /* ===== 側欄統計（編輯式：大襯線數字 + 字距標籤）===== */
@@ -892,6 +893,7 @@ textarea { resize: vertical; min-height: 100px; }
   align-items: center;
   justify-content: center;
   border-radius: 11px;
+  margin: 2px;
 }
 
 .diary-entry, .no-diary, .multiple-diaries {
@@ -1288,7 +1290,7 @@ textarea { resize: vertical; min-height: 100px; }
     width: 100%;
   }
   .calendar th { font-size: 0.8rem; padding-bottom: 0.4rem; }
-  .calendar td { height: 60px; padding: 2px; }
+  .calendar td { height: 50px; padding: 2px; }
   .day-number {
     font-size: 0.75rem;
     top: 3px;
@@ -1329,10 +1331,10 @@ textarea { resize: vertical; min-height: 100px; }
 
 @media (max-width: 600px) {
   .demo-banner {
-    flex-direction: column;
+    flex-direction: row;
     align-items: stretch;
-    padding: 0.75rem;
-    flex-wrap: nowrap;
+    padding: 0.75rem 2.5rem 0.75rem 0.75rem;
+    flex-wrap: wrap;
   }
   .demo-banner-content {
     font-size: 0.85rem;
@@ -1349,8 +1351,6 @@ textarea { resize: vertical; min-height: 100px; }
     padding: 0.2rem 0.5rem;
     font-size: 0.8rem;
     min-height: 32px;
-    align-self: flex-start;
-    margin-top: 0.5rem;
   }
   .demo-banner-dismiss {
     position: absolute;
@@ -1382,7 +1382,7 @@ textarea { resize: vertical; min-height: 100px; }
 
   /* 390px 極端窄螢幕月曆適應 */
   .calendar th { font-size: 0.75rem; }
-  .calendar td { height: 54px; padding: 1px; }
+  .calendar td { height: 44px; padding: 1px; }
   .day-number { font-size: 0.7rem; top: 2px; left: 3px; }
   .calendar td.today .day-number { min-width: 16px; height: 16px; font-size: 0.68rem; }
   .diary-thumb {
