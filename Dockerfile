@@ -12,8 +12,7 @@ COPY apache.conf /etc/apache2/sites-available/000-default.conf
 VOLUME ["/var/www/html/data", "/var/www/html/public/storage/generated_images", "/var/www/html/logs"]
 
 # Setup cron job
-# 讓 cron 執行時能讀取環境變數，將 env 寫入檔頭，並使用 /etc/cron.d 格式
-RUN echo '0 2 * * * root . /var/www/html/.env; /usr/local/bin/php /var/www/html/scripts/cleanup_guests.php >> /var/log/cron.log 2>&1' > /etc/cron.d/cleanup-guests && \
+RUN echo '0 2 * * * root cd /var/www/html && /usr/local/bin/php /var/www/html/scripts/cleanup_guests.php >> /var/www/html/logs/cron.log 2>&1' > /etc/cron.d/cleanup-guests && \
     chmod 0644 /etc/cron.d/cleanup-guests
 
-CMD ["sh", "-c", "cron && apache2-foreground"]
+CMD ["sh", "-c", "printenv | grep -E '^(DB_|APP_|DEBUG)' >> /etc/environment && cron && apache2-foreground"]
