@@ -695,8 +695,9 @@ textarea { resize: vertical; min-height: 100px; }
 .bento-calendar { grid-column: span 12; }
 .bento-sidebar { grid-column: span 12; display: flex; flex-direction: column; gap: 20px; }
 @media (min-width: 992px) {
-  .bento-calendar { grid-column: span 8; }
-  .bento-sidebar { grid-column: span 4; }
+  .bento-calendar { grid-column: span 12; }
+  .bento-sidebar { grid-column: span 12; flex-direction: row; flex-wrap: wrap; }
+  .bento-sidebar .bento-card { flex: 1; }
 }
 .bento-sidebar .bento-card { flex-grow: 0; }
 
@@ -749,8 +750,8 @@ textarea { resize: vertical; min-height: 100px; }
 
 .nav-arrow {
   font-size: 1.8rem; color: var(--color-text-primary);
-  background-color: var(--color-border-light);
-  padding: 0.4rem;
+  background-color: transparent;
+  padding: 0.2rem 0.5rem;
   text-decoration: none;
   min-width: var(--touch-target-min);
   min-height: var(--touch-target-min);
@@ -811,9 +812,9 @@ textarea { resize: vertical; min-height: 100px; }
 .quick-btn-icon { font-size: 1.05rem; }
 
 .today-link {
-  background-color: var(--color-border-light);
+  background-color: transparent;
   color: var(--color-text-primary);
-  padding: 0.4rem 0.9rem;
+  padding: 0.2rem 0.5rem;
   min-height: var(--touch-target-min);
   display: inline-flex;
   align-items: center;
@@ -1290,7 +1291,7 @@ textarea { resize: vertical; min-height: 100px; }
     width: 100%;
   }
   .calendar th { font-size: 0.8rem; padding-bottom: 0.4rem; }
-  .calendar td { height: 50px; padding: 2px; }
+  .calendar td { height: auto; min-height: 50px; padding: 2px; }
   .day-number {
     font-size: 0.75rem;
     top: 3px;
@@ -1382,7 +1383,7 @@ textarea { resize: vertical; min-height: 100px; }
 
   /* 390px 極端窄螢幕月曆適應 */
   .calendar th { font-size: 0.75rem; }
-  .calendar td { height: 44px; padding: 1px; }
+  .calendar td { height: auto; min-height: 46px; padding: 1px; }
   .day-number { font-size: 0.7rem; top: 2px; left: 3px; }
   .calendar td.today .day-number { min-width: 16px; height: 16px; font-size: 0.68rem; }
   .diary-thumb {
