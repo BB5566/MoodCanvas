@@ -2,10 +2,12 @@
 
 > **讓每一天的感受，都成為藝術**
 
-[![PHP Version](https://img.shields.io/badge/PHP-7.4+-blue.svg)](https://php.net)
-[![MySQL](https://img.shields.io/badge/MySQL-5.7+-orange.svg)](https://mysql.com)
+[![PHP Version](https://img.shields.io/badge/PHP-8.0+-blue.svg)](https://php.net)
+[![SQLite](https://img.shields.io/badge/SQLite-預設-003B57.svg)](https://sqlite.org)
+[![MySQL](https://img.shields.io/badge/MySQL-選用-orange.svg)](https://mysql.com)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
+
+🌐 **線上展示**：https://bb-made.com/mood/
 
 MoodCanvas 是一個創新的情緒日記應用程式，結合傳統日記寫作與現代 AI 技術，透過智慧圖像生成和情感分析，將您的文字轉化為視覺藝術，讓每一天的心情都能被生動地記錄和回味。
 
@@ -17,13 +19,13 @@ MoodCanvas 是一個創新的情緒日記應用程式，結合傳統日記寫作
 - **心情統計** - 自動計算情緒分佈和趨勢
 
 ### 🖼️ AI 圖像生成
-- **Replicate 驅動** - Google Imagen 4 模型
+- **Replicate 驅動** - FLUX Schnell 模型
 - **多種藝術風格** - 吉卜力、寫實攝影、像素藝術、3D渲染等
 - **智慧提示詞優化** - 自動分析日記內容生成精準圖片
 - **情感氛圍映射** - 根據心情自動調整燈光和色調
 
 ### 💬 AI 心情短語
-- **DeepSeek V4 Flash 驅動** - 快速生成富有詩意的心情註解
+- **DeepSeek V4 Pro 驅動**（經 Pioneer API）- 生成富有詩意的心情註解
 - **多語言支援** - 中文/英文
 - **情境感知** - 根據日記內容生成貼切的短語
 
@@ -42,8 +44,8 @@ MoodCanvas 是一個創新的情緒日記應用程式，結合傳統日記寫作
 ## 🚀 技術架構
 
 ### 後端技術棧
-- **PHP 7.4+** - 現代化 MVC 架構
-- **MySQL/MariaDB** - 可靠的資料儲存
+- **PHP 8.0+**（Docker 映像用 PHP 8.2）- MVC 架構
+- **SQLite**（預設）／**MySQL**（`DB_TYPE=mysql` 時使用）- 透過 PDO 存取
 - **自定義路由系統** - 靈活的 URL 處理
 - **Adapter 設計模式** - 模組化 AI 服務整合
 
@@ -54,9 +56,8 @@ MoodCanvas 是一個創新的情緒日記應用程式，結合傳統日記寫作
 - **響應式設計** - Mobile-First 開發理念
 
 ### AI 服務整合
-- **Replicate** - Google Imagen 4 圖像生成
-- **DeepSeek** - V4 Flash 文字生成
-- **Pioneer** - 備援 AI 服務
+- **Replicate** - FLUX Schnell 圖像生成
+- **Pioneer API** - 呼叫 DeepSeek V4 Pro 生成心情短語與洞察
 
 ## 🏗️ 系統架構圖
 
@@ -82,12 +83,12 @@ graph TB
     end
 
     subgraph "AI 服務層"
-        K[DeepSeek V4 Flash]
-        L[Replicate Imagen 4]
+        K[Pioneer API · DeepSeek V4 Pro]
+        L[Replicate FLUX Schnell]
     end
 
     subgraph "資料層"
-        N[MySQL 資料庫]
+        N[SQLite / MySQL 資料庫]
         O[檔案系統]
         P[日誌系統]
     end
@@ -103,7 +104,6 @@ graph TB
     G --> J
     J --> K
     J --> L
-    J --> M
     H --> N
     I --> N
     J --> O
@@ -114,8 +114,8 @@ graph TB
 
 ### 系統需求
 
-- **PHP 7.4+** (建議 8.0+)
-- **MySQL 5.7+** 或 **MariaDB 10.3+**
+- **PHP 8.0+**（需 PDO SQLite 擴充；改用 MySQL 時需 PDO MySQL）
+- 預設使用 **SQLite**，不需另外架資料庫；也可設定 `DB_TYPE=mysql` 改用 **MySQL 5.7+** 或 **MariaDB 10.3+**
 - **Apache 2.4+** 或 **Nginx 1.18+**
 - **至少 512MB 記憶體**
 - **1GB 可用硬碟空間**
@@ -153,7 +153,7 @@ docker run -d \
 
 #### 1. 下載專案
 ```bash
-git clone https://github.com/your-username/MoodCanvas.git
+git clone https://github.com/BB5566/MoodCanvas.git
 cd MoodCanvas
 ```
 
@@ -167,6 +167,10 @@ nano .env
 ```
 
 #### 3. 資料庫設定
+
+預設使用 SQLite：第一次連線時會自動建立 `data/moodcanvas.sqlite` 並匯入 `database/schema.sqlite.sql`，不用手動設定。
+
+若要改用 MySQL，在 `.env` 設定 `DB_TYPE=mysql` 與連線資訊，再匯入結構：
 ```bash
 # 登入 MySQL
 mysql -u root -p
@@ -180,7 +184,7 @@ GRANT ALL PRIVILEGES ON mood_canvas_db.* TO 'moodcanvas'@'localhost';
 FLUSH PRIVILEGES;
 
 # 匯入資料庫結構
-mysql -u moodcanvas -p mood_canvas_db < database/mood_canvas_schema.sql
+mysql -u moodcanvas -p mood_canvas_db < database/schema.sql
 ```
 
 #### 4. Web 伺服器配置
@@ -245,12 +249,13 @@ chmod 600 config/gcp-service-account.json
 
 ## 🔧 AI 服務配置
 
-### DeepSeek (文字生成，必須)
-1. 前往 [DeepSeek Platform](https://platform.deepseek.com/api_keys)
+### Pioneer (文字生成，必須)
+心情短語與 AI 洞察透過 Pioneer API 呼叫 DeepSeek V4 Pro。
+1. 前往 [Pioneer](https://pioneer.ai)
 2. 創建帳戶並取得 API Key
 3. 在 `.env` 中設定：
 ```bash
-DEEPSEEK_API_KEY="sk-your-api-key-here"
+PIONEER_API_KEY="pio_sk_your-key-here"
 ```
 
 ### Replicate (圖片生成，必須)
@@ -266,11 +271,12 @@ REPLICATE_API_KEY="r8_your-token-here"
 
 ```bash
 # === AI 服務配置 ===
-DEEPSEEK_API_KEY="sk-your-key-here"
 REPLICATE_API_KEY="r8_your-token-here"
 PIONEER_API_KEY="pio_sk_your-key-here"
 
 # === 資料庫配置 ===
+# 預設 SQLite；改用 MySQL 時設 DB_TYPE=mysql 並填下方連線資訊
+DB_TYPE=sqlite
 DB_HOST=localhost
 DB_PORT=3306
 DB_NAME=mood_canvas_db
@@ -343,13 +349,14 @@ erDiagram
 **症狀**: 無法載入頁面，顯示資料庫錯誤
 **解決方案**:
 - 檢查 `.env` 中的資料庫設定
-- 確認 MySQL 服務正在運行
+- SQLite：確認 `data/` 目錄可寫入
+- MySQL：確認服務正在運行
 - 驗證用戶權限
 
 #### 3. AI 文字生成失敗
 **症狀**: 心情短語無法生成
 **解決方案**:
-- 檢查 DeepSeek API Key
+- 檢查 Pioneer API Key
 - 確認網路連線
 - 檢查 API 配額
 
@@ -430,8 +437,8 @@ MoodCanvas 的設計靈感來自於日本的 **物の哀れ** (mono no aware) �
 
 ## 🌟 致謝
 
-- **DeepSeek** - 提供快速智慧的文字生成
-- **Replicate** - 提供強大的 Imagen 4 圖像生成
+- **DeepSeek**（經 Pioneer API）- 提供文字生成
+- **Replicate** - 提供 FLUX Schnell 圖像生成
 - **Chart.js & D3.js** - 優秀的資料視覺化工具
 - **所有貢獻者** - 讓 MoodCanvas 變得更好
 
@@ -441,6 +448,6 @@ MoodCanvas 的設計靈感來自於日本的 **物の哀れ** (mono no aware) �
 
 **MoodCanvas** - *讓您的心情，成為藝術* 🎨✨
 
-[🌐 官方網站](https://moodcanvas.com) • [📖 文檔](https://docs.moodcanvas.com) • [🐛 回報問題](https://github.com/your-username/MoodCanvas/issues) • [💬 討論區](https://github.com/your-username/MoodCanvas/discussions)
+[🌐 線上展示](https://bb-made.com/mood/) • [🐛 回報問題](https://github.com/BB5566/MoodCanvas/issues)
 
 </div>
