@@ -21,6 +21,7 @@ $date = new DateTime($diary['diary_date'] ?? 'now');
 $imagePath = $diary['image_path'] ?? '';
 $aiText = $diary['ai_generated_text'] ?? '';
 $diaryId = $diary['id'];
+$isDemo = !empty($diary['is_demo']); // 訪客看的範例日記：唯讀，不顯示編輯與 AI 按鈕
 
 $pageTitle = $title . ' | ' . $date->format('Y-m-d') . ' ' . $mood;
 $metaDescription = mb_substr(strip_tags($diary['content'] ?? ''), 0, 80, 'UTF-8');
@@ -39,7 +40,7 @@ if (!empty($imagePath)) {
 
 $hasImage = !empty($imageUrl);
 $hasQuote = !empty($aiText);
-$aiGenerating = ($ai_generating ?? false);
+$aiGenerating = !$isDemo && ($ai_generating ?? false);
 ?>
 
 <div class="diary-card-wrapper">
@@ -121,12 +122,16 @@ $aiGenerating = ($ai_generating ?? false);
     <!-- 操作按鈕 -->
     <div class="diary-actions">
         <a href="index.php?action=home" class="btn btn-tertiary">📅 返回日曆</a>
-        <a href="index.php?action=diary_edit&id=<?php echo $diaryId; ?>" class="btn btn-tertiary">✏️ 編輯</a>
-        <a href="index.php?action=diary_create" class="btn btn-secondary">✏️ 再寫一篇</a>
+        <?php if ($isDemo): ?>
+            <a href="index.php?action=login" class="btn btn-secondary">登入寫自己的日記</a>
+        <?php else: ?>
+            <a href="index.php?action=diary_edit&id=<?php echo $diaryId; ?>" class="btn btn-tertiary">✏️ 編輯</a>
+            <a href="index.php?action=diary_create" class="btn btn-secondary">✏️ 再寫一篇</a>
+        <?php endif; ?>
     </div>
 </div>
 
-<?php if (!$aiGenerating && !$hasImage): ?>
+<?php if (!$isDemo && !$aiGenerating && !$hasImage): ?>
 <div class="diary-actions" style="margin-top:0.5rem">
     <button id="regenerate-ai-btn" class="btn btn-secondary" style="font-size:0.85rem" data-diary-id="<?php echo (int) $diaryId; ?>">🔄 重新生成 AI</button>
 </div>

@@ -67,6 +67,18 @@ if (isset($diaries)) {
     </div>
 <?php endif; ?>
 
+<?php if (!isset($_SESSION['user_id'])): ?>
+    <div class="demo-banner" role="region" aria-label="示範模式說明">
+        <div class="demo-banner-content">
+            <span><strong>示範模式</strong>：以下是範例日記，登入後就能寫自己的</span>
+        </div>
+        <div class="demo-banner-actions">
+            <a href="<?php echo APP_URL; ?>/public/index.php?action=login" class="btn btn-secondary demo-banner-cta">登入</a>
+            <a href="<?php echo APP_URL; ?>/public/index.php?action=register" class="btn btn-primary demo-banner-cta">註冊</a>
+        </div>
+    </div>
+<?php endif; ?>
+
 <div class="bento-grid">
     <!-- 日曆主區域 -->
     <div class="bento-card bento-calendar">
@@ -126,14 +138,19 @@ if (isset($diaries)) {
                                     $diaryTitle = htmlspecialchars($diary['title'] ?? '無標題');
                                     $moodEmoji = htmlspecialchars($diary['mood'] ?? '📝');
                                     $imagePath = $diary['image_path'] ?? '';
+                                    // 範例日記的日期跟著月份走，連結要帶上年月
+                                    $detailLink = "index.php?action=diary_detail&id={$diary['id']}";
+                                    if (!empty($diary['is_demo'])) {
+                                        $detailLink .= '&year=' . (int)$year . '&month=' . (int)$month;
+                                    }
                                     if (!empty($imagePath)) {
                                         // 構建圖片 URL（如果是相對路徑則補上 public）
                                         $imgUrl = (strpos($imagePath, 'http') === 0) ? $imagePath : (strpos($imagePath, 'public/') === 0 ? APP_URL . '/' . $imagePath : APP_URL . '/public/' . $imagePath);
-                                        echo "<a href='index.php?action=diary_detail&id={$diary['id']}' class='diary-entry' title='{$diaryTitle}' aria-label='查看日記：{$diaryTitle}'>";
+                                        echo "<a href='{$detailLink}' class='diary-entry' title='{$diaryTitle}' aria-label='查看日記：{$diaryTitle}'>";
                                         echo "<img class='diary-thumb' loading='lazy' src='" . htmlspecialchars($imgUrl) . "' alt='{$diaryTitle} 縮圖'/>";
                                         echo "</a>";
                                     } else {
-                                        echo "<a href='index.php?action=diary_detail&id={$diary['id']}' class='diary-entry' title='{$diaryTitle}' aria-label='查看日記：{$diaryTitle}'>";
+                                        echo "<a href='{$detailLink}' class='diary-entry' title='{$diaryTitle}' aria-label='查看日記：{$diaryTitle}'>";
                                         echo "<span class='mood-emoji' role='img' aria-label='心情'>{$moodEmoji}</span>";
                                         echo "</a>";
                                     }
