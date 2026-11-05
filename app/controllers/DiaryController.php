@@ -10,6 +10,7 @@ use Exception;
 // 安全輔助層（CSRF 驗證 + 輸入驗證）
 require_once __DIR__ . '/../helpers/csrf.php';
 require_once __DIR__ . '/../helpers/validator.php';
+require_once __DIR__ . '/../helpers/demo_diaries.php';
 
 class DiaryController
 {
@@ -29,7 +30,8 @@ class DiaryController
         $year = (int)($_GET['year'] ?? date('Y'));
         $month = str_pad((int)($_GET['month'] ?? date('m')), 2, '0', STR_PAD_LEFT);
 
-        $diaries = $user_id > 0 ? $this->diaryModel->getDiariesByMonth($user_id, $year, $month) : [];
+        // 沒登入的訪客看範例日記（不寫資料庫），登入後只看自己的
+        $diaries = $user_id > 0 ? $this->diaryModel->getDiariesByMonth($user_id, $year, $month) : demoDiaries($year, $month);
         $pageTitle = '心情日曆';
         include BASE_PATH . '/app/views/diary/calendar.php';
     }
@@ -39,6 +41,12 @@ class DiaryController
     // ============================================================
     public function create()
     {
+        $user_id = $_SESSION['user_id'] ?? 0;
+        if ($user_id <= 0) {
+            header('Location: ' . APP_URL . '/public/index.php?action=login');
+            exit;
+        }
+
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $this->saveDiary();
             return;
@@ -171,12 +179,18 @@ class DiaryController
         $user_id = $_SESSION['user_id'] ?? 0;
         $diary_id = sanitizeInt($_GET['id'] ?? null, 0);
 
-        if ($diary_id <= 0) {
+        if ($user_id <= 0) {
+            // 訪客：只能看範例日記（唯讀）
+            $year = (int)($_GET['year'] ?? date('Y'));
+            $month = (int)($_GET['month'] ?? date('m'));
+            $diary = findDemoDiary($diary_id, $year, $month);
+        } elseif ($diary_id > 0) {
+            $diary = $this->diaryModel->findById($diary_id, $user_id);
+        } else {
             $this->showError('無效的日記 ID');
             return;
         }
 
-        $diary = $user_id > 0 ? $this->diaryModel->findById($diary_id, $user_id) : null;
         if (!$diary) {
             $this->showError('找不到該日記');
             return;
