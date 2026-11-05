@@ -286,11 +286,6 @@ DB_PASS=your_secure_password
 # === 應用程式配置 ===
 DEBUG=false
 APP_URL=https://your-domain.com
-
-# === 安全設定 ===
-SESSION_TIMEOUT=3600
-ENABLE_SECURITY_CHECKS=true
-RATE_LIMIT_ENABLED=true
 ```
 
 ## 📊 資料庫結構
