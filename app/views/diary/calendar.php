@@ -73,8 +73,7 @@ if (isset($diaries)) {
             <span><strong>示範模式</strong>：以下是範例日記，登入後就能寫自己的</span>
         </div>
         <div class="demo-banner-actions">
-            <a href="<?php echo APP_URL; ?>/public/index.php?action=login" class="btn btn-secondary demo-banner-cta">登入</a>
-            <a href="<?php echo APP_URL; ?>/public/index.php?action=register" class="btn btn-primary demo-banner-cta">註冊</a>
+            <a href="<?php echo APP_URL; ?>/public/index.php?action=register" class="btn btn-primary demo-banner-cta">立即註冊</a>
         </div>
     </div>
 <?php endif; ?>
