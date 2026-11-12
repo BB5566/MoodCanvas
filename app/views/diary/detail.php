@@ -15,7 +15,8 @@ $date = new DateTime($diary['diary_date'] ?? 'now');
 $imagePath = $diary['image_path'] ?? '';
 $aiText = $diary['ai_generated_text'] ?? '';
 $diaryId = $diary['id'];
-$isDemo = !empty($diary['is_demo']); // 訪客看的範例日記：唯讀，不顯示編輯與 AI 按鈕
+$isDemo = !empty($diary['is_demo']);
+$readOnly = $isDemo || empty($is_owner); // 範例、別的訪客寫的：唯讀，不顯示編輯與 AI 按鈕
 
 $pageTitle = ($diary['title'] ?? '無標題') . ' | ' . $date->format('Y-m-d');
 $metaDescription = mb_substr(strip_tags($diary['content'] ?? ''), 0, 80, 'UTF-8');
@@ -34,7 +35,7 @@ if (!empty($imagePath)) {
 
 $hasImage = !empty($imageUrl);
 $hasQuote = !empty($aiText);
-$aiGenerating = !$isDemo && ($ai_generating ?? false);
+$aiGenerating = !$readOnly && ($ai_generating ?? false);
 $ogImage = $imageUrl; // 分享時的預覽圖用這篇的圖
 require_once BASE_PATH . '/app/views/layout/header.php';
 ?>
@@ -111,7 +112,7 @@ require_once BASE_PATH . '/app/views/layout/header.php';
 
     <div class="diary-actions">
         <a href="index.php?action=home" class="btn btn-tertiary">返回日曆</a>
-        <?php if ($isDemo): ?>
+        <?php if ($readOnly): ?>
             <a href="index.php?action=diary_create" class="btn btn-primary">我也試寫一篇</a>
         <?php else: ?>
             <a href="index.php?action=diary_edit&id=<?php echo $diaryId; ?>" class="btn btn-tertiary">編輯</a>
@@ -120,7 +121,7 @@ require_once BASE_PATH . '/app/views/layout/header.php';
     </div>
 </div>
 
-<?php if (!$isDemo && !$aiGenerating && !$hasImage): ?>
+<?php if (!$readOnly && !$aiGenerating && !$hasImage): ?>
 <div class="diary-actions" style="margin-top:0.5rem">
     <button id="regenerate-ai-btn" class="btn btn-secondary" style="font-size:0.85rem" data-diary-id="<?php echo (int) $diaryId; ?>">重新生成 AI</button>
 </div>

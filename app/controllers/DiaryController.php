@@ -12,6 +12,7 @@ require_once __DIR__ . '/../helpers/csrf.php';
 require_once __DIR__ . '/../helpers/validator.php';
 require_once __DIR__ . '/../helpers/demo_diaries.php';
 require_once __DIR__ . '/../helpers/replicate.php';
+require_once __DIR__ . '/../helpers/guest_wall.php';
 
 class DiaryController
 {
@@ -31,15 +32,22 @@ class DiaryController
         $year = (int)($_GET['year'] ?? date('Y'));
         $month = str_pad((int)($_GET['month'] ?? date('m')), 2, '0', STR_PAD_LEFT);
 
-        // 註冊的使用者只看自己的；訪客（含試寫過一篇的訪客）看範例日記加上自己寫的
-        $own = $user_id > 0 ? $this->diaryModel->getDiariesByMonth($user_id, $year, $month) : [];
+        // 註冊的使用者只看自己的；沒註冊的人（含訪客）看範例日記＋所有訪客寫的（大家互相看得到）
         if (isRegisteredUser()) {
-            $diaries = $own;
+            $diaries = $this->diaryModel->getDiariesByMonth($user_id, $year, $month);
         } else {
-            // 訪客自己寫了的那天就不放範例，免得同一天變兩篇
-            $ownDates = array_column($own, 'diary_date');
-            $demos = array_filter(demoDiaries($year, $month), fn($d) => !in_array($d['diary_date'], $ownDates, true));
-            $diaries = array_merge(array_values($demos), $own);
+            $guests = $this->diaryModel->getGuestDiariesByMonth($year, $month);
+            // 自己寫的（含還沒公開的）也要看得到，同一篇不重複
+            if ($user_id > 0) {
+                $ids = array_column($guests, 'id');
+                foreach ($this->diaryModel->getDiariesByMonth($user_id, $year, $month) as $mine) {
+                    if (!in_array($mine['id'], $ids)) $guests[] = $mine;
+                }
+            }
+            // 有訪客寫了的那天就不放範例，免得範例跟訪客的擠在同一格
+            $guestDates = array_column($guests, 'diary_date');
+            $demos = array_filter(demoDiaries($year, $month), fn($d) => !in_array($d['diary_date'], $guestDates, true));
+            $diaries = array_merge(array_values($demos), $guests);
         }
         $pageTitle = '心情日曆';
         include BASE_PATH . '/app/views/diary/calendar.php';
@@ -95,16 +103,16 @@ class DiaryController
         $mood = $validation['mood'];
         $diary_date = $validation['diary_date'];
 
-        // 一天只能一篇：該日期已有日記則導向編輯既有日記，不再新增
-        // 訪客例外：試寫第二篇不該被轉去編輯頁（編輯不會重畫、訪客又不能刪），變成死路
-        $existing = isRegisteredUser() ? $this->diaryModel->getDiariesByDate($user_id, $diary_date) : [];
-        if (!empty($existing)) {
-            header('Location: ' . APP_URL . '/public/index.php?action=diary_edit&id=' . $existing[0]['id'] . '&notice=date_exists');
-            exit;
-        }
+        // 同一天可以寫好幾篇（日曆那格會變成好幾個點，點進去看當天列表）
 
         try {
             $diary_id = $this->diaryModel->create($user_id, $title, $content, $mood, $diary_date, null, null);
+
+            if ($diary_id && !isRegisteredUser()) {
+                $ipHash = guestIpHash(rateLimitClientIp());
+                $this->diaryModel->update($diary_id, ['ip_hash' => $ipHash]);
+                logMessage("訪客日記 #{$diary_id} ip_hash=" . substr($ipHash, 0, 16), 'INFO');
+            }
 
             if ($diary_id) {
                 $_SESSION['diary_art_style'] = $_POST['image_style'] ?? 'random';
@@ -168,6 +176,13 @@ class DiaryController
                 'mood' => $validation['mood'],
             ]);
 
+            if (!isRegisteredUser()) {
+                $public = !empty($diary['image_path'])
+                    && !looksLikeContactOrSpam($validation['title'] . "\n" . $validation['content'])
+                    && aiSaysPublicOk($validation['title'], $validation['content']);
+                $this->diaryModel->update($diary_id, ['is_public' => $public ? 1 : 0]);
+            }
+
             header('Location: ' . APP_URL . '/public/index.php?action=diary_detail&id=' . $diary_id);
             exit;
         }
@@ -191,6 +206,10 @@ class DiaryController
             $diary = findDemoDiary($diary_id, $year, $month);
         } elseif ($diary_id > 0) {
             $diary = $this->diaryModel->findById($diary_id, $user_id);
+            // 別的訪客寫的：沒註冊的人看得到，唯讀
+            if (!$diary && !isRegisteredUser()) {
+                $diary = $this->diaryModel->findGuestDiary($diary_id);
+            }
         } else {
             $this->showError('無效的日記 ID');
             return;
@@ -215,7 +234,15 @@ class DiaryController
         $user_id = $_SESSION['user_id'] ?? 0;
         $date = $_GET['date'] ?? date('Y-m-d');
 
-        $diaries = $user_id > 0 ? $this->diaryModel->getDiariesByDate($user_id, $date) : [];
+        $diaries = isRegisteredUser()
+            ? $this->diaryModel->getDiariesByDate($user_id, $date)
+            : $this->diaryModel->getGuestDiariesByDate($date); // 沒註冊的人看所有訪客那天公開的
+        if (!isRegisteredUser() && $user_id > 0) {
+            $ids = array_column($diaries, 'id');
+            foreach ($this->diaryModel->getDiariesByDate($user_id, $date) as $mine) {
+                if (!in_array($mine['id'], $ids)) $diaries[] = $mine;
+            }
+        }
         $pageTitle = $date . ' 的日記';
         include BASE_PATH . '/app/views/diary/date_list.php';
     }
@@ -300,12 +327,7 @@ class DiaryController
         $diary_date = $validation['diary_date'];
         $mood = $validation['mood'];
 
-        // 一天只能一篇：該日期已有日記則回傳既有日記 id，不再新增
-        $existing = $this->diaryModel->getDiariesByDate($user_id, $diary_date);
-        if (!empty($existing)) {
-            echo json_encode(['success' => false, 'message' => '該日期已有日記', 'existing_id' => $existing[0]['id']]);
-            return;
-        }
+        // 同一天可以寫好幾篇
 
         try {
             $diary_id = $this->diaryModel->create(
@@ -388,9 +410,9 @@ class DiaryController
         $results = ['success' => true, 'image_url' => null, 'quote' => null];
 
         // 先讓文字模型讀日記：寫出英文畫面描述（給生圖用）與心情短語
-        $reading = ['scene' => null, 'quote' => null];
+        $reading = ['scene' => null, 'quote' => null, 'public_ok' => false];
         try {
-            $reading = $this->callAIDiaryReading($content, $mood);
+            $reading = $this->callAIDiaryReading($content, $mood, $diary['title'] ?? '');
         } catch (Exception $e) {
             logMessage("AI 讀日記失敗: " . $e->getMessage(), 'ERROR');
             $results['quote_error'] = $e->getMessage();
@@ -411,6 +433,13 @@ class DiaryController
         if ($reading['quote']) {
             $results['quote'] = $reading['quote'];
             $this->diaryModel->update($diary_id, ['ai_generated_text' => $reading['quote']]);
+        }
+
+        // 訪客牆：有圖、AI 說可以公開、沒留網址電話，才給別的訪客看
+        if (!isRegisteredUser() && $results['image_url']) {
+            $public = $reading['public_ok'] && !looksLikeContactOrSpam(($diary['title'] ?? '') . "\n" . $content);
+            $this->diaryModel->update($diary_id, ['is_public' => $public ? 1 : 0]);
+            if (!$public) logMessage("訪客日記 #{$diary_id} 不公開（AI 檢查或含聯絡方式）", 'INFO');
         }
 
         // 沒畫出圖：次數還回去、解除 60 秒限制、留住畫風，讓「再試一次」馬上能用
@@ -566,15 +595,7 @@ class DiaryController
     // ============================================================
     private function showCreateForm()
     {
-        // 一天只能一篇：若指定日期已有日記，直接導向編輯既有日記
-        $user_id = $_SESSION['user_id'] ?? 0;
-        $requestedDate = $_GET['date'] ?? date('Y-m-d');
-        $existing = isRegisteredUser() ? $this->diaryModel->getDiariesByDate($user_id, $requestedDate) : []; // 訪客可以同一天多寫幾篇
         $aiRemaining = isRegisteredUser() ? null : aiLimitRemaining(); // 訪客看得到今天還能試幾次
-        if (!empty($existing)) {
-            header('Location: ' . APP_URL . '/public/index.php?action=diary_edit&id=' . $existing[0]['id'] . '&notice=date_exists');
-            exit;
-        }
         $pageTitle = '新增日記';
         include BASE_PATH . '/app/views/diary/create.php';
     }
@@ -685,7 +706,7 @@ class DiaryController
     // 內部：讀日記（GPT-5 nano）→ 英文畫面描述＋繁中心情短語
     // 生圖模型看不懂中文，所以先把日記寫成具體的英文畫面，圖才會跟內容對得上
     // ============================================================
-    private function callAIDiaryReading($content, $mood)
+    private function callAIDiaryReading($content, $mood, $title = '')
     {
         $prompt = "你是插畫導演，也是溫柔的朋友。讀下面這篇日記，只回傳一個 JSON 物件，不要其他文字。\n"
                 . "欄位規則：\n"
@@ -693,13 +714,15 @@ class DiaryController
                 . "畫面裡不能有招牌、菜單、海報、螢幕上的字或任何文字，場景請描述成人物與物品的特寫。\n"
                 . "- quote：繁體中文，12～22 字，像朋友讀完後寫在卡片背面的一句話：有一點詩意的比喻，貼著這篇的心情（好笑就輕快、緊張就安撫）。"
                 . "不要重述日記內容，不要用「光」「溫暖」這類空泛字眼。\n"
-                . '格式：{"scene": "...", "quote": "..."}' . "\n\n"
+                . "- public_ok：這篇能不能公開給陌生人看。辱罵或歧視他人、色情、暴力威脅、自傷內容、指名道姓攻擊真實人物、廣告或拉人、留下聯絡方式或個資，就是 false；一般心情、抱怨、難過都是 true。\n"
+                . '格式：{"scene": "...", "quote": "...", "public_ok": true}' . "\n\n"
+                . "標題：" . mb_substr((string) $title, 0, 100) . "\n"
                 . "日記（心情 {$mood}）：\n" . mb_substr($content, 0, 600);
 
         $data = extractJsonObject(replicateText($prompt, 300)) ?? [];
         $scene = trim((string) ($data['scene'] ?? ''));
         $quote = trim((string) ($data['quote'] ?? ''));
-        return ['scene' => $scene ?: null, 'quote' => $quote ?: null];
+        return ['scene' => $scene ?: null, 'quote' => $quote ?: null, 'public_ok' => ($data['public_ok'] ?? false) === true];
     }
 
     // ============================================================

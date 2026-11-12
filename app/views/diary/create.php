@@ -11,7 +11,7 @@ require_once BASE_PATH . '/app/views/layout/header.php';
     <p class="form-lead">寫完按下去，AI 會讀你的日記，畫成一張拍立得、再寫一句話給你。</p>
     <?php if (isset($aiRemaining)): ?>
         <div class="trial-bar">
-            <span>不用註冊，今天還能試 <strong><?php echo (int) $aiRemaining; ?></strong> 次</span>
+            <span>不用註冊，今天還能試 <strong><?php echo (int) $aiRemaining; ?></strong> 次<small class="trial-note">寫好的日記其他訪客也看得到</small></span>
             <button type="button" class="btn btn-tertiary trial-fill" id="fill-sample">不知道寫什麼？幫我填一篇</button>
         </div>
     <?php endif; ?>

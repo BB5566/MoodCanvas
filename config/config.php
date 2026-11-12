@@ -180,6 +180,15 @@ function getDbConnection()
                 }
             }
 
+            // 舊資料庫補欄位（2026-11-12 訪客牆）：沒有就加，有就跳過
+            $cols = array_column($pdo->query('PRAGMA table_info(diaries)')->fetchAll(), 'name');
+            if ($cols && !in_array('is_public', $cols, true)) {
+                $pdo->exec('ALTER TABLE diaries ADD COLUMN is_public INTEGER NOT NULL DEFAULT 0');
+            }
+            if ($cols && !in_array('ip_hash', $cols, true)) {
+                $pdo->exec('ALTER TABLE diaries ADD COLUMN ip_hash VARCHAR(64) DEFAULT NULL');
+            }
+
             return $pdo;
 
         } else {

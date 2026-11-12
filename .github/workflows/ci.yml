@@ -104,6 +104,26 @@ jobs:
             echo "diaries=$n guests=$g\n";
             exit($n == 2 && $g == 1 ? 0 : 1);' || fail "訪客試寫後資料不對"
 
+          # 7. 另一位訪客（新的 cookie）：還沒過 AI 檢查的看不到；過了才看得到，而且只能看
+          K=cookies2.txt
+          curl -s -c $K -b $K -o other-home0.html "$BASE?action=home&year=2026&month=1"
+          grep -q "diary_detail&id=$id\b\|diary_by_date&date=2026-01-05" other-home0.html && fail "沒過檢查的訪客日記被別人看到了"
+          curl -s -c $K -b $K -o other-detail0.html "$BASE?action=diary_detail&id=$id"
+          grep -q '今天在 CI 裡寫了一篇日記' other-detail0.html && fail "沒過檢查的訪客日記打得開"
+          php -r '$db = new PDO("sqlite:data/moodcanvas.sqlite");
+            $h = $db->query("SELECT COUNT(*) FROM diaries WHERE ip_hash IS NOT NULL AND length(ip_hash) = 64")->fetchColumn();
+            echo "ip_hash=$h\n"; exit($h == 2 ? 0 : 1);' || fail "訪客日記沒記下 IP 雜湊"
+          php -r '$db = new PDO("sqlite:data/moodcanvas.sqlite"); $db->exec("UPDATE diaries SET is_public = 1");'
+          curl -s -c $K -b $K -o other-home.html "$BASE?action=home&year=2026&month=1"
+          grep -q "action=diary_by_date&date=2026-01-05\|diary_detail&id=$id" other-home.html || fail "別的訪客在日曆上看不到訪客寫的日記"
+          curl -s -c $K -b $K -o other-detail.html "$BASE?action=diary_detail&id=$id"
+          grep -q 'CI 試寫' other-detail.html || fail "別的訪客打不開訪客寫的日記"
+          grep -q 'action=diary_edit' other-detail.html && fail "別人寫的日記不該有編輯按鈕"
+          curl -s -c $K -b $K -o other-list.html "$BASE?action=diary_by_date&date=2026-01-05"
+          grep -q '第二篇' other-list.html || fail "當天列表看不到訪客寫的"
+          curl -s -c $K -b $K -o other-edit.html "$BASE?action=diary_edit&id=$id"
+          grep -q '今天在 CI 裡寫了一篇日記' other-edit.html && fail "別的訪客打得開編輯頁"
+
           echo "全部通過"
 
   build:

@@ -54,7 +54,7 @@ class Diary
         try {
             $fields = [];
             $values = [];
-            foreach (['ai_generated_text', 'image_path', 'title', 'content', 'mood', 'diary_date'] as $field) {
+            foreach (['ai_generated_text', 'image_path', 'title', 'content', 'mood', 'diary_date', 'is_public', 'ip_hash'] as $field) {
                 if (array_key_exists($field, $data)) {
                     $fields[] = "$field = ?";
                     $values[] = $data[$field];
@@ -108,6 +108,53 @@ class Diary
      * 獲取指定使用者和月份的所有日記
      * @return array
      */
+    // 訪客寫的日記，過了 AI 檢查（is_public = 1）大家都看得到（訪客帳號都叫 guest_數字，24 小時後連同日記一起刪掉）
+    public function getGuestDiariesByMonth($year, $month)
+    {
+        try {
+            $startDate = "$year-$month-01";
+            $endDate = date("Y-m-t", strtotime($startDate));
+            $stmt = $this->db->prepare(
+                "SELECT d.id, d.user_id, d.title, d.mood, d.diary_date, d.image_path FROM diaries d JOIN users u ON u.id = d.user_id
+                 WHERE u.username LIKE 'guest\_%' ESCAPE '\\' AND d.is_public = 1 AND d.diary_date BETWEEN ? AND ? ORDER BY d.diary_date ASC, d.created_at ASC"
+            );
+            $stmt->execute([$startDate, $endDate]);
+            return $stmt->fetchAll();
+        } catch (PDOException $e) {
+            error_log("Failed to get guest diaries by month: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    public function getGuestDiariesByDate($date)
+    {
+        try {
+            $stmt = $this->db->prepare(
+                "SELECT d.id, d.user_id, d.title, d.content, d.mood, d.diary_date, d.ai_generated_text, d.image_path, d.created_at FROM diaries d JOIN users u ON u.id = d.user_id
+                 WHERE u.username LIKE 'guest\_%' ESCAPE '\\' AND d.is_public = 1 AND d.diary_date = ? ORDER BY d.created_at ASC"
+            );
+            $stmt->execute([$date]);
+            return $stmt->fetchAll();
+        } catch (PDOException $e) {
+            error_log("Failed to get guest diaries by date: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    public function findGuestDiary($diaryId)
+    {
+        try {
+            $stmt = $this->db->prepare(
+                "SELECT d.* FROM diaries d JOIN users u ON u.id = d.user_id WHERE d.id = ? AND d.is_public = 1 AND u.username LIKE 'guest\_%' ESCAPE '\\'"
+            );
+            $stmt->execute([$diaryId]);
+            return $stmt->fetch() ?: null;
+        } catch (PDOException $e) {
+            error_log("Failed to find guest diary: " . $e->getMessage());
+            return null;
+        }
+    }
+
     public function getDiariesByMonth($userId, $year, $month)
     {
         try {
