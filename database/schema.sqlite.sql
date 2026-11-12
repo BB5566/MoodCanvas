@@ -41,6 +41,8 @@ CREATE TABLE IF NOT EXISTS diaries (
     ai_generated_text TEXT DEFAULT NULL,
     image_path VARCHAR(255) DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    is_public INTEGER NOT NULL DEFAULT 0, -- 訪客日記過了 AI 檢查才給別的訪客看
+    ip_hash VARCHAR(64) DEFAULT NULL,     -- 寫的人 IP 的雜湊（不存原始 IP），濫用時查得到、擋得掉
 
     -- 外鍵約束
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE

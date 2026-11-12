@@ -2089,3 +2089,4 @@ h1, h2, h3, .btn, .chip-body, .calendar-header h2 { font-weight: 400; }
   .style-chip input:checked + .chip-body { animation: none; }
   .mc-hero-back, .diary-thumb { transition: none; }
 }
+.trial-note { display: block; margin-top: 2px; font-size: 0.82rem; color: var(--color-text-muted); }

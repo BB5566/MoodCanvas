@@ -104,7 +104,7 @@ if (!defined('APP_URL')) {
         <?php if (!empty($_SESSION['is_guest'])): ?>
             <div id="demo-banner" class="demo-banner" role="region" aria-label="訪客模式提示">
                 <div class="demo-banner-content">
-                    <span style="font-size:0.92rem;"><strong>試寫模式</strong> 訪客寫的日記 24 小時後自動刪除，註冊才會保存。</span>
+                    <span style="font-size:0.92rem;"><strong>試寫模式</strong> 訪客寫的日記其他訪客也看得到，24 小時後自動刪除；註冊才會保存、只有自己看得到。</span>
                 </div>
                 <div class="demo-banner-actions">
                     <a href="<?php echo APP_URL; ?>/public/index.php?action=register" class="btn btn-secondary demo-banner-cta">註冊 / 登入</a>
