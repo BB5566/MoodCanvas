@@ -37,7 +37,7 @@ jobs:
             sleep 0.5
           done
 
-      - name: 訪客檢查（首頁、範例詳情、不能寫入）
+      - name: 訪客檢查（首頁、範例詳情、試寫一篇、不能刪除）
         run: |
           BASE=http://127.0.0.1:8000/index.php
           fail() { echo "::error::$1"; cat logs/server.log; exit 1; }
@@ -45,9 +45,10 @@ jobs:
           # 1. 首頁 200，有示範橫幅和範例日記
           code=$(curl -s -o home.html -w '%{http_code}' "$BASE?action=home")
           [ "$code" = "200" ] || fail "首頁回 $code，不是 200"
-          grep -q '以下是範例日記，登入後就能寫自己的' home.html || fail "首頁沒有示範橫幅"
+          grep -q '不用註冊也能試' home.html || fail "首頁沒有試寫說明"
           grep -q '早餐店阿姨記得我' home.html || fail "首頁沒有範例日記標題"
-          grep -q '需登入才能新增日記' home.html || fail "空白格子的「需登入才能新增日記」不見了"
+          grep -q 'demo/demo-1.jpg' home.html || fail "範例日記沒有圖"
+          grep -q 'action=diary_create&date=' home.html || fail "空白格子沒有「+」可以試寫"
 
           # 2. 點範例日記的連結，詳情頁 200 且有內容
           link=$(grep -o 'index.php?action=diary_detail&id=-1&year=[0-9]*&month=[0-9]*' home.html | head -n1)
@@ -58,16 +59,10 @@ jobs:
           grep -q 'action=diary_edit' detail.html && fail "範例詳情不該有編輯按鈕"
           grep -q 'regenerate-ai-btn' detail.html && fail "範例詳情不該有重新生成 AI 按鈕"
 
-          # 3. 訪客 GET / POST 新增日記都被導去登入
-          for method in GET POST; do
-            out=$(curl -s -o create.html -X "$method" -d 'title=x&content=y' -w '%{http_code} %{redirect_url}' "$BASE?action=diary_create")
-            echo "$method diary_create -> $out"
-            case "$out" in
-              302*action=login*) ;;
-              *) fail "訪客 $method 新增日記沒有被導去登入（$out）" ;;
-            esac
-            grep -q 'id="diary-form"' create.html && fail "訪客 $method 拿到了新增表單"
-          done
+          # 3. 訪客打開新增頁拿得到表單（不用登入）
+          code=$(curl -s -o create.html -w '%{http_code}' "$BASE?action=diary_create")
+          [ "$code" = "200" ] || fail "訪客打開新增頁回 $code"
+          grep -q 'id="diary-form"' create.html || fail "訪客拿不到新增表單"
 
           # 4. 沒有 CSRF 的直接送出會被擋
           curl -s -o store.html -d 'title=x&content=y' "$BASE?action=diary_store"
@@ -79,6 +74,27 @@ jobs:
             $u = $db->query("SELECT COUNT(*) FROM users")->fetchColumn();
             echo "diaries=$n users=$u\n";
             exit($n == 0 && $u == 0 ? 0 : 1);' || fail "資料庫被寫入了"
+
+          # 6. 訪客真的寫一篇（不跑 AI）：會建臨時帳號、存進去；之後刪除要被擋
+          J=cookies.txt
+          curl -s -c $J -b $J -o form.html "$BASE?action=diary_create&date=2026-01-05"
+          token=$(grep -o 'name="csrf_token" value="[^"]*"' form.html | sed 's/.*value="//;s/"$//')
+          [ -n "$token" ] || fail "表單沒有 CSRF token"
+          out=$(curl -s -c $J -b $J -o saved.html -w '%{http_code} %{redirect_url}' \
+            --data-urlencode "csrf_token=$token" --data-urlencode 'title=CI 試寫' \
+            --data-urlencode 'content=今天在 CI 裡寫了一篇日記' --data-urlencode 'mood=😊' \
+            --data-urlencode 'diary_date=2026-01-05' "$BASE?action=diary_store")
+          echo "guest store -> $out"
+          case "$out" in 302*action=diary_detail*) ;; *) fail "訪客送出日記沒有成功（$out）" ;; esac
+          id=$(echo "$out" | grep -o 'id=[0-9]*' | head -n1 | cut -d= -f2)
+          curl -s -c $J -b $J -o del.html --data-urlencode "csrf_token=$token" -d "id=$id" "$BASE?action=diary_delete&id=$id"
+          grep -q '訪客不能刪除' del.html || fail "訪客刪除沒有被擋"
+          php -r '$db = new PDO("sqlite:data/moodcanvas.sqlite");
+            $n = $db->query("SELECT COUNT(*) FROM diaries")->fetchColumn();
+            $names = $db->query("SELECT username FROM users")->fetchAll(PDO::FETCH_COLUMN);
+            $g = count(array_filter($names, fn($u) => str_starts_with($u, "guest_")));
+            echo "diaries=$n guests=$g\n";
+            exit($n == 1 && $g == 1 ? 0 : 1);' || fail "訪客試寫後資料不對"
 
           echo "全部通過"
 

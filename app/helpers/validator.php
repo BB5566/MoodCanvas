@@ -61,6 +61,13 @@ if (!function_exists('sanitizeOutput')) {
     }
 }
 
+if (!function_exists('isRegisteredUser')) {
+    // 已登入而且不是臨時訪客帳號
+    function isRegisteredUser() {
+        return !empty($_SESSION['user_id']) && empty($_SESSION['is_guest']);
+    }
+}
+
 if (!function_exists('sanitizeInt')) {
     /**
      * 將值驗證為整數；無效時回傳預設值。

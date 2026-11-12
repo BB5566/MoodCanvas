@@ -31,8 +31,16 @@ class DiaryController
         $year = (int)($_GET['year'] ?? date('Y'));
         $month = str_pad((int)($_GET['month'] ?? date('m')), 2, '0', STR_PAD_LEFT);
 
-        // 沒登入的訪客看範例日記（不寫資料庫），登入後只看自己的
-        $diaries = $user_id > 0 ? $this->diaryModel->getDiariesByMonth($user_id, $year, $month) : demoDiaries($year, $month);
+        // 註冊的使用者只看自己的；訪客（含試寫過一篇的訪客）看範例日記加上自己寫的
+        $own = $user_id > 0 ? $this->diaryModel->getDiariesByMonth($user_id, $year, $month) : [];
+        if (isRegisteredUser()) {
+            $diaries = $own;
+        } else {
+            // 訪客自己寫了的那天就不放範例，免得同一天變兩篇
+            $ownDates = array_column($own, 'diary_date');
+            $demos = array_filter(demoDiaries($year, $month), fn($d) => !in_array($d['diary_date'], $ownDates, true));
+            $diaries = array_merge(array_values($demos), $own);
+        }
         $pageTitle = '心情日曆';
         include BASE_PATH . '/app/views/diary/calendar.php';
     }
@@ -42,12 +50,7 @@ class DiaryController
     // ============================================================
     public function create()
     {
-        $user_id = $_SESSION['user_id'] ?? 0;
-        if ($user_id <= 0) {
-            header('Location: ' . APP_URL . '/public/index.php?action=login');
-            exit;
-        }
-
+        // 訪客也能試寫：送出時才建立臨時訪客帳號（24 小時後自動清除）
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $this->saveDiary();
             return;
@@ -180,8 +183,8 @@ class DiaryController
         $user_id = $_SESSION['user_id'] ?? 0;
         $diary_id = sanitizeInt($_GET['id'] ?? null, 0);
 
-        if ($user_id <= 0) {
-            // 訪客：只能看範例日記（唯讀）
+        if ($diary_id < 0) {
+            // 範例日記（id 是負數）：誰都能看，唯讀
             $year = (int)($_GET['year'] ?? date('Y'));
             $month = (int)($_GET['month'] ?? date('m'));
             $diary = findDemoDiary($diary_id, $year, $month);
@@ -236,6 +239,11 @@ class DiaryController
         if ($user_id <= 0) {
             header('Location: ' . APP_URL . '/public/index.php?action=login');
             exit;
+        }
+        // 訪客不能刪除（試寫的日記 24 小時後會自動清掉）
+        if (!isRegisteredUser()) {
+            $this->showError('訪客不能刪除日記，註冊後才能管理自己的日記');
+            return;
         }
         $diary_id = sanitizeInt($_GET['id'] ?? null, 0);
         if ($diary_id <= 0) {
