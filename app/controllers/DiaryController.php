@@ -630,12 +630,20 @@ class DiaryController
     // ============================================================
     private function callAIImageGeneration($scene, $style, $mood)
     {
-        $output = replicateRun(REPLICATE_IMAGE_MODEL, [
+        $input = [
             'prompt' => $this->buildImagePrompt($scene, $style, $mood),
             'aspect_ratio' => '1:1',
             'num_outputs' => 1,
             'output_format' => 'jpg',
-        ]);
+        ];
+        try {
+            $output = replicateRun(REPLICATE_IMAGE_MODEL, $input);
+        } catch (Exception $e) {
+            // Flux 的安全檢查偶爾誤判（例如日記裡有小朋友），官方建議再跑一次：換個隨機種子重來一次就好
+            if (stripos($e->getMessage(), 'NSFW') === false) throw $e;
+            logMessage('Flux 安全檢查誤判，重跑一次', 'INFO');
+            $output = replicateRun(REPLICATE_IMAGE_MODEL, $input + ['seed' => random_int(1, 2147483647)]);
+        }
         $url = is_array($output) ? ($output[0] ?? null) : $output;
         if (!$url) throw new Exception('No image URL');
         return $this->downloadImage($url);
