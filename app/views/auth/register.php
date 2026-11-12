@@ -57,7 +57,8 @@ require_once BASE_PATH . '/app/views/layout/header.php';
         </div>
     </form>
     <div class="text-center mt-3">
-        <p>已經有帳戶了？ <a href="index.php?action=login">點此登入</a></p>
+        <p class="auth-switch">已經有帳戶了？ <a href="index.php?action=login">點此登入</a></p>
+        <p class="auth-switch">只是想看看？ <a href="index.php?action=diary_create">不用註冊，先試寫一篇</a></p>
     </div>
 </div>
 

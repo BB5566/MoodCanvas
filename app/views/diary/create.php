@@ -1,14 +1,20 @@
 <?php
 // app/views/diary/create.php
 
+$pageTitle = '寫下心情';
+$metaDescription = '寫下今天的心情，AI 會讀你的日記，畫成一張拍立得、再寫一句話給你。';
 require_once BASE_PATH . '/app/views/layout/header.php';
-
-$pageTitle = '寫下心情 - MoodCanvas';
-$metaDescription = '一鍵寫下你的心情日記，AI 會自動為你生成專屬圖片與心情短語。';
 ?>
 
 <div class="bento-card form-container">
-    <h2 class="form-title">✍️ 寫下今天的心情</h2>
+    <h2 class="form-title">寫下今天的心情</h2>
+    <p class="form-lead">寫完按下去，AI 會讀你的日記，畫成一張拍立得、再寫一句話給你。</p>
+    <?php if (isset($aiRemaining)): ?>
+        <div class="trial-bar">
+            <span>不用註冊，今天還能試 <strong><?php echo (int) $aiRemaining; ?></strong> 次</span>
+            <button type="button" class="btn btn-tertiary trial-fill" id="fill-sample">不知道寫什麼？幫我填一篇</button>
+        </div>
+    <?php endif; ?>
     
     <?php if (isset($error)): ?>
         <div class="alert alert-error"><?php echo htmlspecialchars($error); ?></div>
@@ -17,80 +23,74 @@ $metaDescription = '一鍵寫下你的心情日記，AI 會自動為你生成專
     <form action="index.php?action=diary_store" method="POST" id="diary-form">
         <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(generateCsrfToken()); ?>">
         
-        <!-- Row 1: Date + Mood -->
-        <div class="form-grid">
-            <div class="form-group">
-                <label for="diary_date">📅 日期</label>
-                <input type="date" id="diary_date" name="diary_date" 
-                       value="<?php echo $_GET['date'] ?? date('Y-m-d'); ?>" required>
-            </div>
-            <div class="form-group">
-                <label for="mood">😊 心情</label>
-                <select id="mood" name="mood" required>
-                    <option value="😊" selected>😊 開心</option>
-                    <option value="😢">😢 傷心</option>
-                    <option value="😡">😡 憤怒</option>
-                    <option value="😍">😍 戀愛</option>
-                    <option value="😴">😴 疲憊</option>
-                    <option value="🤔">🤔 思考</option>
-                    <option value="😂">😂 大笑</option>
-                    <option value="😰">😰 焦慮</option>
-                    <option value="🥰">🥰 溫暖</option>
-                    <option value="🙄">🙄 無奈</option>
-                </select>
-            </div>
+        <!-- 日期 -->
+        <div class="form-group">
+            <label for="diary_date">日期</label>
+            <input type="date" id="diary_date" name="diary_date"
+                   value="<?php echo htmlspecialchars($_GET['date'] ?? date('Y-m-d'), ENT_QUOTES); ?>"
+                   max="<?php echo date('Y-m-d'); ?>" required>
         </div>
+
+        <!-- 心情：一點就選的大按鈕（手機不用開下拉選單） -->
+        <fieldset class="form-group chip-group">
+            <legend>今天的心情</legend>
+            <div class="mood-chips">
+                <?php
+                $moods = ['😊' => '開心', '😢' => '傷心', '😡' => '生氣', '😍' => '心動', '😴' => '疲憊',
+                          '🤔' => '思考', '😂' => '大笑', '😰' => '焦慮', '🥰' => '溫暖', '🙄' => '無奈'];
+                $first = true;
+                foreach ($moods as $emoji => $name): ?>
+                    <label class="mood-chip">
+                        <input type="radio" name="mood" value="<?php echo $emoji; ?>"<?php echo $first ? ' checked required' : ''; ?>>
+                        <span class="chip-body">
+                            <span class="mood-chip-face" aria-hidden="true"><?php echo $emoji; ?></span>
+                            <span class="mood-chip-name"><?php echo $name; ?></span>
+                        </span>
+                    </label>
+                <?php $first = false; endforeach; ?>
+            </div>
+        </fieldset>
 
         <!-- Title -->
         <div class="form-group">
-            <label for="title">📝 標題 <span class="optional-tag">選填</span></label>
+            <label for="title">標題 <span class="optional-tag">選填</span></label>
             <input type="text" id="title" name="title" 
                    placeholder="今天過得如何？" maxlength="50">
         </div>
 
         <!-- Content -->
         <div class="form-group">
-            <label for="content">💬 日記內容 <span class="required-star">*</span></label>
+            <label for="content">日記內容 <span class="required-star">*</span></label>
             <textarea id="content" name="content" rows="6" 
                       placeholder="在這裡寫下你的故事、想法或感受..."
                       required maxlength="1000"></textarea>
             <div class="char-count" id="content-char-count">0 / 1000</div>
         </div>
 
-        <!-- Art Style -->
-        <details class="art-style-details" open>
-            <summary>🎨 圖片風格 <span class="summary-hint">— AI 會根據內容自動選擇，也可手動指定</span></summary>
-            <div class="form-group" style="margin-top: 0.8rem;">
-                <label for="image-style">風格偏好</label>
-                <select id="image-style" name="image_style">
-                    <option value="random">🎲 讓 AI 自己決定</option>
-                    <option value="photographic">📷 真實攝影</option>
-                    <option value="ghibli">🌸 宮崎駿風格</option>
-                    <option value="pixel-art">👾 像素風格</option>
-                    <option value="3d-render">🧸 皮克斯風格</option>
-                    <option value="flat-illustration">🎨 扁平設計</option>
-                    <option value="sketch">✏️ 手繪素描</option>
-                    <option value="ink-wash">🖌️ 中國水墨</option>
-                </select>
+        <!-- 畫風：同樣一點就選 -->
+        <fieldset class="form-group chip-group">
+            <legend>畫風 <span class="optional-tag">不選就讓 AI 看內容決定</span></legend>
+            <div class="style-chips">
+                <?php
+                $styles = ['random' => '讓 AI 決定', 'ghibli' => '溫暖動畫', 'flat-illustration' => '扁平插畫',
+                           'sketch' => '手繪素描', 'ink-wash' => '水墨', '3d-render' => '3D 公仔',
+                           'pixel-art' => '像素', 'photographic' => '真實攝影'];
+                foreach ($styles as $value => $name): ?>
+                    <label class="style-chip">
+                        <input type="radio" name="image_style" value="<?php echo $value; ?>"<?php echo $value === 'random' ? ' checked' : ''; ?>>
+                        <span class="chip-body"><?php echo $name; ?></span>
+                    </label>
+                <?php endforeach; ?>
             </div>
-        </details>
+        </fieldset>
 
         <!-- Single Submit Button -->
         <div class="form-actions">
             <button type="submit" class="btn btn-primary btn-lg" id="submit-diary-btn">
-                <span class="btn-icon">✨</span>
-                <span class="btn-text">寫下心情</span>
+                <span class="btn-text">寫好了，交給 AI 畫</span>
             </button>
         </div>
 
-        <!-- Loading overlay (shown during submit) -->
-        <div class="submit-overlay" id="submit-overlay" style="display:none;">
-            <div class="submit-overlay-content">
-                <div class="loading-spinner"></div>
-                <p class="submit-status" id="submit-status">正在儲存日記...</p>
-                <p class="submit-hint">AI 正在為你生成專屬圖片與心情短語 ✨</p>
-            </div>
-        </div>
     </form>
 </div>
 

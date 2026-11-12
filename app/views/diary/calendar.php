@@ -1,12 +1,10 @@
 <?php
 // app/views/diary/calendar.php
 
-// 包含新的頁首
-require_once BASE_PATH . '/app/views/layout/header.php';
-
-// 設定動態 $pageTitle 與 $metaDescription
+// 標題和描述要在載入頁首之前設好，<title> 和分享預覽才拿得到
 $pageTitle = '心情日曆';
-$metaDescription = '瀏覽本月所有心情日記，點擊日期可查看多篇日記與詳細內容。';
+$metaDescription = '寫一篇日記，AI 讀完畫成一張拍立得、再寫一句話給你。不用註冊就能試。';
+require_once BASE_PATH . '/app/views/layout/header.php';
 
 // 處理顯示訊息
 $message = $_GET['message'] ?? null;
@@ -67,20 +65,28 @@ if (isset($diaries)) {
     </div>
 <?php endif; ?>
 
-<?php if (!isset($_SESSION['user_id'])): ?>
-    <div class="demo-banner" role="region" aria-label="示範模式說明">
-        <div class="demo-banner-content">
-            <span><strong>不用註冊也能試</strong>：點日曆上的「+」寫一篇，AI 會幫你畫成一張圖、寫一句話</span>
+<?php if (!isRegisteredUser()): ?>
+    <!-- 第一次來的人：先看到成品長什麼樣，再給一個按鈕 -->
+    <section class="mc-hero" aria-labelledby="mc-hero-title">
+        <a class="mc-hero-card" href="index.php?action=diary_detail&id=-1&year=<?php echo (int) $year; ?>&month=<?php echo (int) $month; ?>">
+            <img src="<?php echo APP_URL; ?>/public/assets/images/demo/demo-1.jpg" width="768" height="768"
+                 alt="範例：AI 讀完「早餐店阿姨記得我」這篇日記畫的圖">
+            <span class="mc-hero-cap">早餐店阿姨記得我</span>
+        </a>
+        <div class="mc-hero-text">
+            <h1 id="mc-hero-title">把今天的日記，<br>變成一張拍立得</h1>
+            <p>寫幾句今天發生的事，AI 會讀完畫成一張圖，再寫一句話給你。不用註冊，大約 10 秒。</p>
+            <div class="mc-hero-actions">
+                <a href="index.php?action=diary_create" class="btn btn-primary btn-lg">試寫一篇</a>
+                <a href="#calendar" class="mc-hero-link">先看 6 篇範例</a>
+            </div>
         </div>
-        <div class="demo-banner-actions">
-            <a href="<?php echo APP_URL; ?>/public/index.php?action=diary_create" class="btn btn-primary demo-banner-cta">試寫一篇</a>
-        </div>
-    </div>
+    </section>
 <?php endif; ?>
 
 <div class="bento-grid">
     <!-- 日曆主區域 -->
-    <div class="bento-card bento-calendar">
+    <div class="bento-card bento-calendar" id="calendar">
         <div class="calendar-container">
             <div class="calendar-header">
                 <h2><?php echo $monthName; ?></h2>
@@ -170,10 +176,12 @@ if (isset($diaries)) {
                                 }
                             } else {
                                 $currentDate = sprintf('%04d-%02d-%02d', $year, $month, $currentDay);
-                                // 訪客也能試寫（不用註冊），註冊的人寫的會永久保存
-                                echo "<a href='index.php?action=diary_create&date={$currentDate}' class='no-diary' data-date='{$currentDate}' title='新增日記' aria-label='新增 {$currentDate} 日記'>";
-                                echo "<span class='add-diary-btn' aria-hidden='true'>+</span>";
-                                echo "</a>";
+                                // 訪客也能試寫（不用註冊）；日記寫的是已經發生的事，未來的日子不給「+」
+                                if ($currentDate <= date('Y-m-d')) {
+                                    echo "<a href='index.php?action=diary_create&date={$currentDate}' class='no-diary' data-date='{$currentDate}' title='新增日記' aria-label='新增 {$currentDate} 日記'>";
+                                    echo "<span class='add-diary-btn' aria-hidden='true'>+</span>";
+                                    echo "</a>";
+                                }
                             }
 
                             echo "</td>";

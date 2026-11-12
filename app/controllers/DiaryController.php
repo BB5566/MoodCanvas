@@ -96,7 +96,8 @@ class DiaryController
         $diary_date = $validation['diary_date'];
 
         // 一天只能一篇：該日期已有日記則導向編輯既有日記，不再新增
-        $existing = $this->diaryModel->getDiariesByDate($user_id, $diary_date);
+        // 訪客例外：試寫第二篇不該被轉去編輯頁（編輯不會重畫、訪客又不能刪），變成死路
+        $existing = isRegisteredUser() ? $this->diaryModel->getDiariesByDate($user_id, $diary_date) : [];
         if (!empty($existing)) {
             header('Location: ' . APP_URL . '/public/index.php?action=diary_edit&id=' . $existing[0]['id'] . '&notice=date_exists');
             exit;
@@ -350,8 +351,20 @@ class DiaryController
             return;
         }
 
-        // 速率限制：每 60 秒最多 1 次
         $user_id = $_SESSION['user_id'] ?? 1;
+        $diary = $this->diaryModel->findById($diary_id, $user_id);
+        if (!$diary) {
+            echo json_encode(['success' => false, 'message' => '找不到日記']);
+            return;
+        }
+
+        // 已經畫好了（例如重新整理頁面）：直接回傳，不再花一次
+        if (!empty($diary['image_path']) && !empty($diary['ai_generated_text'])) {
+            echo json_encode(['success' => true, 'image_url' => $diary['image_path'], 'quote' => $diary['ai_generated_text']]);
+            return;
+        }
+
+        // 速率限制：每 60 秒最多 1 次
         $rateKey = 'ai_gen_last_' . $user_id;
         if (isset($_SESSION[$rateKey]) && (time() - $_SESSION[$rateKey]) < 60) {
             $wait = 60 - (time() - $_SESSION[$rateKey]);
@@ -363,12 +376,6 @@ class DiaryController
         checkAILimit();
 
         $_SESSION[$rateKey] = time();
-
-        $diary = $this->diaryModel->findById($diary_id, $user_id);
-        if (!$diary) {
-            echo json_encode(['success' => false, 'message' => '找不到日記']);
-            return;
-        }
 
         $content = $diary['content'] ?? '';
         $mood = $diary['mood'] ?? '😊';
@@ -404,6 +411,15 @@ class DiaryController
         if ($reading['quote']) {
             $results['quote'] = $reading['quote'];
             $this->diaryModel->update($diary_id, ['ai_generated_text' => $reading['quote']]);
+        }
+
+        // 沒畫出圖：次數還回去、解除 60 秒限制、留住畫風，讓「再試一次」馬上能用
+        if (!$results['image_url']) {
+            refundAILimit();
+            session_start();
+            unset($_SESSION[$rateKey]);
+            $_SESSION['diary_art_style'] = $style;
+            session_write_close();
         }
 
         echo json_encode($results);
@@ -553,7 +569,8 @@ class DiaryController
         // 一天只能一篇：若指定日期已有日記，直接導向編輯既有日記
         $user_id = $_SESSION['user_id'] ?? 0;
         $requestedDate = $_GET['date'] ?? date('Y-m-d');
-        $existing = $user_id > 0 ? $this->diaryModel->getDiariesByDate($user_id, $requestedDate) : [];
+        $existing = isRegisteredUser() ? $this->diaryModel->getDiariesByDate($user_id, $requestedDate) : []; // 訪客可以同一天多寫幾篇
+        $aiRemaining = isRegisteredUser() ? null : aiLimitRemaining(); // 訪客看得到今天還能試幾次
         if (!empty($existing)) {
             header('Location: ' . APP_URL . '/public/index.php?action=diary_edit&id=' . $existing[0]['id'] . '&notice=date_exists');
             exit;
@@ -573,7 +590,7 @@ class DiaryController
             return $today;
         }
 
-        $dt = \DateTime::createFromFormat('Y-m-d', $input);
+        $dt = \DateTime::createFromFormat('!Y-m-d', $input); // ! 讓時間歸零，不然會帶現在的時分秒，比上限時差一天
         // 確認格式正確且為真實存在的日期（createFromFormat 會容許溢位，需再比對）
         if (!$dt || $dt->format('Y-m-d') !== $input) {
             return $today;

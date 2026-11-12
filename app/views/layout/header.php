@@ -17,6 +17,8 @@ if (!defined('APP_URL')) {
     <meta property="og:title" content="<?php echo isset($pageTitle) ? htmlspecialchars($pageTitle) : 'MoodCanvas - AI 情緒日記'; ?>">
     <meta property="og:description" content="<?php echo isset($metaDescription) ? htmlspecialchars($metaDescription) : '用 AI 記錄每一天的心情，寫下日記，AI 自動生成專屬圖片與心情短語。'; ?>">
     <meta property="og:type" content="website">
+    <meta property="og:image" content="<?php echo htmlspecialchars(!empty($ogImage) ? $ogImage : APP_URL . '/public/assets/images/demo/demo-1.jpg', ENT_QUOTES); ?>">
+    <meta name="twitter:card" content="summary_large_image">
     <meta property="og:url" content="<?php echo APP_URL; ?>/public/index.php">
     <meta property="og:locale" content="zh_TW">
     <link rel="preconnect" href="https://fonts.googleapis.com">
