@@ -790,7 +790,7 @@ class DiaryController
         ];
         // 畫風只描述畫法，不寫任何工作室、作品或畫家的名字（避免侵權，也避免品牌名出現在公開作品上）
         $styleMap = [
-            'ghibli' => 'hand-painted Japanese animated film look, lush watercolor background art, soft natural sunlight, gentle nostalgic summer feeling',
+            'handdrawn' => 'hand-painted Japanese animated film look, lush watercolor background art, soft natural sunlight, gentle nostalgic summer feeling',
             'anime' => 'modern Japanese anime illustration, clean line art, vivid cel shading, bright clear sky, cinematic lighting',
             '3d-render' => '3D animated feature film still, soft global illumination, rounded charming characters, expressive faces',
             'watercolor' => "children's picture book watercolor illustration, soft color washes, visible paper texture, warm and tender",
@@ -806,6 +806,7 @@ class DiaryController
 
         $moodDesc = $moodMap[$mood] ?? 'balanced, neutral';
         // 「讓 AI 自己決定」：從畫面上那幾種隨機挑一種
+        if ($style === 'ghibli') $style = 'handdrawn'; // 舊代號
         $styleDesc = $styleMap[$style] ?? $styleMap[array_rand(array_slice($styleMap, 0, 8))];
         $scene = $scene ?: 'a quiet everyday moment';
 

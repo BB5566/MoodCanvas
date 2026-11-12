@@ -40,7 +40,7 @@ require_once BASE_PATH . '/app/views/layout/header.php';
                           '🤔' => '思考', '😂' => '大笑', '😰' => '焦慮', '🥰' => '溫暖', '🙄' => '無奈'];
                 $first = true;
                 foreach ($moods as $emoji => $name): ?>
-                    <label class="mood-chip">
+                    <label class="mood-chip mood-<?php echo moodSlug($emoji); ?>">
                         <input type="radio" name="mood" value="<?php echo $emoji; ?>"<?php echo $first ? ' checked required' : ''; ?>>
                         <span class="chip-body"><?php echo $name; ?></span>
                     </label>
@@ -70,12 +70,12 @@ require_once BASE_PATH . '/app/views/layout/header.php';
             <div class="style-chips">
                 <?php
                 // 名稱只寫畫法，不寫工作室或作品名
-                $styles = ['ghibli' => '日系手繪動畫', 'anime' => '日系動漫', '3d-render' => '3D 動畫電影',
+                $styles = ['handdrawn' => '日系手繪動畫', 'anime' => '日系動漫', '3d-render' => '3D 動畫電影',
                            'watercolor' => '水彩繪本', 'film' => '懷舊底片', 'clay' => '黏土動畫',
                            'pixel-art' => '像素遊戲', 'ink-wash' => '水墨', 'random' => '讓 AI 自己決定'];
                 foreach ($styles as $value => $name): ?>
                     <label class="style-chip">
-                        <input type="radio" name="image_style" value="<?php echo $value; ?>"<?php echo $value === 'ghibli' ? ' checked' : ''; ?>>
+                        <input type="radio" name="image_style" value="<?php echo $value; ?>"<?php echo $value === 'handdrawn' ? ' checked' : ''; ?>>
                         <span class="chip-body"><?php echo $name; ?></span>
                     </label>
                 <?php endforeach; ?>

@@ -23,10 +23,10 @@ if (!defined('APP_URL')) {
     <meta property="og:locale" content="zh_TW">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Klee+One:wght@400;600&family=Inter:wght@300;400;500;600&display=swap">
-    <link rel="stylesheet" id="async-google-fonts" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Klee+One:wght@400;600&family=Inter:wght@300;400;500;600&display=swap" media="print">
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Huninn&family=Noto+Sans+TC:wght@400;500;700&family=Klee+One:wght@400;600&display=swap">
+    <link rel="stylesheet" id="async-google-fonts" href="https://fonts.googleapis.com/css2?family=Huninn&family=Noto+Sans+TC:wght@400;500;700&family=Klee+One:wght@400;600&display=swap" media="print">
     <noscript>
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Klee+One:wght@400;600&family=Inter:wght@300;400;500;600&display=swap">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Huninn&family=Noto+Sans+TC:wght@400;500;700&family=Klee+One:wght@400;600&display=swap">
     </noscript>
     <link rel="stylesheet" href="<?php echo APP_URL; ?>/public/assets/css/style-v2.css?v=<?php echo filemtime(BASE_PATH . '/public/assets/css/style-v2.css'); ?>">
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 22 24%22%3E%3Crect x=%222.5%22 y=%221.5%22 width=%2217%22 height=%2221%22 rx=%221.5%22 transform=%22rotate(-6 11 12)%22 fill=%22%23FAF6EF%22 stroke=%22%233D3833%22 stroke-width=%221.6%22/%3E%3Crect x=%225.2%22 y=%224.6%22 width=%2211.6%22 height=%2211%22 transform=%22rotate(-6 11 12)%22 fill=%22%2365745C%22/%3E%3C/svg%3E">
@@ -107,7 +107,7 @@ if (!defined('APP_URL')) {
                     <span style="font-size:0.92rem;"><strong>試寫模式</strong> 訪客寫的日記 24 小時後自動刪除，註冊才會保存。</span>
                 </div>
                 <div class="demo-banner-actions">
-                    <a href="<?php echo APP_URL; ?>/public/index.php?action=register" class="btn btn-primary demo-banner-cta">註冊 / 登入</a>
+                    <a href="<?php echo APP_URL; ?>/public/index.php?action=register" class="btn btn-secondary demo-banner-cta">註冊 / 登入</a>
                     <button id="demo-banner-dismiss" class="demo-banner-dismiss" type="button" aria-label="關閉訪客模式提示" title="關閉">✕</button>
                 </div>
             </div>

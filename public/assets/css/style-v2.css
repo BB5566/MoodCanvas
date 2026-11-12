@@ -4,8 +4,8 @@
 /* --- CSS Variables & Design Tokens --- */
 :root {
   /* 字體家族 */
-  --font-main: 'Zen Kaku Gothic New', 'Noto Sans TC', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-display: 'Zen Kaku Gothic New', 'Noto Sans TC', sans-serif;
+  --font-main: 'Noto Sans TC', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-display: 'Huninn', 'Noto Sans TC', sans-serif; /* 台灣的圓體（jf 粉圓），只有一種粗細 */
   --font-hand: 'Klee One', 'Noto Sans TC', cursive; /* 文青手寫感（拍立得說明）*/
 
   /* 字體尺寸標記 */
@@ -27,22 +27,22 @@
   --space-8: 2rem;
 
   /* 牛皮紙暖色系（無印質感）- 符合 WCAG AA 4.5:1 對比度 */
-  --color-background: #EDE7DC; /* 牛皮紙暖底 */
-  --color-surface: #FAF6EF;    /* 暖紙白，非純白 */
-  --color-surface-hover: #F2ECE0;
-  --color-text-primary: #3D3833; /* 柔和深褐灰，對比度 > 11:1 */
-  --color-text-secondary: #5C544B; /* 次要文字，對比度 > 6:1 */
-  --color-text-muted: #736B60; /* 弱化文字，對比度 > 4.5:1 (WCAG AA 達標) */
-  --color-border-light: #E2D9CB; /* 暖色細邊 */
-  --color-border-medium: #D2C7B5;
-  --color-ink: #3D3833;
+  --color-background: #FFF7EA; /* 奶油色底：亮、暖，讓拍立得當主角 */
+  --color-surface: #FFFFFF;
+  --color-surface-hover: #FFF3E0;
+  --color-text-primary: #2E2620; /* 柔和深褐灰，對比度 > 11:1 */
+  --color-text-secondary: #5A4F45; /* 次要文字，對比度 > 6:1 */
+  --color-text-muted: #776B5F; /* 弱化文字，對比度 > 4.5:1 (WCAG AA 達標) */
+  --color-border-light: #F0E4D2;
+  --color-border-medium: #E2D0B8;
+  --color-ink: #2E2620;
 
   /* 自然點綴色 - 鼠尾草與陶土 */
   --color-accent: #65745C; /* 鼠尾草深綠，按鈕白字對比度 > 5:1 (WCAG AA) */
   --color-accent-light: #7E8E74;
   --color-accent-dark: #4F5C47;
   --color-clay: #B79B7C; /* 牛皮/陶土點綴 */
-  --color-primary-btn: #423C35; /* 無印低調炭褐，白字對比度 > 10:1 */
+  --color-primary-btn: #2E2620;
   --color-primary-btn-dark: #2C2722;
   --color-danger: #B33D30; /* 警示紅，白字對比度 > 5.5:1 */
   --color-danger-hover: #983327;
@@ -51,15 +51,15 @@
   --color-warning: #855302;
 
   /* 陰影與立體感 */
-  --shadow-subtle: 0 1px 2px rgba(70, 58, 44, 0.04), 0 4px 14px rgba(70, 58, 44, 0.05);
-  --shadow-medium: 0 2px 4px rgba(70, 58, 44, 0.05), 0 10px 24px rgba(70, 58, 44, 0.07);
-  --shadow-card: 0 3px 6px rgba(70, 58, 44, 0.05), 0 16px 36px rgba(70, 58, 44, 0.08);
+  --shadow-subtle: 0 1px 2px rgba(120, 80, 30, 0.05), 0 4px 14px rgba(120, 80, 30, 0.06);
+  --shadow-medium: 0 2px 4px rgba(120, 80, 30, 0.05), 0 10px 24px rgba(120, 80, 30, 0.08);
+  --shadow-card: 0 2px 4px rgba(120, 80, 30, 0.04), 0 12px 32px rgba(120, 80, 30, 0.08);
   --shadow-polaroid: 0 2px 4px rgba(70, 58, 44, 0.10), 0 12px 26px rgba(70, 58, 44, 0.14);
 
   /* 圓角 */
-  --border-radius-lg: 12px;
-  --border-radius-md: 8px;
-  --border-radius-sm: 4px;
+  --border-radius-lg: 24px;
+  --border-radius-md: 14px;
+  --border-radius-sm: 8px;
   --border-radius-pill: 999px;
 
   /* 觸控目標尺寸與過渡動效 */
@@ -1805,3 +1805,287 @@ textarea { resize: vertical; min-height: 100px; }
 .month-note strong { font-size: 1.15rem; }
 .mood-tally { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 0; padding: 0; list-style: none; font-variant-numeric: tabular-nums; color: var(--color-text-secondary); }
 .mood-tally .mood-word { color: var(--color-ink); }
+
+/* ================================================================
+   MoodCanvas 自己的玩具感（2026-11-12 v2）
+   從任天堂學的是做法，不是長相：
+   1. 介面安靜、內容當主角：底是亮奶油色，顏色留給 AI 拍立得和心情
+   2. 一個畫面一個主要動作：只有主按鈕是橘色
+   3. 選到哪個一眼看得出來：選中一律是藍色外框＋彈一下
+   4. 按了馬上有回饋、動畫短（0.06–0.3 秒）
+   5. 每種心情有自己的顏色，日曆就像集章卡
+   ================================================================ */
+:root {
+  --c-action: #FF8A3D;        /* 主按鈕：柿子橘，深褐字對比 > 6:1 */
+  --c-action-hover: #FF9B57;
+  --c-action-ledge: #D9661F;
+  --c-select: #2BA6E0;        /* 選中、今天、鍵盤焦點 */
+  --c-select-soft: #E3F4FC;
+  --c-hero: #FFEBC7;
+}
+
+/* 心情色：--mood 是點點，--mood-soft 是底色（字一律用深褐，對比都 > 9:1） */
+.mood-happy   { --mood: #FFC21A; --mood-soft: #FFF4CC; }
+.mood-sad     { --mood: #4F94D4; --mood-soft: #E2EEFA; }
+.mood-angry   { --mood: #EE5A36; --mood-soft: #FDE5DE; }
+.mood-love    { --mood: #F2709C; --mood-soft: #FDE3EC; }
+.mood-tired   { --mood: #8B7FD1; --mood-soft: #ECE9F9; }
+.mood-think   { --mood: #2FA89A; --mood-soft: #DDF3F0; }
+.mood-laugh   { --mood: #FF922B; --mood-soft: #FFEBD6; }
+.mood-anxious { --mood: #7D8CA3; --mood-soft: #E8ECF1; }
+.mood-warm    { --mood: #E0905E; --mood-soft: #FBEADF; }
+.mood-meh     { --mood: #A39D78; --mood-soft: #F0EEE4; }
+
+/* --- 圓體只用在標題、按鈕、選項這些「介面」字；日記內文維持黑體好讀 --- */
+h1, h2, h3, legend,
+.navbar-brand, .nav-links a, .btn, .chip-body, .day-number, .calendar th,
+.today-link, .trial-bar, .mc-hero-sticker, .mood-tally, .mood-word, .card-mood-tag, .develop-stamp {
+  font-family: var(--font-display);
+  font-synthesis: none;
+}
+h1, h2, h3, .btn, .chip-body, .calendar-header h2 { font-weight: 400; }
+
+.bento-card { border-color: var(--color-border-light); }
+.bento-card:hover { transform: none; }
+
+/* --- 按鈕：膠囊形、底下一條台階，按下去台階收起來 --- */
+.btn { border-radius: var(--border-radius-pill); letter-spacing: 0.04em; }
+.btn-primary {
+  background: var(--c-action);
+  border-color: var(--c-action);
+  color: var(--color-ink);
+  box-shadow: 0 4px 0 var(--c-action-ledge);
+}
+@media (hover: hover) {
+  .btn-primary:hover {
+    background: var(--c-action-hover);
+    border-color: var(--c-action-hover);
+    color: var(--color-ink);
+    box-shadow: 0 5px 0 var(--c-action-ledge);
+  }
+}
+.btn-primary:active { transform: translateY(4px); box-shadow: 0 0 0 transparent; }
+.btn-primary:focus-visible { outline: 3px solid var(--c-select); outline-offset: 3px; }
+.btn-secondary {
+  background: var(--color-surface);
+  border: 2px solid var(--color-border-medium);
+  color: var(--color-ink);
+  box-shadow: 0 3px 0 var(--color-border-medium);
+}
+@media (hover: hover) {
+  .btn-secondary:hover { background: var(--color-surface-hover); color: var(--color-ink); box-shadow: 0 4px 0 var(--color-border-medium); }
+}
+
+/* --- 選項：選中＝藍框＋彈一下；心情選項前面有自己的顏色點 --- */
+@keyframes mc-pop {
+  0% { transform: scale(0.92); }
+  60% { transform: scale(1.06); }
+  100% { transform: scale(1); }
+}
+.chip-body { border: 2px solid var(--color-border-light); background: var(--color-surface); }
+.mood-chip .chip-body { border-radius: 16px; min-height: 48px; gap: 6px; }
+.mood-chip .chip-body::before {
+  content: '';
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--mood, var(--color-border-medium));
+}
+.mood-chip input:checked + .chip-body,
+.style-chip input:checked + .chip-body {
+  border-color: var(--c-select);
+  box-shadow: 0 0 0 3px var(--c-select-soft);
+  color: var(--color-ink);
+  font-weight: 400;
+  animation: mc-pop 0.28s var(--ease-spring);
+}
+.mood-chip input:checked + .chip-body { background: var(--mood-soft, var(--color-surface)); }
+.style-chip input:checked + .chip-body { background: var(--c-select-soft); }
+.chip-group input:focus-visible + .chip-body { outline: 3px solid var(--c-select); outline-offset: 2px; }
+@media (hover: hover) {
+  .chip-group label:hover .chip-body { border-color: var(--color-border-medium); }
+}
+
+/* --- 日曆：方形圓角格子，像一張集章卡；有圖的格子整格都是圖 --- */
+.calendar-container { container-type: inline-size; }
+.calendar-header h2 { font-size: 1.9rem; letter-spacing: 0.04em; }
+.calendar {
+  width: calc(100% + 12px);
+  margin: -6px;
+  border: 0;
+  border-collapse: separate;
+  border-spacing: 6px;
+  border-radius: 0;
+  overflow: visible;
+}
+.calendar th { border: 0; background: none; padding: 0 0 4px; color: var(--color-text-muted); font-weight: 400; }
+.calendar td {
+  height: calc((100cqw - 36px) / 7);
+  padding: 0;
+  border: 0;
+  border-radius: 16px;
+  background: var(--color-background);
+}
+.calendar td:hover { background: var(--color-surface-hover); }
+.calendar td.other-month { background: transparent; opacity: 0.4; }
+.calendar td.today { background: var(--c-select-soft); box-shadow: inset 0 0 0 3px var(--c-select); }
+.day-number {
+  top: 6px;
+  left: 6px;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 11px;
+  font-weight: 400;
+  font-size: 0.85rem;
+  line-height: 1;
+  pointer-events: none;
+}
+.calendar td:has(.diary-thumb) .day-number { background: rgba(255, 255, 255, 0.92); color: var(--color-ink); }
+.calendar td.today .day-number { margin: 0; background: var(--c-select); color: #FFFFFF; font-weight: 400; }
+.diary-entry, .no-diary, .multiple-diaries { padding-top: 0; border-radius: 16px; overflow: visible; }
+.diary-thumb {
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  border-radius: 16px;
+  box-shadow: none;
+  transition: transform 0.22s var(--ease-spring), box-shadow 0.22s ease;
+}
+@media (hover: hover) {
+  .diary-entry:hover { z-index: 4; }
+  .diary-entry:hover .diary-thumb {
+    transform: scale(1.06) rotate(-2deg);
+    box-shadow: 0 10px 24px rgba(120, 80, 30, 0.22);
+  }
+}
+.calendar td .mood-word {
+  padding: 3px 10px;
+  border-radius: var(--border-radius-pill);
+  background: var(--mood-soft, var(--color-surface));
+  color: var(--color-ink);
+  font-size: 0.9rem;
+}
+.add-diary-btn { width: 34px; height: 34px; font-family: var(--font-display); background: rgba(120, 80, 30, 0.08); }
+.calendar td.today .add-diary-btn,
+.no-diary:focus-visible .add-diary-btn { background: var(--c-action); color: var(--color-ink); box-shadow: 0 3px 0 var(--c-action-ledge); }
+@media (hover: hover) {
+  .no-diary:hover .add-diary-btn { background: var(--c-action); color: var(--color-ink); }
+}
+.no-diary:focus-visible, .diary-entry:focus-visible, .multiple-diaries:focus-visible { outline: 3px solid var(--c-select); outline-offset: 2px; }
+.diary-dot { background: var(--c-action); }
+
+/* 桌機：日曆在左、這個月的心情在右，不再拉一條空空的長條 */
+@media (min-width: 1100px) {
+  .bento-calendar { grid-column: span 9; }
+  .bento-sidebar { grid-column: span 3; flex-direction: column; }
+  .bento-sidebar .bento-card { flex: none; }
+}
+@media (max-width: 640px) {
+  .bento-calendar { padding: 16px 12px; }
+  .calendar { border-spacing: 4px; margin: -4px; width: calc(100% + 8px); }
+  .calendar td { height: calc((100cqw - 24px) / 7); border-radius: 12px; }
+  .diary-entry, .no-diary, .multiple-diaries, .diary-thumb { border-radius: 12px; }
+  .day-number { top: 3px; left: 3px; min-width: 18px; height: 18px; padding: 0 4px; font-size: 0.72rem; }
+  .calendar td .mood-word { padding: 2px 5px; font-size: 0.72rem; }
+  .calendar-header h2 { font-size: 1.45rem; }
+}
+
+/* --- 這個月的心情：一句話＋彩色心情牌 --- */
+.month-note h3 { font-size: 1.25rem; color: var(--color-ink); }
+.demo-banner-cta { box-shadow: 0 3px 0 var(--color-border-medium); }
+.month-note p { font-size: 1.05rem; }
+.month-note strong { font-family: var(--font-display); font-weight: 400; font-size: 1.6rem; color: var(--color-ink); }
+.mood-tally { gap: 8px; }
+.mood-tally li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: var(--border-radius-pill);
+  background: var(--mood-soft, var(--color-background));
+  color: var(--color-ink);
+}
+.mood-tally li::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--mood, var(--color-border-medium)); }
+.mood-tally .mood-word { font-size: inherit; color: inherit; }
+.card-mood-tag {
+  display: inline-flex;
+  padding: 3px 12px;
+  border-radius: var(--border-radius-pill);
+  background: var(--mood-soft, var(--color-background));
+  color: var(--color-ink);
+  font-size: 0.95rem;
+}
+
+/* --- 首頁主視覺：暖黃色大卡、三張拍立得疊著、一張圓貼紙 --- */
+.mc-hero {
+  max-width: none;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+  gap: 56px;
+  margin: 4px 0 28px;
+  padding: 48px 64px;
+  border-radius: 32px;
+  background: var(--c-hero);
+}
+.mc-hero-stack { position: relative; width: min(100%, 320px); margin: 12px auto; }
+.mc-hero-back {
+  position: absolute;
+  top: 8%;
+  width: 80%;
+  height: auto;
+  padding: 9px 9px 30px;
+  background: #FFFFFF;
+  border-radius: 4px;
+  box-shadow: var(--shadow-polaroid);
+  transition: transform 0.3s var(--ease-spring);
+}
+.mc-hero-back--l { left: -16%; transform: rotate(-11deg); }
+.mc-hero-back--r { right: -16%; transform: rotate(9deg); }
+.mc-hero-card { position: relative; z-index: 2; background: #FFFFFF; }
+@media (hover: hover) {
+  .mc-hero-stack:hover .mc-hero-back--l { transform: rotate(-15deg) translateX(-10px); }
+  .mc-hero-stack:hover .mc-hero-back--r { transform: rotate(13deg) translateX(10px); }
+}
+.mc-hero-sticker {
+  position: absolute;
+  z-index: 3;
+  top: -18px;
+  right: -22px;
+  width: 92px;
+  height: 92px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--c-action);
+  box-shadow: 0 4px 0 var(--c-action-ledge);
+  color: var(--color-ink);
+  font-size: 0.95rem;
+  line-height: 1.35;
+  text-align: center;
+  transform: rotate(12deg);
+}
+.mc-hero-text h1 { font-size: clamp(2rem, 4.6vw, 3.25rem); font-weight: 400; line-height: 1.25; }
+.mc-hero-text p { color: var(--color-text-primary); }
+.mc-hero-link { font-family: var(--font-display); }
+@media (max-width: 900px) {
+  .mc-hero { padding: 36px 32px; gap: 36px; }
+}
+@media (max-width: 640px) {
+  .mc-hero { grid-template-columns: 1fr; padding: 32px 20px 28px; gap: 28px; border-radius: 24px; }
+  /* 手機格子小：空白日子點格子就能寫，「+」只留在今天 */
+  .calendar td:not(.today) .add-diary-btn { opacity: 0; }
+  .mc-hero-stack { width: min(64%, 240px); }
+  .mc-hero-card { width: 100%; }
+  .mc-hero-sticker { width: 74px; height: 74px; font-size: 0.8rem; top: -14px; right: -26px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mood-chip input:checked + .chip-body,
+  .style-chip input:checked + .chip-body { animation: none; }
+  .mc-hero-back, .diary-thumb { transition: none; }
+}
