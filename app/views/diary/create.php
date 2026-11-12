@@ -69,9 +69,10 @@ require_once BASE_PATH . '/app/views/layout/header.php';
             <legend>畫風</legend>
             <div class="style-chips">
                 <?php
-                $styles = ['ghibli' => '宮崎駿風格', 'random' => '讓 AI 自己決定', 'photographic' => '真實攝影',
-                           'pixel-art' => '像素風格', '3d-render' => '皮克斯風格', 'flat-illustration' => '扁平設計',
-                           'sketch' => '手繪素描', 'ink-wash' => '中國水墨'];
+                // 名稱只寫畫法，不寫工作室或作品名
+                $styles = ['ghibli' => '日系手繪動畫', 'anime' => '日系動漫', '3d-render' => '3D 動畫電影',
+                           'watercolor' => '水彩繪本', 'film' => '懷舊底片', 'clay' => '黏土動畫',
+                           'pixel-art' => '像素遊戲', 'ink-wash' => '水墨', 'random' => '讓 AI 自己決定'];
                 foreach ($styles as $value => $name): ?>
                     <label class="style-chip">
                         <input type="radio" name="image_style" value="<?php echo $value; ?>"<?php echo $value === 'ghibli' ? ' checked' : ''; ?>>

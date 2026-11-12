@@ -788,18 +788,25 @@ class DiaryController
             '🥰' => 'cozy, intimate, golden hour',
             '🙄' => 'subtle, muted, ironic',
         ];
+        // 畫風只描述畫法，不寫任何工作室、作品或畫家的名字（避免侵權，也避免品牌名出現在公開作品上）
         $styleMap = [
-            'photographic' => 'photorealistic, detailed',
-            'ghibli' => 'Studio Ghibli style, hand-drawn animation, soft colors, dreamy',
+            'ghibli' => 'hand-painted Japanese animated film look, lush watercolor background art, soft natural sunlight, gentle nostalgic summer feeling',
+            'anime' => 'modern Japanese anime illustration, clean line art, vivid cel shading, bright clear sky, cinematic lighting',
+            '3d-render' => '3D animated feature film still, soft global illumination, rounded charming characters, expressive faces',
+            'watercolor' => "children's picture book watercolor illustration, soft color washes, visible paper texture, warm and tender",
+            'film' => '35mm film photograph, nostalgic faded colors, soft film grain, warm afternoon light',
+            'clay' => 'claymation stop-motion scene, handmade clay figures and props, soft studio lighting, playful',
             'pixel-art' => 'pixel art, 16-bit style, retro game aesthetic',
-            '3d-render' => 'Pixar-style 3D render, soft lighting, charming',
+            'ink-wash' => 'ink wash painting, soft brush strokes, generous empty space',
+            // 舊選項：已不在畫面上，留著讓舊連結還能用
+            'photographic' => 'photorealistic, detailed',
             'flat-illustration' => 'flat design illustration, minimalist, clean lines',
             'sketch' => 'hand-drawn pencil sketch, artistic',
-            'ink-wash' => 'ink wash painting, soft brush strokes',
         ];
 
         $moodDesc = $moodMap[$mood] ?? 'balanced, neutral';
-        $styleDesc = $styleMap[$style] ?? 'warm illustration';
+        // 「讓 AI 自己決定」：從畫面上那幾種隨機挑一種
+        $styleDesc = $styleMap[$style] ?? $styleMap[array_rand(array_slice($styleMap, 0, 8))];
         $scene = $scene ?: 'a quiet everyday moment';
 
         // 不把中文原文塞進提示詞，也不提「日記」「印章」「書法」：Flux 沒有反向提示，寫了反而會畫出假字和印章
