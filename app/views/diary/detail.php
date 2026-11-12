@@ -17,7 +17,7 @@ $aiText = $diary['ai_generated_text'] ?? '';
 $diaryId = $diary['id'];
 $isDemo = !empty($diary['is_demo']); // 訪客看的範例日記：唯讀，不顯示編輯與 AI 按鈕
 
-$pageTitle = ($diary['title'] ?? '無標題') . ' | ' . $date->format('Y-m-d') . ' ' . $mood;
+$pageTitle = ($diary['title'] ?? '無標題') . ' | ' . $date->format('Y-m-d');
 $metaDescription = mb_substr(strip_tags($diary['content'] ?? ''), 0, 80, 'UTF-8');
 
 // 圖片 URL
@@ -53,7 +53,7 @@ require_once BASE_PATH . '/app/views/layout/header.php';
                              class="card-image"
                              loading="lazy"
                              id="card-image-el"
-                             data-fallback-mood="<?php echo $mood; ?>">
+                             data-fallback-mood="<?php echo htmlspecialchars(moodLabel($diary['mood'] ?? ''), ENT_QUOTES); ?>">
                     <?php elseif ($aiGenerating): ?>
                         <!-- 生成中：像拍立得剛吐出來，底片慢慢顯影 -->
                         <div class="card-emoji-fallback developing" id="card-emoji">
@@ -64,7 +64,7 @@ require_once BASE_PATH . '/app/views/layout/header.php';
                         </div>
                     <?php else: ?>
                         <div class="card-emoji-fallback" id="card-emoji">
-                            <span class="card-emoji"><?php echo $mood; ?></span>
+                            <span class="card-emoji"><?php echo htmlspecialchars(moodLabel($diary['mood'] ?? '')); ?></span>
                         </div>
                     <?php endif; ?>
                     <span class="develop-stamp" id="develop-stamp" aria-hidden="true">顯影完成</span>
@@ -72,7 +72,7 @@ require_once BASE_PATH . '/app/views/layout/header.php';
 
                 <div class="polaroid-caption">
                     <span class="card-date"><?php echo $date->format('Y . m . d'); ?></span>
-                    <span class="card-mood-tag" role="img" aria-label="心情"><?php echo $mood; ?></span>
+                    <span class="card-mood-tag"><?php echo htmlspecialchars(moodLabel($diary['mood'] ?? '')); ?></span>
                 </div>
             </div>
 

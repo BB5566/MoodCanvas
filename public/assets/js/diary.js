@@ -113,7 +113,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // ================================================================
     var cardImage = document.getElementById('card-image-el');
     if (cardImage) {
-        var fallbackMood = cardImage.getAttribute('data-fallback-mood') || '📝';
+        var fallbackMood = cardImage.getAttribute('data-fallback-mood') || '心情';
 
         function handleImageError() {
             var parent = cardImage.parentElement;

@@ -29,7 +29,7 @@ if (!defined('APP_URL')) {
         <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Klee+One:wght@400;600&family=Inter:wght@300;400;500;600&display=swap">
     </noscript>
     <link rel="stylesheet" href="<?php echo APP_URL; ?>/public/assets/css/style-v2.css?v=<?php echo filemtime(BASE_PATH . '/public/assets/css/style-v2.css'); ?>">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎨</text></svg>">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 22 24%22%3E%3Crect x=%222.5%22 y=%221.5%22 width=%2217%22 height=%2221%22 rx=%221.5%22 transform=%22rotate(-6 11 12)%22 fill=%22%23FAF6EF%22 stroke=%22%233D3833%22 stroke-width=%221.6%22/%3E%3Crect x=%225.2%22 y=%224.6%22 width=%2211.6%22 height=%2211%22 transform=%22rotate(-6 11 12)%22 fill=%22%2365745C%22/%3E%3C/svg%3E">
 </head>
 
 <body>
@@ -56,7 +56,7 @@ if (!defined('APP_URL')) {
 
     <header class="glass-header">
         <nav class="navbar" aria-label="主要導覽">
-            <a class="navbar-brand" href="<?php echo APP_URL; ?>/public/index.php?action=home">🎨 MoodCanvas</a>
+            <a class="navbar-brand" href="<?php echo APP_URL; ?>/public/index.php?action=home"><svg class="brand-mark" width="22" height="24" viewBox="0 0 22 24" aria-hidden="true"><rect x="2.5" y="1.5" width="17" height="21" rx="1.5" transform="rotate(-6 11 12)" fill="#FAF6EF" stroke="#3D3833" stroke-width="1.6"/><rect x="5.2" y="4.6" width="11.6" height="11" transform="rotate(-6 11 12)" fill="#65745C"/></svg><span>MoodCanvas</span></a>
             <button class="navbar-toggler" id="navbar-toggler" type="button" aria-label="開啟選單" aria-expanded="false" aria-controls="navbar-nav">
                 <span class="toggler-bar"></span>
                 <span class="toggler-bar"></span>
@@ -70,11 +70,11 @@ if (!defined('APP_URL')) {
                         </li>
                     <?php endif; ?>
                     <li class="nav-item">
-                        <a class="nav-link" href="<?php echo APP_URL; ?>/public/index.php?action=diary_create">✏️ 寫日記</a>
+                        <a class="nav-link" href="<?php echo APP_URL; ?>/public/index.php?action=diary_create">寫日記</a>
                     </li>
                     <?php if (empty($_SESSION['is_guest'])): ?>
                         <li class="nav-item">
-                            <a class="nav-link" href="<?php echo APP_URL; ?>/public/index.php?action=logout">👋 登出</a>
+                            <a class="nav-link" href="<?php echo APP_URL; ?>/public/index.php?action=logout">登出</a>
                         </li>
                     <?php else: ?>
                         <li class="nav-item">
@@ -86,7 +86,7 @@ if (!defined('APP_URL')) {
                     <?php endif; ?>
                 <?php else: ?>
                     <li class="nav-item">
-                        <a class="nav-link" href="<?php echo APP_URL; ?>/public/index.php?action=diary_create">✏️ 試寫一篇</a>
+                        <a class="nav-link" href="<?php echo APP_URL; ?>/public/index.php?action=diary_create">試寫一篇</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="<?php echo APP_URL; ?>/public/index.php?action=login">登入</a>

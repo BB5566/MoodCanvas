@@ -11,7 +11,7 @@ $metaDescription = '瀏覽 ' . $dateFormatted . ' 所有心情日記，快速檢
 
 <div class="container date-list-container" style="max-width: 900px; margin: 0 auto;">
     <div class="date-list-header">
-        <h1>📅 <?php echo htmlspecialchars($dateFormatted); ?> 的日記</h1>
+        <h1><?php echo htmlspecialchars($dateFormatted); ?> 的日記</h1>
         <a href="index.php?action=home" class="btn btn-secondary">
             ← 返回日曆
         </a>
@@ -25,7 +25,7 @@ $metaDescription = '瀏覽 ' . $dateFormatted . ' 所有心情日記，快速檢
             <article class="diary-card">
                 <header class="diary-card-header">
                     <div class="diary-meta">
-                        <span class="mood-emoji" role="img" aria-label="心情"><?php echo htmlspecialchars($diary['mood'] ?? '📝'); ?></span>
+                        <span class="mood-word"><?php echo htmlspecialchars(moodLabel($diary['mood'] ?? '')); ?></span>
                         <h3><?php echo htmlspecialchars($diary['title']); ?></h3>
                         <time class="diary-time"><?php echo date('H:i', strtotime($diary['created_at'])); ?></time>
                     </div>
@@ -36,7 +36,7 @@ $metaDescription = '瀏覽 ' . $dateFormatted . ' 所有心情日記，快速檢
                     
                     <?php if (!empty($diary['ai_generated_text'])): ?>
                         <div class="ai-insight">
-                            <strong>🤖 AI 心情洞察：</strong>
+                            <strong>AI 寫給你的話</strong>
                             <p><?php echo nl2br(htmlspecialchars(mb_substr($diary['ai_generated_text'], 0, 100))); ?><?php echo mb_strlen($diary['ai_generated_text']) > 100 ? '...' : ''; ?></p>
                         </div>
                     <?php endif; ?>

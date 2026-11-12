@@ -1275,7 +1275,7 @@ textarea { resize: vertical; min-height: 100px; }
   .flip-card-back { padding: 1.5rem; }
   .card-back-title { font-size: 1.2rem; }
   .card-back-diary { font-size: 0.92rem; }
-  .card-emoji { font-size: 4rem; }
+  .card-emoji { font-size: 1.8rem; }
 
   .diary-actions {
     flex-direction: column;
@@ -1382,7 +1382,7 @@ textarea { resize: vertical; min-height: 100px; }
   .card-back-title { font-size: 1.15rem; }
   .card-back-diary { font-size: 0.9rem; line-height: 1.65; }
   .card-back-quote blockquote { font-size: 0.9rem; }
-  .card-emoji { font-size: 3.2rem; }
+  .card-emoji { font-size: 1.6rem; }
 
   /* 390px 極端窄螢幕月曆適應 */
   .calendar th { font-size: 0.75rem; }
@@ -1521,10 +1521,10 @@ textarea { resize: vertical; min-height: 100px; }
   transition: transform 0.22s var(--ease-spring), border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
 }
 .mood-chip .chip-body {
-  flex-direction: column;
-  gap: 3px;
-  padding: 10px 2px 8px;
+  min-height: 46px;
+  padding: 0 2px;
   border-radius: 12px;
+  font-size: 0.95rem;
 }
 .style-chip .chip-body {
   min-height: 44px;
@@ -1532,20 +1532,13 @@ textarea { resize: vertical; min-height: 100px; }
   border-radius: var(--border-radius-pill);
   font-size: 0.9rem;
 }
-.mood-chip-face {
-  font-size: 1.7rem;
-  line-height: 1;
-  transition: transform 0.3s var(--ease-spring);
-}
-.mood-chip-name { font-size: 0.8rem; color: var(--color-text-secondary); white-space: nowrap; }
 .chip-group label:active .chip-body { transform: scale(0.92); transition-duration: 0.06s; }
 .mood-chip input:checked + .chip-body {
   border-color: var(--color-ink);
   background: #FFFFFF;
   box-shadow: 0 2px 0 var(--color-ink);
 }
-.mood-chip input:checked + .chip-body .mood-chip-face { transform: scale(1.2) rotate(-8deg); }
-.mood-chip input:checked + .chip-body .mood-chip-name { color: var(--color-ink); font-weight: 700; }
+.mood-chip input:checked + .chip-body { font-weight: 700; color: var(--color-ink); }
 .style-chip input:checked + .chip-body {
   border-color: var(--color-ink);
   background: var(--color-ink);
@@ -1775,3 +1768,40 @@ textarea { resize: vertical; min-height: 100px; }
   .mc-hero-text p { margin-inline: auto; }
   .mc-hero-actions { justify-content: center; }
 }
+
+/* --- 少用 emoji（2026-11-12）：心情一律顯示文字，標誌改成手畫的拍立得 --- */
+.navbar-brand { display: inline-flex; align-items: center; gap: 8px; }
+.brand-mark { flex: none; }
+.mood-word {
+  font-family: var(--font-hand);
+  font-size: 0.95rem;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+.card-emoji {
+  font-family: var(--font-hand);
+  font-size: 2rem;
+  color: var(--color-text-secondary);
+  filter: none;
+  animation: none;
+}
+.card-mood-tag {
+  font-family: var(--font-hand);
+  font-size: 1.05rem;
+  color: var(--color-text-secondary);
+}
+.diary-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin: 0 2px;
+  border-radius: 50%;
+  background: var(--color-accent);
+}
+
+/* 這個月：一句話＋心情次數 */
+.month-note h3 { margin: 0 0 8px; }
+.month-note p { margin: 0 0 12px; font-size: 1rem; line-height: 1.7; color: var(--color-text-primary); }
+.month-note strong { font-size: 1.15rem; }
+.mood-tally { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 0; padding: 0; list-style: none; font-variant-numeric: tabular-nums; color: var(--color-text-secondary); }
+.mood-tally .mood-word { color: var(--color-ink); }

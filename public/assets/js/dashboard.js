@@ -46,7 +46,7 @@ document.addEventListener('DOMContentLoaded', function() {
     } else {
         document.getElementById('heatmap').innerHTML = '<p class="placeholder-text">沒有足夠的日記資料來產生熱力圖</p>';
         const chartContainer = document.getElementById('mood-chart-container');
-        if(chartContainer) chartContainer.innerHTML = '<h3>📈 心情趨勢</h3><p class="placeholder-text">沒有足夠的日記資料來產生趨勢圖</p>';
+        if(chartContainer) chartContainer.innerHTML = '<h3>心情趨勢</h3><p class="placeholder-text">沒有足夠的日記資料來產生趨勢圖</p>';
         document.getElementById('wordcloud').innerHTML = '<p class="placeholder-text">沒有足夠的日記資料來產生詞雲</p>';
         document.getElementById('ai-insight-text').innerHTML = '沒有足夠的日記資料來產生 AI 洞察。';
     }
@@ -129,7 +129,7 @@ function generateMoodChart(data) {
     if (!ctx) return;
     if (typeof Chart === 'undefined') {
         const chartContainer = document.getElementById('mood-chart-container');
-        if (chartContainer) chartContainer.innerHTML = '<h3>📈 心情趨勢</h3><p class="placeholder-text">圖表組件載入中...</p>';
+        if (chartContainer) chartContainer.innerHTML = '<h3>心情趨勢</h3><p class="placeholder-text">圖表組件載入中...</p>';
         return;
     }
 
@@ -259,7 +259,7 @@ async function fetchAIInsight(diaries) {
     const insightContainer = document.getElementById('ai-insight-text');
     if(!insightContainer) return;
 
-    insightContainer.innerHTML = '🤖 AI 正在深度分析您的心情... 請稍候片刻... <div class="spinner"></div>';
+    insightContainer.innerHTML = 'AI 正在讀這個月的日記… <div class="spinner"></div>';
 
     const dashboardContainer = document.getElementById('dashboard-container');
     const apiUrl = dashboardContainer ? dashboardContainer.getAttribute('data-api-url') : '/public/index.php?action=get_ai_insight';
@@ -297,7 +297,7 @@ async function fetchAIInsight(diaries) {
 
     } catch (error) {
         console.warn('Fetch AI Insight Error:', error);
-        insightContainer.textContent = '😔 無法載入 AI 洞察。 ';
+        insightContainer.textContent = '這次沒讀完，稍後再試。 ';
         insightContainer.appendChild(document.createElement('br'));
         insightContainer.appendChild(document.createTextNode(`(${error.message})`));
         insightContainer.classList.add('error-message');
