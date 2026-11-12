@@ -14,67 +14,76 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // ================================================================
-    // Submit loading state (create 頁面)
+    // 新增頁：送出時按鈕變「存檔中」（這時只是存檔轉頁，AI 在下一頁才開始畫）
     // ================================================================
     var diaryForm = document.getElementById('diary-form');
     if (diaryForm) {
-        diaryForm.addEventListener('submit', function() {
+        diaryForm.addEventListener('submit', function () {
             var btn = document.getElementById('submit-diary-btn');
-            var overlay = document.getElementById('submit-overlay');
-            var status = document.getElementById('submit-status');
+            if (!btn) return;
+            btn.disabled = true;
+            var btnText = btn.querySelector('.btn-text');
+            if (btnText) btnText.textContent = '存檔中…';
+        });
+    }
 
-            if(btn) {
-                btn.disabled = true;
-                var btnText = btn.querySelector('.btn-text');
-                if(btnText) btnText.textContent = '處理中...';
-            }
-            if(overlay) overlay.style.display = 'flex';
-
-            // Animate status messages
-            var messages = [
-                '正在儲存日記...',
-                'AI 正在生成圖片...',
-                'AI 正在撰寫短語...',
-                '即將完成...'
-            ];
-            var i = 0;
-            if(status) {
-                var interval = setInterval(function() {
-                    i = (i + 1) % messages.length;
-                    status.textContent = messages[i];
-                }, 2000);
-
-                // Clean up on page unload
-                window.addEventListener('pagehide', function() {
-                    clearInterval(interval);
-                });
-            }
+    // 「幫我填一篇」：給不想自己寫的訪客（例如來看作品的人）一篇現成的
+    var fillBtn = document.getElementById('fill-sample');
+    if (fillBtn && contentTextarea) {
+        var samples = [
+            ['雨天的捷運', '😂', '下班遇到大雨，在捷運站等雨停。旁邊的小朋友拿著黃色雨傘一直轉，把水甩到我身上，他媽媽一直道歉，結果我們都笑了。'],
+            ['第一次自己煮味噌湯', '🥰', '照著影片煮了味噌湯，豆腐切得歪七扭八，味道卻意外地好。端上桌的時候，室友說比外面的好喝。'],
+            ['爬到山頂的那一刻', '😊', '週末去爬象山，最後一段樓梯腿一直抖。爬到頂的時候剛好夕陽，整個台北都變成橘色的。'],
+            ['面試前一天', '😰', '明天是第一次正式面試，把作品集又看了三遍。睡前泡了一杯熱可可，告訴自己照平常講就好。'],
+        ];
+        var next = Math.floor(Math.random() * samples.length);
+        fillBtn.addEventListener('click', function () {
+            var pick = samples[next];
+            next = (next + 1) % samples.length;
+            document.getElementById('title').value = pick[0];
+            contentTextarea.value = pick[2];
+            contentTextarea.dispatchEvent(new Event('input')); // 更新字數
+            var moodInput = document.querySelector('input[name="mood"][value="' + pick[1] + '"]');
+            if (moodInput) moodInput.checked = true;
         });
     }
 
     // ================================================================
-    // 翻轉卡片互動 (detail 頁面)
+    // 翻轉卡片 (detail 頁面)：點卡片或下方按鈕都能翻
     // ================================================================
     var card = document.getElementById('flip-card');
     var inner = document.getElementById('flip-card-inner');
+    var flipToggle = document.getElementById('flip-toggle');
+    var flipped = false;
+    var userFlipped = false; // 使用者自己翻過，就不再自動翻
+
+    function setFlipped(value) {
+        if (!inner) return;
+        flipped = value;
+        inner.classList.toggle('flipped', flipped);
+        if (flipToggle) {
+            flipToggle.setAttribute('aria-pressed', flipped ? 'true' : 'false');
+            flipToggle.textContent = flipped ? '翻回照片' : '翻到背面，看 AI 寫給你的話';
+        }
+    }
+
     if (card && inner) {
-        var flipped = false;
-
-        card.addEventListener('click', function() {
-            flipped = !flipped;
-            inner.classList.toggle('flipped', flipped);
+        card.addEventListener('click', function (e) {
+            if (e.target.closest('button')) return; // 卡片裡的「再試一次」不要順便翻面
+            userFlipped = true;
+            setFlipped(!flipped);
         });
-
-        // 鍵盤支援
-        card.setAttribute('tabindex', '0');
-        card.setAttribute('role', 'button');
-        card.setAttribute('aria-label', '點擊翻轉卡片');
-        card.addEventListener('keydown', function(e) {
+        card.addEventListener('keydown', function (e) {
+            if (e.target !== card) return;
             if (e.key === 'Enter' || e.key === ' ') {
+                userFlipped = true;
                 e.preventDefault();
-                card.click();
+                setFlipped(!flipped);
             }
         });
+    }
+    if (flipToggle) {
+        flipToggle.addEventListener('click', function () { userFlipped = true; setFlipped(!flipped); });
     }
 
     // ================================================================
@@ -128,130 +137,119 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // ================================================================
-    // AI 非同步生成卡片內容 (detail 頁面)
+    // AI 生成 (detail 頁面)：底片顯影
+    // 階段字跟著真實流程的順序走（先讀日記寫畫面描述，再生圖），秒數是真的經過時間
     // ================================================================
     var aiData = document.getElementById('ai-generating-data');
-    if (aiData && aiData.hasAttribute('data-ai-generating') && aiData.getAttribute('data-ai-generating') === 'true') {
+    if (aiData && aiData.getAttribute('data-ai-generating') === 'true') {
         var diaryId = aiData.getAttribute('data-diary-id');
         var appUrl = aiData.getAttribute('data-app-url');
-        var cardDate = aiData.getAttribute('data-card-date');
-        var cardMood = aiData.getAttribute('data-card-mood');
-
-        var statusEl = document.querySelector('.ai-generating-badge span');
-        var emojiContainer = document.getElementById('card-emoji');
+        var film = document.getElementById('card-emoji');
+        var stageEl = document.getElementById('develop-stage');
+        var timeEl = document.getElementById('develop-time');
+        var stamp = document.getElementById('develop-stamp');
         var quoteLoading = document.getElementById('quote-loading');
         var quoteText = document.getElementById('quote-text');
-        var badge = document.querySelector('.ai-generating-badge');
+        var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
         var startTime = Date.now();
-        var timerInterval = null;
-        var aborted = false;
+        var timer = null;
 
-        function updateStatus(msg) {
-            if (statusEl) statusEl.textContent = msg;
+        function tick() {
+            var sec = Math.floor((Date.now() - startTime) / 1000);
+            if (timeEl) timeEl.textContent = sec + ' 秒';
+            if (stageEl) stageEl.textContent = sec < 3 ? '正在讀你的日記' : sec < 7 ? '想像畫面' : '顯影中';
         }
+        function startTimer() { startTime = Date.now(); tick(); timer = setInterval(tick, 500); }
+        function stopTimer() { clearInterval(timer); }
 
-        function updateTimer() {
-            var elapsed = Math.floor((Date.now() - startTime) / 1000);
-            updateStatus('AI 創作中... ' + elapsed + 's');
-        }
-
-        timerInterval = setInterval(updateTimer, 1000);
-        updateStatus('AI 創作中...');
-
-        function showRetry() {
-            clearInterval(timerInterval);
-            if (aborted) return;
-            updateStatus('AI 生成逾時');
-            if (badge) {
-                badge.style.background = 'rgba(255,235,238,0.95)';
-                badge.style.color = '#c62828';
-                var retryBtn = document.createElement('button');
-                retryBtn.textContent = '🔄 重試';
-                retryBtn.style.cssText = 'margin-left:0.5rem;padding:0.2rem 0.6rem;border:1px solid #c62828;border-radius:12px;background:#fff;color:#c62828;cursor:pointer;font-size:0.8rem';
-                retryBtn.onclick = function() {
-                    badge.style.background = 'rgba(255,255,255,0.85)';
-                    badge.style.color = 'var(--color-text-secondary)';
-                    retryBtn.remove();
-                    startTime = Date.now();
-                    timerInterval = setInterval(updateTimer, 1000);
+        // 停下來說明原因；canRetry 時給一顆重試鈕
+        function stopWith(message, canRetry) {
+            stopTimer();
+            if (film) film.classList.add('stopped');
+            if (stageEl) stageEl.textContent = message;
+            if (timeEl) timeEl.textContent = '';
+            if (quoteLoading) quoteLoading.textContent = message;
+            if (canRetry && timeEl) {
+                var retry = document.createElement('button');
+                retry.type = 'button';
+                retry.className = 'btn btn-tertiary develop-retry';
+                retry.textContent = '再試一次';
+                retry.onclick = function () {
+                    retry.remove();
+                    if (film) film.classList.remove('stopped');
                     doGenerate();
                 };
-                badge.appendChild(retryBtn);
+                timeEl.parentNode.appendChild(retry);
             }
         }
 
+        function showResult(data) {
+            if (data.quote && quoteText) {
+                quoteText.textContent = data.quote;
+                quoteText.style.display = 'block';
+                if (quoteLoading) quoteLoading.style.display = 'none';
+            }
+            if (!film) return;
+            if (!data.image_url) { stopWith('這次圖沒畫出來', true); return; }
+
+            var imgUrl = data.image_url;
+            if (imgUrl.indexOf('http') !== 0 && imgUrl.indexOf('public/') !== 0) {
+                imgUrl = appUrl + '/public/' + imgUrl.replace(/^\//, '');
+            }
+            var img = new Image();
+            img.alt = 'AI 生成插畫';
+            img.className = 'card-image develop-in';
+            img.id = 'card-image-el';
+            img.onload = function () {
+                film.replaceWith(img);
+                // 下一格再加 class，CSS 才會從「剛吐出來」播到「顯影完成」
+                requestAnimationFrame(function () {
+                    requestAnimationFrame(function () { img.classList.add('developed'); });
+                });
+                var announce = document.getElementById('develop-announce');
+                if (announce) announce.textContent = data.quote ? '顯影完成，背面有 AI 寫給你的話' : '顯影完成';
+                setTimeout(function () {
+                    if (stamp) stamp.classList.add('show');
+                    if (stamp) setTimeout(function () { stamp.classList.add('fade'); }, 2600);
+                    // 小驚喜：讓人先看圖，再自動翻面看 AI 寫的話；減少動態或自己翻過就不翻
+                    if (data.quote && !reduceMotion) {
+                        setTimeout(function () { if (!userFlipped) setFlipped(true); }, 2800);
+                    }
+                }, reduceMotion ? 0 : 2000);
+            };
+            img.onerror = function () { stopWith('圖片載入失敗', true); };
+            img.src = imgUrl;
+        }
+
         function doGenerate() {
+            startTimer();
             var controller = new AbortController();
-            var timeout = setTimeout(function() {
-                controller.abort();
-                showRetry();
-            }, 45000);
+            var timeout = setTimeout(function () { controller.abort(); }, 45000);
 
             fetch('index.php?action=generate_card_content&id=' + diaryId, { signal: controller.signal })
-                .then(function(res) { return res.json(); })
-                .then(function(data) {
+                .then(function (res) { return res.json(); })
+                .then(function (data) {
                     clearTimeout(timeout);
-                    clearInterval(timerInterval);
-                    if (aborted) return;
-
-                    if (!data.success) {
-                        if (data.message && data.message.indexOf('請等待') !== -1) {
-                            updateStatus('⏳ ' + data.message);
-                            if (badge) badge.style.background = 'rgba(255,243,205,0.95)';
-                            setTimeout(function() {
-                                startTime = Date.now();
-                                timerInterval = setInterval(updateTimer, 1000);
-                                doGenerate();
-                            }, 2000);
-                            return;
-                        }
-                        updateStatus('AI 生成完成 ✨');
-                        if (quoteLoading) quoteLoading.style.display = 'none';
-                        if (badge) setTimeout(function() { badge.style.opacity = '0'; }, 2000);
+                    if (data.success) {
+                        stopTimer();
+                        showResult(data);
                         return;
                     }
-
-                    // 更新圖片
-                    if (data.image_url) {
-                        var imgUrl = data.image_url;
-                        if (imgUrl.indexOf('http') !== 0 && imgUrl.indexOf('public/') !== 0) {
-                            imgUrl = appUrl + '/public/' + imgUrl.replace(/^\//, '');
-                        }
-
-                        if (emojiContainer) {
-                            var img = document.createElement('img');
-                            img.src = imgUrl;
-                            img.alt = 'AI 生成插畫';
-                            img.className = 'card-image';
-                            img.id = 'card-image-el';
-                            img.loading = 'lazy';
-                            img.onerror = function() { this.style.display = 'none'; };
-                            img.onload = function() { this.style.animation = 'fadeIn 0.6s ease'; };
-
-                            emojiContainer.innerHTML = '';
-                            emojiContainer.appendChild(img);
-                            emojiContainer.classList.remove('card-emoji-fallback');
-                        }
-                        updateStatus('🎨 圖片完成');
+                    var msg = data.message || 'AI 這次沒畫出來';
+                    // 60 秒內只能生成一次：等一下自動再試
+                    if (msg.indexOf('請等待') !== -1) {
+                        stopTimer();
+                        if (stageEl) stageEl.textContent = msg;
+                        var waitSec = parseInt((msg.match(/\d+/) || ['5'])[0], 10);
+                        setTimeout(doGenerate, (waitSec + 1) * 1000);
+                        return;
                     }
-
-                    // 更新短語
-                    if (data.quote) {
-                        if (quoteText) {
-                            quoteText.textContent = data.quote;
-                            quoteText.style.display = 'block';
-                            quoteText.style.animation = 'fadeIn 0.5s ease';
-                        }
-                        if (quoteLoading) quoteLoading.style.display = 'none';
-                    }
-
-                    updateStatus('✨ 完成');
-                    if (badge) setTimeout(function() { badge.style.opacity = '0'; }, 2000);
+                    // 額度用完不給重試，其他錯誤可以重試
+                    stopWith(msg, msg.indexOf('用完') === -1 && msg.indexOf('耗盡') === -1);
                 })
-                .catch(function(err) {
+                .catch(function () {
                     clearTimeout(timeout);
-                    if (err.name === 'AbortError') return;
-                    showRetry();
+                    stopWith('等太久了，網路可能不穩', true);
                 });
         }
 

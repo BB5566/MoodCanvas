@@ -45,7 +45,8 @@ jobs:
           # 1. 首頁 200，有示範橫幅和範例日記
           code=$(curl -s -o home.html -w '%{http_code}' "$BASE?action=home")
           [ "$code" = "200" ] || fail "首頁回 $code，不是 200"
-          grep -q '不用註冊也能試' home.html || fail "首頁沒有試寫說明"
+          grep -q '把今天的日記' home.html || fail "首頁沒有主視覺"
+          grep -q 'og:image' home.html || fail "沒有分享預覽圖"
           grep -q '早餐店阿姨記得我' home.html || fail "首頁沒有範例日記標題"
           grep -q 'demo/demo-1.jpg' home.html || fail "範例日記沒有圖"
           grep -q 'action=diary_create&date=' home.html || fail "空白格子沒有「+」可以試寫"
@@ -87,6 +88,13 @@ jobs:
           echo "guest store -> $out"
           case "$out" in 302*action=diary_detail*) ;; *) fail "訪客送出日記沒有成功（$out）" ;; esac
           id=$(echo "$out" | grep -o 'id=[0-9]*' | head -n1 | cut -d= -f2)
+          # 同一天再寫一篇：訪客不該被轉去編輯頁（以前是死路）
+          out2=$(curl -s -c $J -b $J -o /dev/null -w '%{http_code} %{redirect_url}' \
+            --data-urlencode "csrf_token=$token" --data-urlencode 'title=第二篇' \
+            --data-urlencode 'content=同一天的第二篇' --data-urlencode 'mood=😊' \
+            --data-urlencode 'diary_date=2026-01-05' "$BASE?action=diary_store")
+          echo "guest second store -> $out2"
+          case "$out2" in 302*action=diary_detail*) ;; *) fail "訪客同一天第二篇被擋或轉去編輯（$out2）" ;; esac
           curl -s -c $J -b $J -o del.html --data-urlencode "csrf_token=$token" -d "id=$id" "$BASE?action=diary_delete&id=$id"
           grep -q '訪客不能刪除' del.html || fail "訪客刪除沒有被擋"
           php -r '$db = new PDO("sqlite:data/moodcanvas.sqlite");
@@ -94,7 +102,7 @@ jobs:
             $names = $db->query("SELECT username FROM users")->fetchAll(PDO::FETCH_COLUMN);
             $g = count(array_filter($names, fn($u) => str_starts_with($u, "guest_")));
             echo "diaries=$n guests=$g\n";
-            exit($n == 1 && $g == 1 ? 0 : 1);' || fail "訪客試寫後資料不對"
+            exit($n == 2 && $g == 1 ? 0 : 1);' || fail "訪客試寫後資料不對"
 
           echo "全部通過"
 

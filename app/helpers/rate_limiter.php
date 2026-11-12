@@ -221,3 +221,46 @@ if (!function_exists('checkAILimit')) {
         return true;
     }
 }
+
+if (!function_exists('aiLimitFiles')) {
+    // 今天這個 IP 的額度檔和全站額度檔（跟 checkAILimit 用同一組檔名）
+    function aiLimitFiles() {
+        $dir = defined('LOGS_PATH') ? LOGS_PATH : sys_get_temp_dir();
+        $today = date('Y-m-d');
+        return [
+            'ip' => $dir . '/ai_limit_' . md5(rateLimitClientIp()) . '_' . $today . '.json',
+            'global' => $dir . '/ai_limit_global_' . $today . '.json',
+        ];
+    }
+
+    function aiLimitCount($file) {
+        $data = is_file($file) ? json_decode((string) @file_get_contents($file), true) : null;
+        return (int) ($data['count'] ?? 0);
+    }
+
+    // 這次沒畫出圖：把剛扣的一次還回去（失敗不算次數）
+    function refundAILimit() {
+        foreach (aiLimitFiles() as $file) {
+            $fh = @fopen($file, 'c+');
+            if (!$fh) continue;
+            if (flock($fh, LOCK_EX)) {
+                $data = json_decode(stream_get_contents($fh), true);
+                $count = max(0, (int) ($data['count'] ?? 0) - 1);
+                ftruncate($fh, 0);
+                rewind($fh);
+                fwrite($fh, json_encode(['count' => $count]));
+                fflush($fh);
+                flock($fh, LOCK_UN);
+            }
+            fclose($fh);
+        }
+    }
+
+    // 訪客今天還能用幾次 AI（寫日記頁顯示用）
+    function aiLimitRemaining() {
+        $files = aiLimitFiles();
+        $perIp = max(0, 3 - aiLimitCount($files['ip']));
+        $global = max(0, 50 - aiLimitCount($files['global']));
+        return min($perIp, $global);
+    }
+}

@@ -1,14 +1,8 @@
 <?php
 // app/views/diary/detail.php
 
-require_once BASE_PATH . '/app/views/layout/header.php';
-
-// 翻轉卡片 CSS 已在 style-v2.css 中定義（由 header.php 載入），此處不再重複
-$flipCSS = '20260603a'; ?>
-
-<?php
-
 if (!$diary) {
+    require_once BASE_PATH . '/app/views/layout/header.php';
     echo "<div class='bento-card text-center'><h2>日記不存在或已被刪除。</h2><a href='index.php?action=home' class='btn'>返回日曆</a></div>";
     require_once BASE_PATH . '/app/views/layout/footer.php';
     exit;
@@ -23,7 +17,7 @@ $aiText = $diary['ai_generated_text'] ?? '';
 $diaryId = $diary['id'];
 $isDemo = !empty($diary['is_demo']); // 訪客看的範例日記：唯讀，不顯示編輯與 AI 按鈕
 
-$pageTitle = $title . ' | ' . $date->format('Y-m-d') . ' ' . $mood;
+$pageTitle = ($diary['title'] ?? '無標題') . ' | ' . $date->format('Y-m-d') . ' ' . $mood;
 $metaDescription = mb_substr(strip_tags($diary['content'] ?? ''), 0, 80, 'UTF-8');
 
 // 圖片 URL
@@ -41,15 +35,16 @@ if (!empty($imagePath)) {
 $hasImage = !empty($imageUrl);
 $hasQuote = !empty($aiText);
 $aiGenerating = !$isDemo && ($ai_generating ?? false);
+$ogImage = $imageUrl; // 分享時的預覽圖用這篇的圖
+require_once BASE_PATH . '/app/views/layout/header.php';
 ?>
 
 <div class="diary-card-wrapper">
-    
-    <!-- 翻轉卡片本體 -->
-    <div class="flip-card" id="flip-card" role="button" tabindex="0" aria-label="點擊翻轉拍立得卡片">
+
+    <!-- 翻轉卡片本體：正面拍立得、背面 AI 寫的話和日記 -->
+    <div class="flip-card" id="flip-card" role="button" tabindex="0" aria-label="翻轉拍立得卡片">
         <div class="flip-card-inner" id="flip-card-inner">
-            
-            <!-- 正面：拍立得照片（圖片 / Emoji）-->
+
             <div class="flip-card-front" id="card-front">
                 <div class="polaroid-photo">
                     <?php if ($hasImage): ?>
@@ -59,81 +54,75 @@ $aiGenerating = !$isDemo && ($ai_generating ?? false);
                              loading="lazy"
                              id="card-image-el"
                              data-fallback-mood="<?php echo $mood; ?>">
+                    <?php elseif ($aiGenerating): ?>
+                        <!-- 生成中：像拍立得剛吐出來，底片慢慢顯影 -->
+                        <div class="card-emoji-fallback developing" id="card-emoji">
+                            <div class="develop-status">
+                                <span class="develop-stage" id="develop-stage" role="status">正在讀你的日記</span>
+                                <span class="develop-time" id="develop-time" aria-hidden="true">0 秒</span>
+                            </div>
+                        </div>
                     <?php else: ?>
                         <div class="card-emoji-fallback" id="card-emoji">
                             <span class="card-emoji"><?php echo $mood; ?></span>
-                            <?php if ($aiGenerating): ?>
-                                <div class="ai-generating-badge">
-                                    <div class="loading-spinner-small"></div>
-                                    <span>AI 正在創作...</span>
-                                </div>
-                            <?php endif; ?>
                         </div>
                     <?php endif; ?>
+                    <span class="develop-stamp" id="develop-stamp" aria-hidden="true">顯影完成</span>
                 </div>
 
-                <!-- 拍立得下方手寫感說明 -->
                 <div class="polaroid-caption">
                     <span class="card-date"><?php echo $date->format('Y . m . d'); ?></span>
                     <span class="card-mood-tag" role="img" aria-label="心情"><?php echo $mood; ?></span>
                 </div>
-
-                <!-- 翻轉提示 -->
-                <div class="flip-hint" aria-hidden="true">
-                    <span>點擊翻轉 ↻</span>
-                </div>
             </div>
-            
-            <!-- 背面：內容 + 短語 -->
+
             <div class="flip-card-back" id="card-back">
                 <div class="card-back-content">
                     <h2 class="card-back-title"><?php echo $title; ?></h2>
                     <time class="card-back-date"><?php echo $date->format('Y年m月d日'); ?></time>
-                    
-                    <div class="card-back-diary">
-                        <?php echo $content; ?>
-                    </div>
-                    
+
                     <?php if ($hasQuote): ?>
                         <div class="card-back-quote" id="quote-section">
-                            <div class="quote-divider"></div>
                             <blockquote id="quote-text"><?php echo htmlspecialchars($aiText); ?></blockquote>
                         </div>
                     <?php elseif ($aiGenerating): ?>
                         <div class="card-back-quote" id="quote-section">
-                            <div class="quote-divider"></div>
                             <div class="quote-loading" id="quote-loading">
-                                <div class="loading-spinner-small"></div>
-                                <span>AI 正在為你寫下心情短語...</span>
+                                <span>AI 正在想一句話給你…</span>
                             </div>
                             <blockquote id="quote-text" style="display:none;"></blockquote>
                         </div>
                     <?php endif; ?>
-                </div>
-                
-                <!-- 翻轉提示 -->
-                <div class="flip-hint" aria-hidden="true">
-                    <span>點擊翻轉 ↻</span>
+
+                    <div class="card-back-diary">
+                        <?php echo $content; ?>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- 操作按鈕 -->
+    <p class="sr-only" id="develop-announce" role="status"></p>
+
+    <!-- 翻面按鈕：手機沒有滑過提示，一定要看得到（原本的提示會蓋到日期） -->
+    <button type="button" class="flip-toggle" id="flip-toggle" aria-pressed="false">
+        翻到背面，看 AI 寫給你的話
+    </button>
+
     <div class="diary-actions">
-        <a href="index.php?action=home" class="btn btn-tertiary">📅 返回日曆</a>
+        <a href="index.php?action=home" class="btn btn-tertiary">返回日曆</a>
         <?php if ($isDemo): ?>
-            <a href="index.php?action=login" class="btn btn-secondary">登入寫自己的日記</a>
+            <a href="index.php?action=diary_create" class="btn btn-primary">我也試寫一篇</a>
         <?php else: ?>
-            <a href="index.php?action=diary_edit&id=<?php echo $diaryId; ?>" class="btn btn-tertiary">✏️ 編輯</a>
-            <a href="index.php?action=diary_create" class="btn btn-secondary">✏️ 再寫一篇</a>
+            <a href="index.php?action=diary_edit&id=<?php echo $diaryId; ?>" class="btn btn-tertiary">編輯</a>
+            <a href="index.php?action=diary_create" class="btn btn-primary">再寫一篇</a>
         <?php endif; ?>
     </div>
 </div>
 
 <?php if (!$isDemo && !$aiGenerating && !$hasImage): ?>
 <div class="diary-actions" style="margin-top:0.5rem">
-    <button id="regenerate-ai-btn" class="btn btn-secondary" style="font-size:0.85rem" data-diary-id="<?php echo (int) $diaryId; ?>">🔄 重新生成 AI</button>
+    <button id="regenerate-ai-btn" class="btn btn-secondary" style="font-size:0.85rem" data-diary-id="<?php echo (int) $diaryId; ?>">重新生成 AI</button>
 </div>
 <?php endif; ?>
 
