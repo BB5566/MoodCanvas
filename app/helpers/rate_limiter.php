@@ -124,8 +124,9 @@ if (!function_exists('checkAILimit')) {
         $today = date('Y-m-d');
         $file = $dir . '/ai_limit_' . md5($ip) . '_' . $today . '.json';
 
-        $maxDailyRequests = $is_guest ? 5 : 20; // 訪客每日5次，一般用戶20次
-        $maxGlobalRequests = 500; // 全站每日上限
+        // 每次生成約 US$0.003（Flux 生圖＋GPT-5 nano 文字），上限壓在最壞一天約 NT$5
+        $maxDailyRequests = $is_guest ? 3 : 20; // 訪客每天 3 次，註冊用戶 20 次
+        $maxGlobalRequests = 50; // 全站每天上限
 
         $globalFile = $dir . '/ai_limit_global_' . $today . '.json';
 
@@ -165,7 +166,7 @@ if (!function_exists('checkAILimit')) {
         if ($entries >= $maxDailyRequests) {
             http_response_code(429);
             header('Content-Type: application/json; charset=utf-8');
-            die(json_encode(['success' => false, 'message' => 'AI 額度已耗盡，請明天再試。']));
+            die(json_encode(['success' => false, 'message' => '今天的 AI 試用次數用完了，明天再來，或註冊後繼續寫。']));
         }
 
         if ($globalEntries >= $maxGlobalRequests) {

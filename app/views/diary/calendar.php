@@ -70,10 +70,10 @@ if (isset($diaries)) {
 <?php if (!isset($_SESSION['user_id'])): ?>
     <div class="demo-banner" role="region" aria-label="示範模式說明">
         <div class="demo-banner-content">
-            <span><strong>示範模式</strong>：以下是範例日記，登入後就能寫自己的</span>
+            <span><strong>不用註冊也能試</strong>：點日曆上的「+」寫一篇，AI 會幫你畫成一張圖、寫一句話</span>
         </div>
         <div class="demo-banner-actions">
-            <a href="<?php echo APP_URL; ?>/public/index.php?action=register" class="btn btn-primary demo-banner-cta">立即註冊</a>
+            <a href="<?php echo APP_URL; ?>/public/index.php?action=diary_create" class="btn btn-primary demo-banner-cta">試寫一篇</a>
         </div>
     </div>
 <?php endif; ?>
@@ -170,16 +170,10 @@ if (isset($diaries)) {
                                 }
                             } else {
                                 $currentDate = sprintf('%04d-%02d-%02d', $year, $month, $currentDay);
-                                // 只有已登入使用者才允許新增日記；訪客會看到提示
-                                if (isset($_SESSION['user_id'])) {
-                                    echo "<a href='index.php?action=diary_create&date={$currentDate}' class='no-diary' data-date='{$currentDate}' title='新增日記' aria-label='新增 {$currentDate} 日記'>";
-                                    echo "<span class='add-diary-btn' aria-hidden='true'>+</span>";
-                                    echo "</a>";
-                                } else {
-                                    echo "<div class='no-diary no-diary-guest' data-date='{$currentDate}' title='需登入才能新增日記' aria-label='需登入才能新增日記'>";
-                                    echo "<span class='add-diary-btn' aria-hidden='true'>+</span>";
-                                    echo "</div>";
-                                }
+                                // 訪客也能試寫（不用註冊），註冊的人寫的會永久保存
+                                echo "<a href='index.php?action=diary_create&date={$currentDate}' class='no-diary' data-date='{$currentDate}' title='新增日記' aria-label='新增 {$currentDate} 日記'>";
+                                echo "<span class='add-diary-btn' aria-hidden='true'>+</span>";
+                                echo "</a>";
                             }
 
                             echo "</td>";
