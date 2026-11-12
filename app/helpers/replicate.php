@@ -1,10 +1,10 @@
 <?php
 // app/helpers/replicate.php
-// 所有 AI 功能都走 Replicate：生圖用 Flux Schnell，文字（畫面描述、心情短語、心情洞察）用 DeepSeek V3。
+// 所有 AI 功能都走 Replicate：生圖用 Flux Schnell，文字（畫面描述、心情短語、心情洞察）用 GPT-5 nano（便宜、夠快）。
 // 只需要一把 REPLICATE_API_KEY。
 
 const REPLICATE_IMAGE_MODEL = 'black-forest-labs/flux-schnell';
-const REPLICATE_TEXT_MODEL = 'deepseek-ai/deepseek-v3';
+const REPLICATE_TEXT_MODEL = 'openai/gpt-5-nano';
 
 // 跑一次模型，回傳 output；先同步等最多 60 秒，還沒好就每 2 秒查一次，最多再等 30 秒
 function replicateRun(string $model, array $input)
@@ -62,12 +62,14 @@ function replicateRequest(string $url, string $apiKey, ?array $body = null, int 
 }
 
 // 文字模型：回傳整段文字（Replicate 的文字輸出是一串 token，要接起來）
-function replicateText(string $prompt, int $maxTokens = 300, float $temperature = 0.7): string
+// GPT-5 nano 是推理模型：推理開到最低才快；max_completion_tokens 要含推理用量，所以給寬一點
+function replicateText(string $prompt, int $maxTokens = 300): string
 {
     $output = replicateRun(REPLICATE_TEXT_MODEL, [
         'prompt' => $prompt,
-        'max_tokens' => $maxTokens,
-        'temperature' => $temperature,
+        'reasoning_effort' => 'minimal',
+        'verbosity' => 'low',
+        'max_completion_tokens' => $maxTokens + 300,
     ]);
     return trim(is_array($output) ? implode('', $output) : (string) $output);
 }

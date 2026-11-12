@@ -25,7 +25,7 @@ MoodCanvas 是一個創新的情緒日記應用程式，結合傳統日記寫作
 - **情感氛圍映射** - 根據心情自動調整燈光和色調
 
 ### 💬 AI 心情短語
-- **DeepSeek V4 Pro 驅動**（經 Pioneer API）- 生成富有詩意的心情註解
+- **GPT-5 nano 驅動**（經 Replicate）- 先讀懂日記、寫出畫面描述，再給一句像朋友寫在卡片背面的話
 - **多語言支援** - 中文/英文
 - **情境感知** - 根據日記內容生成貼切的短語
 
@@ -57,7 +57,7 @@ MoodCanvas 是一個創新的情緒日記應用程式，結合傳統日記寫作
 
 ### AI 服務整合
 - **Replicate** - FLUX Schnell 圖像生成
-- **Pioneer API** - 呼叫 DeepSeek V4 Pro 生成心情短語與洞察
+- **Replicate GPT-5 nano** - 畫面描述、心情短語與洞察（跟生圖共用同一把金鑰）
 
 ## 🏗️ 系統架構圖
 
@@ -83,7 +83,7 @@ graph TB
     end
 
     subgraph "AI 服務層"
-        K[Pioneer API · DeepSeek V4 Pro]
+        K[Replicate GPT-5 nano]
         L[Replicate FLUX Schnell]
     end
 
@@ -249,16 +249,8 @@ chmod 600 config/gcp-service-account.json
 
 ## 🔧 AI 服務配置
 
-### Pioneer (文字生成，必須)
-心情短語與 AI 洞察透過 Pioneer API 呼叫 DeepSeek V4 Pro。
-1. 前往 [Pioneer](https://pioneer.ai)
-2. 創建帳戶並取得 API Key
-3. 在 `.env` 中設定：
-```bash
-PIONEER_API_KEY="pio_sk_your-key-here"
-```
-
-### Replicate (圖片生成，必須)
+### Replicate（生圖與文字，必須）
+只需要這一把金鑰：生圖用 FLUX Schnell，文字用 GPT-5 nano。
 1. 前往 [Replicate](https://replicate.com/account/api-tokens)
 2. 創建帳戶並取得 API Token
 3. 在 `.env` 中設定：
@@ -272,7 +264,6 @@ REPLICATE_API_KEY="r8_your-token-here"
 ```bash
 # === AI 服務配置 ===
 REPLICATE_API_KEY="r8_your-token-here"
-PIONEER_API_KEY="pio_sk_your-key-here"
 
 # === 資料庫配置 ===
 # 預設 SQLite；改用 MySQL 時設 DB_TYPE=mysql 並填下方連線資訊
@@ -351,7 +342,7 @@ erDiagram
 #### 3. AI 文字生成失敗
 **症狀**: 心情短語無法生成
 **解決方案**:
-- 檢查 Pioneer API Key
+- 檢查 Replicate API Key
 - 確認網路連線
 - 檢查 API 配額
 
@@ -432,8 +423,7 @@ MoodCanvas 的設計靈感來自於日本的 **物の哀れ** (mono no aware) �
 
 ## 🌟 致謝
 
-- **DeepSeek**（經 Pioneer API）- 提供文字生成
-- **Replicate** - 提供 FLUX Schnell 圖像生成
+- **Replicate** - 提供 FLUX Schnell 圖像生成與 GPT-5 nano 文字生成
 - **Chart.js & D3.js** - 優秀的資料視覺化工具
 - **所有貢獻者** - 讓 MoodCanvas 變得更好
 

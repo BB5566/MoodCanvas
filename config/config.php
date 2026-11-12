@@ -217,7 +217,7 @@ function getDbConnection()
     }
 }
 
-// AI 服務金鑰（DEEPSEEK / PIONEER / REPLICATE）由使用處直接 getenv 讀取。
+// AI 服務只用 REPLICATE_API_KEY，由 app/helpers/replicate.php 直接 getenv 讀取。
 // OpenAI / Perplexity / Gemini / Vertex 相關常數已隨對應的死代碼一併移除。
 
 // 安全設定
