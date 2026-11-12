@@ -157,7 +157,7 @@ document.addEventListener('DOMContentLoaded', function () {
         function tick() {
             var sec = Math.floor((Date.now() - startTime) / 1000);
             if (timeEl) timeEl.textContent = sec + ' 秒';
-            if (stageEl) stageEl.textContent = sec < 3 ? '正在讀你的日記' : sec < 7 ? '想像畫面' : '顯影中';
+            if (stageEl) stageEl.textContent = sec < 3 ? '正在讀你的日記' : sec < 7 ? '想像畫面' : sec < 20 ? '顯影中' : 'AI 這時候比較忙，再等一下';
         }
         function startTimer() { startTime = Date.now(); tick(); timer = setInterval(tick, 500); }
         function stopTimer() { clearInterval(timer); }
@@ -224,7 +224,7 @@ document.addEventListener('DOMContentLoaded', function () {
         function doGenerate() {
             startTimer();
             var controller = new AbortController();
-            var timeout = setTimeout(function () { controller.abort(); }, 45000);
+            var timeout = setTimeout(function () { controller.abort(); }, 100000); // 生圖服務排隊時偶爾要一分多鐘，後端最多約 90 秒
 
             fetch('index.php?action=generate_card_content&id=' + diaryId, { signal: controller.signal })
                 .then(function (res) { return res.json(); })
