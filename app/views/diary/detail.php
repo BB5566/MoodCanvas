@@ -72,7 +72,7 @@ require_once BASE_PATH . '/app/views/layout/header.php';
 
                 <div class="polaroid-caption">
                     <span class="card-date"><?php echo $date->format('Y . m . d'); ?></span>
-                    <span class="card-mood-tag"><?php echo htmlspecialchars(moodLabel($diary['mood'] ?? '')); ?></span>
+                    <span class="card-mood-tag mood-<?php echo moodSlug($diary['mood'] ?? ''); ?>"><?php echo htmlspecialchars(moodLabel($diary['mood'] ?? '')); ?></span>
                 </div>
             </div>
 

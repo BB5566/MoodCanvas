@@ -70,6 +70,15 @@ if (!function_exists('moodLabel')) {
     }
 }
 
+if (!function_exists('moodSlug')) {
+    // 心情的英文代號，給 CSS 上顏色用（class="mood-happy"）
+    function moodSlug($emoji) {
+        $slugs = ['😊' => 'happy', '😢' => 'sad', '😡' => 'angry', '😍' => 'love', '😴' => 'tired',
+                  '🤔' => 'think', '😂' => 'laugh', '😰' => 'anxious', '🥰' => 'warm', '🙄' => 'meh'];
+        return $slugs[$emoji] ?? 'none';
+    }
+}
+
 if (!function_exists('isRegisteredUser')) {
     // 已登入而且不是臨時訪客帳號
     function isRegisteredUser() {

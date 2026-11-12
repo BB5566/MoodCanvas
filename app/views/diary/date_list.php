@@ -25,7 +25,7 @@ $metaDescription = '瀏覽 ' . $dateFormatted . ' 所有心情日記，快速檢
             <article class="diary-card">
                 <header class="diary-card-header">
                     <div class="diary-meta">
-                        <span class="mood-word"><?php echo htmlspecialchars(moodLabel($diary['mood'] ?? '')); ?></span>
+                        <span class="mood-word mood-<?php echo moodSlug($diary['mood'] ?? ''); ?>"><?php echo htmlspecialchars(moodLabel($diary['mood'] ?? '')); ?></span>
                         <h3><?php echo htmlspecialchars($diary['title']); ?></h3>
                         <time class="diary-time"><?php echo date('H:i', strtotime($diary['created_at'])); ?></time>
                     </div>

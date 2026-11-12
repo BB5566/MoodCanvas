@@ -68,11 +68,17 @@ if (isset($diaries)) {
 <?php if (!isRegisteredUser()): ?>
     <!-- 第一次來的人：先看到成品長什麼樣，再給一個按鈕 -->
     <section class="mc-hero" aria-labelledby="mc-hero-title">
-        <a class="mc-hero-card" href="index.php?action=diary_detail&id=-1&year=<?php echo (int) $year; ?>&month=<?php echo (int) $month; ?>">
-            <img src="<?php echo APP_URL; ?>/public/assets/images/demo/demo-1.jpg" width="768" height="768"
-                 alt="範例：AI 讀完「早餐店阿姨記得我」這篇日記畫的圖">
-            <span class="mc-hero-cap">早餐店阿姨記得我</span>
-        </a>
+        <!-- 三張範例拍立得疊在一起：最上面那張可以點進去看 -->
+        <div class="mc-hero-stack">
+            <img class="mc-hero-back mc-hero-back--l" src="<?php echo APP_URL; ?>/public/assets/images/demo/demo-6.jpg" width="768" height="768" alt="" aria-hidden="true">
+            <img class="mc-hero-back mc-hero-back--r" src="<?php echo APP_URL; ?>/public/assets/images/demo/demo-4.jpg" width="768" height="768" alt="" aria-hidden="true">
+            <a class="mc-hero-card" href="index.php?action=diary_detail&id=-1&year=<?php echo (int) $year; ?>&month=<?php echo (int) $month; ?>">
+                <img src="<?php echo APP_URL; ?>/public/assets/images/demo/demo-1.jpg" width="768" height="768"
+                     alt="範例：AI 讀完「早餐店阿姨記得我」這篇日記畫的圖">
+                <span class="mc-hero-cap">早餐店阿姨記得我</span>
+            </a>
+            <span class="mc-hero-sticker" aria-hidden="true">免註冊<br>約 10 秒</span>
+        </div>
         <div class="mc-hero-text">
             <h1 id="mc-hero-title">把今天的日記，<br>變成一張拍立得</h1>
             <p>寫幾句今天發生的事，AI 會讀完畫成一張圖，再寫一句話給你。不用註冊，大約 10 秒。</p>
@@ -156,7 +162,7 @@ if (isset($diaries)) {
                                         echo "</a>";
                                     } else {
                                         echo "<a href='{$detailLink}' class='diary-entry' title='{$diaryTitle}' aria-label='查看日記：{$diaryTitle}'>";
-                                        echo "<span class='mood-word'>{$moodEmoji}</span>";
+                                        echo "<span class='mood-word mood-" . moodSlug($diary['mood'] ?? '') . "'>{$moodEmoji}</span>";
                                         echo "</a>";
                                     }
                                 } else {
@@ -204,12 +210,12 @@ if (isset($diaries)) {
     <div class="bento-sidebar">
         <!-- 這個月：一句話＋心情次數，不做 KPI 方塊 -->
         <div class="bento-card month-note">
-            <h3><?php echo (int) $month; ?> 月</h3>
+            <h3><?php echo (int) $month; ?> 月的心情</h3>
             <?php if ($totalDiaries > 0): ?>
                 <p>寫了 <strong><?php echo $totalDiaries; ?></strong> 篇，<?php echo $daysWithDiaries; ?> 天有記錄。</p>
                 <ul class="mood-tally" aria-label="心情次數">
                     <?php foreach ($moodStats as $m => $count): ?>
-                        <li><span class="mood-word"><?php echo htmlspecialchars(moodLabel($m)); ?></span> <?php echo (int) $count; ?></li>
+                        <li class="mood-<?php echo moodSlug($m); ?>"><span class="mood-word"><?php echo htmlspecialchars(moodLabel($m)); ?></span> <?php echo (int) $count; ?></li>
                     <?php endforeach; ?>
                 </ul>
             <?php else: ?>
