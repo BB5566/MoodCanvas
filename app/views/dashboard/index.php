@@ -19,7 +19,9 @@ require_once BASE_PATH . '/app/views/layout/header.php';
     </div>
     <div class="bento-card" id="mood-chart-container">
         <h3>心情趨勢</h3>
-        <canvas id="mood-chart" role="img" aria-label="心情趨勢圖"></canvas>
+        <div class="chart-box">
+            <canvas id="mood-chart" role="img" aria-label="心情趨勢圖"></canvas>
+        </div>
     </div>
     <div class="bento-card" id="mood-wordcloud-container">
         <h3>常寫的字</h3>

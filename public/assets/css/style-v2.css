@@ -196,9 +196,13 @@ body {
   gap: 20px;
 }
 
-.dashboard-grid { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+/* 統計頁跟首頁同一套 12 欄（以前用自動欄數又叫它跨 12 欄，整排被撐出畫面） */
+#ai-insights-container { grid-column: span 12; }
+#heatmap { overflow-x: auto; }
+/* Chart.js 不維持比例時，外框一定要固定高度，不然圖會跟著視窗一直長高 */
+.chart-box { position: relative; height: 300px; }
 #heatmap-container { grid-column: span 12; min-height: 300px; }
-#mood-chart-container { grid-column: span 6; min-height: 350px; }
+#mood-chart-container { grid-column: span 6; }
 #mood-wordcloud-container { grid-column: span 6; min-height: 350px; }
 #ai-insights-container {
   grid-column: span 12; min-height: 150px;
