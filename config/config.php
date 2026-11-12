@@ -143,8 +143,8 @@ function getDbConnection()
                 $oldPath = BASE_PATH . '/database/moodcanvas.sqlite';
                 $newPath = BASE_PATH . '/data/moodcanvas.sqlite';
 
-                // 相容舊版：如果舊路徑有檔案且新路徑沒有，則繼續使用舊路徑
-                if (file_exists($oldPath) && !file_exists($newPath)) {
+                // 舊路徑 database/ 有檔案就一律用它（Docker 掛的具名資料卷在這裡；data/ 重建會清空，不能被它搶走）
+                if (file_exists($oldPath)) {
                     $dbPath = $oldPath;
                 } else {
                     $dbPath = $newPath;
@@ -217,7 +217,7 @@ function getDbConnection()
     }
 }
 
-// AI 服務金鑰（DEEPSEEK / PIONEER / REPLICATE）由使用處直接 getenv 讀取。
+// AI 服務只用 REPLICATE_API_KEY，由 app/helpers/replicate.php 直接 getenv 讀取。
 // OpenAI / Perplexity / Gemini / Vertex 相關常數已隨對應的死代碼一併移除。
 
 // 安全設定

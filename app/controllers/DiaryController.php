@@ -11,6 +11,7 @@ use Exception;
 require_once __DIR__ . '/../helpers/csrf.php';
 require_once __DIR__ . '/../helpers/validator.php';
 require_once __DIR__ . '/../helpers/demo_diaries.php';
+require_once __DIR__ . '/../helpers/replicate.php';
 
 class DiaryController
 {
@@ -371,9 +372,18 @@ class DiaryController
 
         $results = ['success' => true, 'image_url' => null, 'quote' => null];
 
-        // 生成圖片
+        // 先讓文字模型讀日記：寫出英文畫面描述（給生圖用）與心情短語
+        $reading = ['scene' => null, 'quote' => null];
         try {
-            $img = $this->callAIImageGeneration($content, $style, $mood);
+            $reading = $this->callAIDiaryReading($content, $mood);
+        } catch (Exception $e) {
+            logMessage("AI 讀日記失敗: " . $e->getMessage(), 'ERROR');
+            $results['quote_error'] = $e->getMessage();
+        }
+
+        // 生成圖片（讀日記失敗就只用心情與畫風生圖）
+        try {
+            $img = $this->callAIImageGeneration($reading['scene'], $style, $mood);
             if ($img) {
                 $results['image_url'] = $img;
                 $this->diaryModel->update($diary_id, ['image_path' => $img]);
@@ -383,16 +393,9 @@ class DiaryController
             $results['image_error'] = $e->getMessage();
         }
 
-        // 生成短語
-        try {
-            $quote = $this->callAIQuoteGeneration($content, $mood);
-            if ($quote) {
-                $results['quote'] = $quote;
-                $this->diaryModel->update($diary_id, ['ai_generated_text' => $quote]);
-            }
-        } catch (Exception $e) {
-            logMessage("AI 短語失敗: " . $e->getMessage(), 'ERROR');
-            $results['quote_error'] = $e->getMessage();
+        if ($reading['quote']) {
+            $results['quote'] = $reading['quote'];
+            $this->diaryModel->update($diary_id, ['ai_generated_text' => $reading['quote']]);
         }
 
         echo json_encode($results);
@@ -600,82 +603,17 @@ class DiaryController
     // ============================================================
     // 內部：AI 圖片生成（Replicate Flux Schnell + 本地儲存）
     // ============================================================
-    private function callAIImageGeneration($content, $style, $mood)
+    private function callAIImageGeneration($scene, $style, $mood)
     {
-        $apiKey = getenv('REPLICATE_API_KEY');
-        if (empty($apiKey)) throw new Exception('REPLICATE_API_KEY not configured');
-
-        $prompt = $this->buildImagePrompt($content, $style, $mood);
-
-        $ch = curl_init('https://api.replicate.com/v1/predictions');
-        curl_setopt_array($ch, [
-            CURLOPT_POST => true,
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_TIMEOUT => 30,
-            CURLOPT_HTTPHEADER => [
-                "Authorization: Bearer $apiKey",
-                'Content-Type: application/json',
-                'Prefer: wait',
-            ],
-            CURLOPT_POSTFIELDS => json_encode([
-                'version' => 'black-forest-labs/flux-schnell',
-                'input' => [
-                    'prompt' => $prompt,
-                    'aspect_ratio' => '1:1',
-                    'num_outputs' => 1,
-                    'output_format' => 'jpg',
-                ],
-            ]),
+        $output = replicateRun(REPLICATE_IMAGE_MODEL, [
+            'prompt' => $this->buildImagePrompt($scene, $style, $mood),
+            'aspect_ratio' => '1:1',
+            'num_outputs' => 1,
+            'output_format' => 'jpg',
         ]);
-
-        $response = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
-
-        if (!in_array($httpCode, [200, 201])) {
-            throw new Exception("Replicate API HTTP $httpCode");
-        }
-
-        $data = json_decode($response, true);
-
-        // Prefer: wait 多半已同步完成，先檢查首次回應，避免白白進入 poll 又多睡 2 秒
-        if (($data['status'] ?? '') === 'succeeded') {
-            $output = $data['output'] ?? null;
-            $immediateUrl = is_array($output) ? ($output[0] ?? null) : $output;
-            if ($immediateUrl) return $this->downloadImage($immediateUrl);
-        }
-
-        $predictionId = $data['id'] ?? null;
-        if (!$predictionId) throw new Exception('No prediction ID');
-
-        $imageUrl = $this->pollReplicatePrediction($predictionId, $apiKey);
-        if (!$imageUrl) throw new Exception('Image generation timed out');
-
-        return $this->downloadImage($imageUrl);
-    }
-
-    private function pollReplicatePrediction($predictionId, $apiKey)
-    {
-        for ($i = 0; $i < 15; $i++) {
-            $ch = curl_init("https://api.replicate.com/v1/predictions/$predictionId");
-            curl_setopt_array($ch, [
-                CURLOPT_RETURNTRANSFER => true,
-                CURLOPT_TIMEOUT => 10,
-                CURLOPT_HTTPHEADER => ["Authorization: Bearer $apiKey"],
-            ]);
-            $response = curl_exec($ch);
-            curl_close($ch);
-            $data = json_decode($response, true);
-
-            $status = $data['status'] ?? 'processing';
-            if ($status === 'succeeded') {
-                $output = $data['output'] ?? null;
-                return is_array($output) ? ($output[0] ?? null) : $output;
-            }
-            if (in_array($status, ['failed', 'canceled'])) return null;
-            sleep(2); // 查詢之後再等待，避免每輪都先睡造成不必要延遲
-        }
-        return null;
+        $url = is_array($output) ? ($output[0] ?? null) : $output;
+        if (!$url) throw new Exception('No image URL');
+        return $this->downloadImage($url);
     }
 
     private function downloadImage($url)
@@ -711,38 +649,24 @@ class DiaryController
     }
 
     // ============================================================
-    // 內部：AI 心情短語生成（Pioneer → DeepSeek V4 Pro）
+    // 內部：讀日記（GPT-5 nano）→ 英文畫面描述＋繁中心情短語
+    // 生圖模型看不懂中文，所以先把日記寫成具體的英文畫面，圖才會跟內容對得上
     // ============================================================
-    private function callAIQuoteGeneration($content, $mood)
+    private function callAIDiaryReading($content, $mood)
     {
-        $apiKey = getenv('PIONEER_API_KEY');
-        if (empty($apiKey)) throw new Exception('PIONEER_API_KEY not configured');
+        $prompt = "你是插畫導演，也是溫柔的朋友。讀下面這篇日記，只回傳一個 JSON 物件，不要其他文字。\n"
+                . "欄位規則：\n"
+                . "- scene：只能用英文（不可有任何中文字），一句 15～35 個字的畫面描述。只畫日記裡真的出現的人、動物、物品、地點與動作，不要自己加東西。"
+                . "畫面裡不能有招牌、菜單、海報、螢幕上的字或任何文字，場景請描述成人物與物品的特寫。\n"
+                . "- quote：繁體中文，12～22 字，像朋友讀完後寫在卡片背面的一句話：有一點詩意的比喻，貼著這篇的心情（好笑就輕快、緊張就安撫）。"
+                . "不要重述日記內容，不要用「光」「溫暖」這類空泛字眼。\n"
+                . '格式：{"scene": "...", "quote": "..."}' . "\n\n"
+                . "日記（心情 {$mood}）：\n" . mb_substr($content, 0, 600);
 
-        $prompt = "請根據以下日記內容，生成一句溫暖、有詩意的心情短語（不超過 40 字）。\n\n"
-                . "日記內容：{$content}\n心情：{$mood}\n\n只需回傳短語本身，不要加任何說明。";
-
-        $ch = curl_init('https://api.pioneer.ai/v1/chat/completions');
-        curl_setopt_array($ch, [
-            CURLOPT_POST => true,
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_TIMEOUT => 60,
-            CURLOPT_HTTPHEADER => [
-                "Authorization: Bearer $apiKey",
-                'Content-Type: application/json',
-            ],
-            CURLOPT_POSTFIELDS => json_encode([
-                'model' => 'deepseek-ai/DeepSeek-V4-Pro',
-                'messages' => [['role' => 'user', 'content' => $prompt]],
-                'max_tokens' => 500,
-                'temperature' => 0.9,
-            ]),
-        ]);
-
-        $response = curl_exec($ch);
-        curl_close($ch);
-
-        $data = json_decode($response, true);
-        return trim($data['choices'][0]['message']['content'] ?? '') ?: null;
+        $data = extractJsonObject(replicateText($prompt, 300)) ?? [];
+        $scene = trim((string) ($data['scene'] ?? ''));
+        $quote = trim((string) ($data['quote'] ?? ''));
+        return ['scene' => $scene ?: null, 'quote' => $quote ?: null];
     }
 
     // ============================================================
@@ -803,45 +727,21 @@ class DiaryController
     }
 
     // ============================================================
-    // 內部：透過 Pioneer API 呼叫 DeepSeek V4 Pro 產生心情洞察
+    // 內部：GPT-5 nano 產生心情洞察
     // ============================================================
     private function callAIInsightGeneration($summary)
     {
-        $apiKey = getenv('PIONEER_API_KEY');
-        if (empty($apiKey)) throw new Exception('PIONEER_API_KEY not configured');
-
         $prompt = "你是一位溫暖的心理陪伴者。以下是使用者近期的心情日記摘要，"
                 . "請用繁體中文寫一段 2-3 句、溫暖且具洞察力的觀察與鼓勵（不超過 120 字），"
                 . "點出心情趨勢或值得留意的地方，語氣親切不說教。\n\n摘要：\n{$summary}\n\n只回傳觀察文字本身，不要加任何說明。";
 
-        $ch = curl_init('https://api.pioneer.ai/v1/chat/completions');
-        curl_setopt_array($ch, [
-            CURLOPT_POST => true,
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_TIMEOUT => 60,
-            CURLOPT_HTTPHEADER => [
-                "Authorization: Bearer $apiKey",
-                'Content-Type: application/json',
-            ],
-            CURLOPT_POSTFIELDS => json_encode([
-                'model' => 'deepseek-ai/DeepSeek-V4-Pro',
-                'messages' => [['role' => 'user', 'content' => $prompt]],
-                'max_tokens' => 250,
-                'temperature' => 0.8,
-            ]),
-        ]);
-
-        $response = curl_exec($ch);
-        curl_close($ch);
-
-        $data = json_decode($response, true);
-        return trim($data['choices'][0]['message']['content'] ?? '') ?: null;
+        return replicateText($prompt, 250) ?: null;
     }
 
     // ============================================================
     // 內部：建立圖片提示詞
     // ============================================================
-    private function buildImagePrompt($content, $style, $mood)
+    private function buildImagePrompt($scene, $style, $mood)
     {
         $moodMap = [
             '😊' => 'joyful, bright, warm',
@@ -862,17 +762,16 @@ class DiaryController
             '3d-render' => 'Pixar-style 3D render, soft lighting, charming',
             'flat-illustration' => 'flat design illustration, minimalist, clean lines',
             'sketch' => 'hand-drawn pencil sketch, artistic',
-            'ink-wash' => 'traditional Chinese ink wash painting, sumi-e style',
+            'ink-wash' => 'ink wash painting, soft brush strokes',
         ];
 
         $moodDesc = $moodMap[$mood] ?? 'balanced, neutral';
-        $styleDesc = $styleMap[$style] ?? '';
-        $shortContent = mb_substr($content, 0, 300);
+        $styleDesc = $styleMap[$style] ?? 'warm illustration';
+        $scene = $scene ?: 'a quiet everyday moment';
 
-        return "A beautiful artistic illustration based on this diary entry. "
-             . "Mood: {$moodDesc}. "
-             . ($styleDesc ? "Style: {$styleDesc}. " : "")
-             . "The scene should evoke the emotion of: \"{$shortContent}\". "
-             . "No text, no words, no watermarks. Clean composition, high quality.";
+        // 不把中文原文塞進提示詞，也不提「日記」「印章」「書法」：Flux 沒有反向提示，寫了反而會畫出假字和印章
+        return "{$styleDesc}. {$scene}. Mood: {$moodDesc}. "
+             . "Wordless picture: plain walls, blank surfaces, clean uncluttered background, "
+             . "nothing written anywhere in the image.";
     }
 }
