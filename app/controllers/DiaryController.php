@@ -712,8 +712,8 @@ class DiaryController
                 . "欄位規則：\n"
                 . "- scene：只能用英文（不可有任何中文字），一句 15～35 個字的畫面描述。只畫日記裡真的出現的人、動物、物品、地點與動作，不要自己加東西。"
                 . "畫面裡不能有招牌、菜單、海報、螢幕上的字或任何文字，場景請描述成人物與物品的特寫。"
-                . "寫日記的「我」不要入鏡（不知道他是男是女、幾歲、長什麼樣子）：用「我」的眼睛看出去的視角來畫，最多露出一雙手拿著東西；"
-                . "日記裡提到的其他人（家人、朋友、店員、路人）和動物可以照常畫。scene 開頭寫 first-person view。\n"
+                . "寫日記的「我」不要入鏡，手和身體也不要畫（不知道他是男是女、幾歲、長什麼樣子）：畫成站在「我」的位置平視看出去的樣子，"
+                . "主角是日記裡提到的其他人（家人、朋友、店員、路人）、動物或物品，人數和年紀照日記寫（一個阿伯就是 one elderly man，只畫一個）。scene 開頭寫 eye-level view of。\n"
                 . "- quote：繁體中文，12～22 字，像朋友讀完後寫在卡片背面的一句話：有一點詩意的比喻，貼著這篇的心情（好笑就輕快、緊張就安撫）。"
                 . "不要重述日記內容，不要用「光」「溫暖」這類空泛字眼。\n"
                 . "- public_ok：這篇能不能公開給陌生人看。辱罵或歧視他人、色情、暴力威脅、自傷內容、指名道姓攻擊真實人物、廣告或拉人、留下聯絡方式或個資，就是 false；一般心情、抱怨、難過都是 true。\n"
@@ -722,6 +722,10 @@ class DiaryController
                 . "日記（心情 {$mood}）：\n" . mb_substr($content, 0, 600);
 
         $data = extractJsonObject(replicateText($prompt, 300)) ?? [];
+        // 模型偶爾回空的（實測 3 次空 1 次），空了就重讀一次，不然圖會變成跟日記無關的通用畫面
+        if (trim((string) ($data['scene'] ?? '')) === '') {
+            $data = extractJsonObject(replicateText($prompt, 300)) ?? [];
+        }
         $scene = trim((string) ($data['scene'] ?? ''));
         $quote = trim((string) ($data['quote'] ?? ''));
         return ['scene' => $scene ?: null, 'quote' => $quote ?: null, 'public_ok' => ($data['public_ok'] ?? false) === true];
@@ -837,7 +841,7 @@ class DiaryController
 
         // 不把中文原文塞進提示詞，也不提「日記」「印章」「書法」：Flux 沒有反向提示，寫了反而會畫出假字和印章
         // 場景放最前面：Flux 最看重開頭的字，畫風寫在前面會蓋過日記內容（實測下雨天畫成空房間）
-        return "{$scene}. Art style: {$styleDesc}. Mood: {$moodDesc}. "
-             . "No text, no letters, no signs anywhere in the image.";
+        // 也不寫「no text」這類否定句：實測寫了反而在角落畫出假字
+        return "{$scene}. Art style: {$styleDesc}. Mood: {$moodDesc}.";
     }
 }
