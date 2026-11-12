@@ -136,7 +136,7 @@ require_once BASE_PATH . '/app/views/layout/header.php';
 </div>
 <?php endif; ?>
 
-<script src="<?php echo APP_URL; ?>/public/assets/js/diary.js" defer></script>
+<script src="<?php echo APP_URL; ?>/public/assets/js/diary.js?v=<?php echo filemtime(BASE_PATH . '/public/assets/js/diary.js'); ?>" defer></script>
 
 <?php
 require_once BASE_PATH . '/app/views/layout/footer.php';
