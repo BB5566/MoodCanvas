@@ -1645,7 +1645,7 @@ textarea { resize: vertical; min-height: 100px; }
 .flip-card-inner { transition: transform 0.85s cubic-bezier(0.34, 1.25, 0.64, 1); }
 .flip-card { margin-bottom: 1rem; container-type: inline-size; }
 /* Flux 出的是正方形圖：相片區做成正方形，不再被裁（卡片高＝寬 − 左右白框 28 + 上框 14 + 下方日期列 58） */
-.flip-card .flip-card-inner { aspect-ratio: auto; min-height: 0; height: calc(100cqw + 44px); }
+.flip-card .flip-card-inner { aspect-ratio: 9 / 10; min-height: 0; height: calc(100cqw + 44px); } /* 不支援 cqw 的舊瀏覽器退回 9:10 */
 .polaroid-photo { flex: none; aspect-ratio: 1 / 1; }
 .flip-toggle {
   display: block;
