@@ -8,7 +8,7 @@ $metaDescription = '修改你的心情日記';
 ?>
 
 <div class="bento-card form-container">
-    <h2 class="form-title">✏️ 編輯日記</h2>
+    <h2 class="form-title">編輯日記</h2>
 
     <?php if (($_GET['notice'] ?? '') === 'date_exists'): ?>
         <div class="alert alert-success">該日期已經有一篇日記了，一天只能寫一篇，已為你開啟編輯。</div>
@@ -22,18 +22,17 @@ $metaDescription = '修改你的心情日記';
         
         <div class="form-grid">
             <div class="form-group">
-                <label for="edit_diary_date">📅 日期</label>
+                <label for="edit_diary_date">日期</label>
                 <input type="date" id="edit_diary_date" value="<?php echo htmlspecialchars($diary['diary_date'] ?? ''); ?>" disabled>
             </div>
             <div class="form-group">
-                <label for="mood">😊 心情</label>
+                <label for="mood">心情</label>
                 <select id="mood" name="mood">
                     <?php
-                    $moods = ['😊 開心','😢 傷心','😡 憤怒','😍 戀愛','😴 疲憊','🤔 思考','😂 大笑','😰 焦慮','🥰 溫暖','🙄 無奈'];
-                    foreach ($moods as $m) {
-                        $emoji = mb_substr($m, 0, 1);
+                    // 選單只顯示文字（跟寫日記頁同一套名稱），值仍是 emoji
+                    foreach (['😊','😢','😡','😍','😴','🤔','😂','😰','🥰','🙄'] as $emoji) {
                         $selected = ($diary['mood'] ?? '😊') === $emoji ? ' selected' : '';
-                        echo "<option value=\"$emoji\"$selected>$m</option>";
+                        echo "<option value=\"$emoji\"$selected>" . moodLabel($emoji) . "</option>";
                     }
                     ?>
                 </select>
@@ -41,18 +40,18 @@ $metaDescription = '修改你的心情日記';
         </div>
 
         <div class="form-group">
-            <label for="title">📝 標題</label>
+            <label for="title">標題</label>
             <input type="text" id="title" name="title" value="<?php echo htmlspecialchars($diary['title'] ?? ''); ?>" maxlength="50">
         </div>
 
         <div class="form-group">
-            <label for="content">💬 日記內容 <span class="required-star">*</span></label>
+            <label for="content">日記內容 <span class="required-star">*</span></label>
             <textarea id="content" name="content" rows="8" required maxlength="1000"><?php echo htmlspecialchars($diary['content'] ?? ''); ?></textarea>
             <div class="char-count" id="content-char-count"><?php echo mb_strlen($diary['content'] ?? ''); ?> / 1000</div>
         </div>
 
         <div class="form-actions">
-            <button type="submit" class="btn btn-primary btn-lg">💾 儲存修改</button>
+            <button type="submit" class="btn btn-primary btn-lg">儲存修改</button>
             <a href="index.php?action=diary_detail&id=<?php echo $diary['id']; ?>" class="btn btn-tertiary">取消</a>
         </div>
     </form>

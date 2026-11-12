@@ -42,10 +42,7 @@ require_once BASE_PATH . '/app/views/layout/header.php';
                 foreach ($moods as $emoji => $name): ?>
                     <label class="mood-chip">
                         <input type="radio" name="mood" value="<?php echo $emoji; ?>"<?php echo $first ? ' checked required' : ''; ?>>
-                        <span class="chip-body">
-                            <span class="mood-chip-face" aria-hidden="true"><?php echo $emoji; ?></span>
-                            <span class="mood-chip-name"><?php echo $name; ?></span>
-                        </span>
+                        <span class="chip-body"><?php echo $name; ?></span>
                     </label>
                 <?php $first = false; endforeach; ?>
             </div>
@@ -69,15 +66,15 @@ require_once BASE_PATH . '/app/views/layout/header.php';
 
         <!-- 畫風：同樣一點就選 -->
         <fieldset class="form-group chip-group">
-            <legend>畫風 <span class="optional-tag">不選就讓 AI 看內容決定</span></legend>
+            <legend>畫風</legend>
             <div class="style-chips">
                 <?php
-                $styles = ['random' => '讓 AI 決定', 'ghibli' => '溫暖動畫', 'flat-illustration' => '扁平插畫',
-                           'sketch' => '手繪素描', 'ink-wash' => '水墨', '3d-render' => '3D 公仔',
-                           'pixel-art' => '像素', 'photographic' => '真實攝影'];
+                $styles = ['ghibli' => '宮崎駿風格', 'random' => '讓 AI 自己決定', 'photographic' => '真實攝影',
+                           'pixel-art' => '像素風格', '3d-render' => '皮克斯風格', 'flat-illustration' => '扁平設計',
+                           'sketch' => '手繪素描', 'ink-wash' => '中國水墨'];
                 foreach ($styles as $value => $name): ?>
                     <label class="style-chip">
-                        <input type="radio" name="image_style" value="<?php echo $value; ?>"<?php echo $value === 'random' ? ' checked' : ''; ?>>
+                        <input type="radio" name="image_style" value="<?php echo $value; ?>"<?php echo $value === 'ghibli' ? ' checked' : ''; ?>>
                         <span class="chip-body"><?php echo $name; ?></span>
                     </label>
                 <?php endforeach; ?>

@@ -61,6 +61,15 @@ if (!function_exists('sanitizeOutput')) {
     }
 }
 
+if (!function_exists('moodLabel')) {
+    // 心情在資料庫存成 emoji，畫面上一律顯示文字
+    function moodLabel($emoji) {
+        $labels = ['😊' => '開心', '😢' => '傷心', '😡' => '生氣', '😍' => '心動', '😴' => '疲憊',
+                   '🤔' => '思考', '😂' => '大笑', '😰' => '焦慮', '🥰' => '溫暖', '🙄' => '無奈'];
+        return $labels[$emoji] ?? '心情';
+    }
+}
+
 if (!function_exists('isRegisteredUser')) {
     // 已登入而且不是臨時訪客帳號
     function isRegisteredUser() {

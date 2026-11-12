@@ -13,7 +13,7 @@ $successMessage = '';
 
 if ($message === 'diary_deleted') {
     $showSuccessMessage = true;
-    $successMessage = '✅ 日記已成功刪除！';
+    $successMessage = '日記已刪除';
 }
 
 // --- PHP 日曆生成邏輯 (與之前相同) ---
@@ -141,7 +141,7 @@ if (isset($diaries)) {
                                     // 只有一篇日記，若有 image_path 顯示縮圖，否則顯示 mood emoji
                                     $diary = $dayDiaries[0];
                                     $diaryTitle = htmlspecialchars($diary['title'] ?? '無標題');
-                                    $moodEmoji = htmlspecialchars($diary['mood'] ?? '📝');
+                                    $moodEmoji = htmlspecialchars(moodLabel($diary['mood'] ?? ''));
                                     $imagePath = $diary['image_path'] ?? '';
                                     // 範例日記的日期跟著月份走，連結要帶上年月
                                     $detailLink = "index.php?action=diary_detail&id={$diary['id']}";
@@ -156,7 +156,7 @@ if (isset($diaries)) {
                                         echo "</a>";
                                     } else {
                                         echo "<a href='{$detailLink}' class='diary-entry' title='{$diaryTitle}' aria-label='查看日記：{$diaryTitle}'>";
-                                        echo "<span class='mood-emoji' role='img' aria-label='心情'>{$moodEmoji}</span>";
+                                        echo "<span class='mood-word'>{$moodEmoji}</span>";
                                         echo "</a>";
                                     }
                                 } else {
@@ -164,10 +164,7 @@ if (isset($diaries)) {
                                     echo "<a href='index.php?action=diary_by_date&date={$currentDate}' class='multiple-diaries' title='查看該日的 {$diaryCount} 篇日記' aria-label='查看 {$currentDate} 的 {$diaryCount} 篇日記'>";
                                     foreach ($dayDiaries as $index => $diary) {
                                         if ($index >= 3) break; // 最多顯示3個
-                                        $moodEmoji = htmlspecialchars($diary['mood'] ?? '📝');
-                                        echo "<span class='diary-entry-small'>";
-                                        echo "<span class='mood-emoji-small' role='img' aria-label='心情'>{$moodEmoji}</span>";
-                                        echo "</span>";
+                                        echo "<span class='diary-dot' aria-hidden='true'></span>";
                                     }
                                     if ($diaryCount > 3) {
                                         echo "<span class='more-diaries'>+{$diaryCount}</span>";
@@ -205,44 +202,20 @@ if (isset($diaries)) {
 
     <!-- 側邊欄 -->
     <div class="bento-sidebar">
-        <!-- 月份統計 -->
-        <div class="bento-card">
-            <h3>📊 本月統計</h3>
-            <div class="stats-grid">
-                <div class="stat-item">
-                    <div class="stat-number"><?php echo $totalDiaries; ?></div>
-                    <div class="stat-label">總日記</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-number"><?php echo $daysWithDiaries; ?></div>
-                    <div class="stat-label">記錄天數</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-number"><?php echo $daysInMonth > 0 ? round($daysWithDiaries / $daysInMonth * 100) : 0; ?>%</div>
-                    <div class="stat-label">完成率</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- 心情分佈 -->
-        <?php if (!empty($moodStats)): ?>
-            <div class="bento-card">
-                <h3>💭 心情分佈</h3>
-                <div class="mood-distribution">
-                    <?php foreach (array_slice($moodStats, 0, 4) as $mood => $count): ?>
-                        <div class="mood-item">
-                            <span class="mood-emoji-large"><?php echo htmlspecialchars($mood); ?></span>
-                            <div class="mood-info">
-                                <span class="mood-count"><?php echo $count; ?> 次</span>
-                                <div class="mood-bar">
-                                    <div class="mood-fill" style="width: <?php echo ($count / max($moodStats)) * 100; ?>%"></div>
-                                </div>
-                            </div>
-                        </div>
+        <!-- 這個月：一句話＋心情次數，不做 KPI 方塊 -->
+        <div class="bento-card month-note">
+            <h3><?php echo (int) $month; ?> 月</h3>
+            <?php if ($totalDiaries > 0): ?>
+                <p>寫了 <strong><?php echo $totalDiaries; ?></strong> 篇，<?php echo $daysWithDiaries; ?> 天有記錄。</p>
+                <ul class="mood-tally" aria-label="心情次數">
+                    <?php foreach ($moodStats as $m => $count): ?>
+                        <li><span class="mood-word"><?php echo htmlspecialchars(moodLabel($m)); ?></span> <?php echo (int) $count; ?></li>
                     <?php endforeach; ?>
-                </div>
-            </div>
-        <?php endif; ?>
+                </ul>
+            <?php else: ?>
+                <p>這個月還沒寫。點日曆上的「+」寫第一篇。</p>
+            <?php endif; ?>
+        </div>
 
     </div>
 </div>

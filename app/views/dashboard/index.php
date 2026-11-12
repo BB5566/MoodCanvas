@@ -8,25 +8,25 @@ require_once BASE_PATH . '/app/views/layout/header.php';
 ?>
 
 <div class="dashboard-header" style="margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
-    <h1 class="display-title" style="font-size: 1.75rem; margin: 0;">📊 心情觀測儀表板</h1>
+    <h1 class="display-title" style="font-size: 1.75rem; margin: 0;">心情觀測</h1>
     <a href="index.php?action=home" class="btn btn-secondary">← 返回日曆</a>
 </div>
 
 <div class="bento-grid dashboard-grid">
     <div class="bento-card" id="heatmap-container">
-        <h3>📅 心情熱力圖 (年度)</h3>
+        <h3>一年的心情</h3>
         <div id="heatmap" role="img" aria-label="心情熱力圖"></div>
     </div>
     <div class="bento-card" id="mood-chart-container">
-        <h3>📈 心情趨勢</h3>
+        <h3>心情趨勢</h3>
         <canvas id="mood-chart" role="img" aria-label="心情趨勢圖"></canvas>
     </div>
     <div class="bento-card" id="mood-wordcloud-container">
-        <h3>☁️ 心情詞雲</h3>
+        <h3>常寫的字</h3>
         <div id="wordcloud" role="img" aria-label="關鍵字文字雲"></div>
     </div>
     <div class="bento-card" id="ai-insights-container">
-        <h3>🤖 AI 洞察</h3>
+        <h3>AI 讀完這個月</h3>
         <p id="ai-insight-text">分析中...</p>
     </div>
 </div>
