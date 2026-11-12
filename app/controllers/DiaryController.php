@@ -815,7 +815,7 @@ class DiaryController
         ];
         // 畫風只描述畫法，不寫任何工作室、作品或畫家的名字（避免侵權，也避免品牌名出現在公開作品上）
         $styleMap = [
-            'handdrawn' => 'hand-painted Japanese animated film look, lush watercolor background art, soft natural sunlight, gentle nostalgic summer feeling',
+            'handdrawn' => 'hand-painted Japanese animated film look, lush painted background art, soft natural light, gentle nostalgic feeling',
             'anime' => 'modern Japanese anime illustration, clean line art, vivid cel shading, bright clear sky, cinematic lighting',
             '3d-render' => '3D animated feature film still, soft global illumination, rounded charming characters, expressive faces',
             'watercolor' => "children's picture book watercolor illustration, soft color washes, visible paper texture, warm and tender",
@@ -836,8 +836,8 @@ class DiaryController
         $scene = $scene ?: 'a quiet everyday moment';
 
         // 不把中文原文塞進提示詞，也不提「日記」「印章」「書法」：Flux 沒有反向提示，寫了反而會畫出假字和印章
-        return "{$styleDesc}. {$scene}. Mood: {$moodDesc}. "
-             . "Wordless picture: plain walls, blank surfaces, clean uncluttered background, "
-             . "nothing written anywhere in the image.";
+        // 場景放最前面：Flux 最看重開頭的字，畫風寫在前面會蓋過日記內容（實測下雨天畫成空房間）
+        return "{$scene}. Art style: {$styleDesc}. Mood: {$moodDesc}. "
+             . "No text, no letters, no signs anywhere in the image.";
     }
 }
