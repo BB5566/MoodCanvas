@@ -10,10 +10,13 @@ COPY . /var/www/html/
 RUN chown -R www-data:www-data /var/www/html && chmod -R 755 /var/www/html && \
     chmod 777 /var/www/html/logs /var/www/html/data /var/www/html/public/storage/generated_images
 COPY apache.conf /etc/apache2/sites-available/000-default.conf
-VOLUME ["/var/www/html/data", "/var/www/html/public/storage/generated_images", "/var/www/html/logs"]
+# 生成的圖片放進 database/（NAS 上掛的具名資料卷），容器重建也不會不見；網址不變，用符號連結接回 public/
+RUN rm -rf /var/www/html/public/storage/generated_images && \
+    ln -s /var/www/html/database/generated_images /var/www/html/public/storage/generated_images
+VOLUME ["/var/www/html/data", "/var/www/html/logs"]
 
 # Setup cron job
 RUN echo '0 2 * * * root cd /var/www/html && /usr/local/bin/php /var/www/html/scripts/cleanup_guests.php >> /var/www/html/logs/cron.log 2>&1' > /etc/cron.d/cleanup-guests && \
     chmod 0644 /etc/cron.d/cleanup-guests
 
-CMD ["sh", "-c", "printenv | grep -E '^(DB_|APP_|DEBUG)' >> /etc/environment && cron && apache2-foreground"]
+CMD ["sh", "-c", "mkdir -p /var/www/html/database/generated_images && chown www-data:www-data /var/www/html/database/generated_images && printenv | grep -E '^(DB_|APP_|DEBUG)' >> /etc/environment && cron && apache2-foreground"]
