@@ -713,7 +713,8 @@ class DiaryController
                 . "- scene：只能用英文（不可有任何中文字），一句 15～35 個字的畫面描述。只畫日記裡真的出現的人、動物、物品、地點與動作，不要自己加東西。"
                 . "畫面裡不能有招牌、菜單、海報、螢幕上的字或任何文字，場景請描述成人物與物品的特寫。"
                 . "寫日記的「我」不要入鏡，手和身體也不要畫（不知道他是男是女、幾歲、長什麼樣子）：畫成站在「我」的位置平視看出去的樣子，"
-                . "主角是日記裡提到的其他人（家人、朋友、店員、路人）、動物或物品，人數和年紀照日記寫（一個阿伯就是 one elderly man，只畫一個）。scene 開頭寫 eye-level view of。\n"
+                . "主角是日記裡真的提到的其他人、動物或物品。日記沒提到別人，畫面就不要有人，只畫地點和物品。"
+                . "人數、性別、年紀都照日記寫（提到一個人就只畫一個），日記沒寫的不要自己決定。不要寫沒說是誰的 a person、hands、feet（那就是「我」）。scene 開頭寫 eye-level view of。\n"
                 . "- quote：繁體中文，12～22 字，像朋友讀完後寫在卡片背面的一句話：有一點詩意的比喻，貼著這篇的心情（好笑就輕快、緊張就安撫）。"
                 . "不要重述日記內容，不要用「光」「溫暖」這類空泛字眼。\n"
                 . "- public_ok：這篇能不能公開給陌生人看。辱罵或歧視他人、色情、暴力威脅、自傷內容、指名道姓攻擊真實人物、廣告或拉人、留下聯絡方式或個資，就是 false；一般心情、抱怨、難過都是 true。\n"
@@ -726,7 +727,8 @@ class DiaryController
         if (trim((string) ($data['scene'] ?? '')) === '') {
             $data = extractJsonObject(replicateText($prompt, 300)) ?? [];
         }
-        $scene = trim((string) ($data['scene'] ?? ''));
+        // 生圖模型看不懂中文，偶爾夾進來的中文（例如括號裡的菜名）直接拿掉
+        $scene = trim(preg_replace('/\s*[(（]?\p{Han}+[)）]?/u', '', (string) ($data['scene'] ?? '')));
         $quote = trim((string) ($data['quote'] ?? ''));
         return ['scene' => $scene ?: null, 'quote' => $quote ?: null, 'public_ok' => ($data['public_ok'] ?? false) === true];
     }
