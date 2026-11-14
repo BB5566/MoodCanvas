@@ -1753,14 +1753,6 @@ textarea { resize: vertical; min-height: 100px; }
   color: var(--color-text-secondary);
 }
 .mc-hero-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; }
-.mc-hero-link {
-  min-height: 44px;
-  display: inline-flex;
-  align-items: center;
-  color: var(--color-ink);
-  font-weight: 500;
-  text-underline-offset: 4px;
-}
 @media (max-width: 640px) {
   .mc-hero {
     grid-template-columns: 1fr;
@@ -2083,7 +2075,9 @@ h1, h2, h3, .btn, .chip-body, .calendar-header h2 { font-weight: 400; }
   .mc-hero { grid-template-columns: 1fr; padding: 32px 20px 28px; gap: 28px; border-radius: 24px; }
   /* 手機格子小：空白日子點格子就能寫，「+」只留在今天 */
   .calendar td:not(.today) .add-diary-btn { opacity: 0; }
-  .mc-hero-stack { width: min(64%, 240px); }
+  /* 手機先看文案和 CTA，範例拍立得放在下方；圖片略縮小避免佔滿首屏 */
+  .mc-hero-text { order: -1; }
+  .mc-hero-stack { width: min(56%, 210px); }
   .mc-hero-card { width: 100%; }
   .mc-hero-sticker { width: 74px; height: 74px; font-size: 0.8rem; top: -14px; right: -26px; }
 }
