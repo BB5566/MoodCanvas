@@ -81,10 +81,10 @@ if (isset($diaries)) {
         </div>
         <div class="mc-hero-text">
             <h1 id="mc-hero-title">把今天的日記，<br>變成一張拍立得</h1>
-            <p>寫幾句今天發生的事，AI 會讀完畫成一張圖，再寫一句話給你。不用註冊，大約 10 秒。</p>
+            <p>寫幾句今天發生的事，AI 會讀完畫成一張圖，再寫一句話給你。</p>
             <div class="mc-hero-actions">
                 <a href="index.php?action=diary_create" class="btn btn-primary btn-lg">試寫一篇</a>
-                <a href="#calendar" class="mc-hero-link">先看 6 篇範例</a>
+                <a href="#calendar" class="btn btn-secondary btn-lg mc-hero-link">先看 6 篇範例</a>
             </div>
         </div>
     </section>
