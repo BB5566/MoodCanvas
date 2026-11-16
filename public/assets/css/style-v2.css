@@ -1752,6 +1752,7 @@ textarea { resize: vertical; min-height: 100px; }
   line-height: 1.8;
   color: var(--color-text-secondary);
 }
+.mc-hero-cta { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
 .mc-hero-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; }
 @media (max-width: 640px) {
   .mc-hero {
@@ -1762,6 +1763,7 @@ textarea { resize: vertical; min-height: 100px; }
   .mc-hero-card { width: min(62%, 230px); margin: 0 auto; }
   .mc-hero-text { text-align: center; }
   .mc-hero-text p { margin-inline: auto; }
+  .mc-hero-cta { align-items: center; }
   .mc-hero-actions { justify-content: center; }
 }
 
@@ -1907,15 +1909,19 @@ h1, h2, h3, .btn, .chip-body, .calendar-header h2 { font-weight: 400; }
 .calendar-container { container-type: inline-size; }
 .calendar-header h2 { font-size: 1.9rem; letter-spacing: 0.04em; }
 .calendar {
-  width: calc(100% + 12px);
-  margin: -6px;
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+  width: 100%;
+  margin: 0;
   border: 0;
-  border-collapse: separate;
-  border-spacing: 6px;
   border-radius: 0;
   overflow: visible;
 }
-.calendar th { border: 0; background: none; padding: 0 0 4px; color: var(--color-text-muted); font-weight: 400; }
+.calendar thead,
+.calendar tbody,
+.calendar tr { display: contents; }
+.calendar th { border: 0; background: none; padding: 0 0 4px; color: var(--color-text-muted); font-weight: 400; text-align: center; }
 .calendar td {
   height: calc((100cqw - 36px) / 7);
   padding: 0;
@@ -1984,7 +1990,7 @@ h1, h2, h3, .btn, .chip-body, .calendar-header h2 { font-weight: 400; }
 }
 @media (max-width: 640px) {
   .bento-calendar { padding: 16px 12px; }
-  .calendar { border-spacing: 4px; margin: -4px; width: calc(100% + 8px); }
+  .calendar { gap: 4px; }
   .calendar td { height: calc((100cqw - 24px) / 7); border-radius: 12px; }
   .diary-entry, .no-diary, .multiple-diaries, .diary-thumb { border-radius: 12px; }
   .day-number { top: 3px; left: 3px; min-width: 18px; height: 18px; padding: 0 4px; font-size: 0.72rem; }
@@ -2018,7 +2024,7 @@ h1, h2, h3, .btn, .chip-body, .calendar-header h2 { font-weight: 400; }
   font-size: 0.95rem;
 }
 
-/* --- 首頁主視覺：暖黃色大卡、三張拍立得疊著、一張圓貼紙 --- */
+/* --- 首頁主視覺：暖黃色大卡、三張拍立得疊著、按鈕上方一個小標籤 --- */
 .mc-hero {
   max-width: none;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
@@ -2048,26 +2054,30 @@ h1, h2, h3, .btn, .chip-body, .calendar-header h2 { font-weight: 400; }
   .mc-hero-stack:hover .mc-hero-back--r { transform: rotate(13deg) translateX(10px); }
 }
 .mc-hero-sticker {
-  position: absolute;
-  z-index: 3;
-  top: -18px;
-  right: -22px;
-  width: 92px;
-  height: 92px;
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 14px;
+  border-radius: var(--border-radius-pill);
   background: var(--c-action);
-  box-shadow: 0 4px 0 var(--c-action-ledge);
+  box-shadow: 0 2px 0 var(--c-action-ledge);
   color: var(--color-ink);
-  font-size: 0.95rem;
-  line-height: 1.35;
-  text-align: center;
-  transform: rotate(12deg);
+  font-size: 0.82rem;
+  line-height: 1.2;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
 }
 .mc-hero-text h1 { font-size: clamp(2rem, 4.6vw, 3.25rem); font-weight: 400; line-height: 1.25; }
 .mc-hero-text p { color: var(--color-text-primary); }
 .mc-hero-link { font-family: var(--font-display); }
+.mc-hero-actions .btn-lg {
+  height: 48px;
+  min-height: 48px;
+  padding: 0 2rem;
+  border-width: 2px;
+  border-radius: var(--border-radius-pill);
+}
+.mc-hero-actions .btn-primary { box-shadow: 0 3px 0 var(--c-action-ledge); }
+.mc-hero-actions .btn-secondary { box-shadow: 0 3px 0 var(--color-border-medium); }
 @media (max-width: 900px) {
   .mc-hero { padding: 36px 32px; gap: 36px; }
 }
@@ -2079,7 +2089,7 @@ h1, h2, h3, .btn, .chip-body, .calendar-header h2 { font-weight: 400; }
   .mc-hero-text { order: -1; }
   .mc-hero-stack { width: min(56%, 210px); }
   .mc-hero-card { width: 100%; }
-  .mc-hero-sticker { width: 74px; height: 74px; font-size: 0.8rem; top: -14px; right: -26px; }
+  .mc-hero-sticker { font-size: 0.78rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {
