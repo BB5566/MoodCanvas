@@ -42,6 +42,10 @@ require_once BASE_PATH . '/app/views/layout/header.php';
 
 <div class="diary-card-wrapper">
 
+    <?php if ($isDemo): ?>
+        <p class="demo-note">示範日記 · 唯讀</p>
+    <?php endif; ?>
+
     <!-- 翻轉卡片本體：正面拍立得、背面 AI 寫的話和日記 -->
     <div class="flip-card" id="flip-card" role="button" tabindex="0" aria-label="翻轉拍立得卡片">
         <div class="flip-card-inner" id="flip-card-inner">
