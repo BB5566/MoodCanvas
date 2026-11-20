@@ -150,6 +150,7 @@ if (isset($diaries)) {
                                     $diary = $dayDiaries[0];
                                     $diaryTitle = htmlspecialchars($diary['title'] ?? '無標題');
                                     $moodEmoji = htmlspecialchars(moodLabel($diary['mood'] ?? ''));
+                                    $moodSlug = moodSlug($diary['mood'] ?? '');
                                     $imagePath = $diary['image_path'] ?? '';
                                     // 範例日記的日期跟著月份走，連結要帶上年月
                                     $detailLink = "index.php?action=diary_detail&id={$diary['id']}";
@@ -159,12 +160,12 @@ if (isset($diaries)) {
                                     if (!empty($imagePath)) {
                                         // 構建圖片 URL（如果是相對路徑則補上 public）
                                         $imgUrl = (strpos($imagePath, 'http') === 0) ? $imagePath : (strpos($imagePath, 'public/') === 0 ? APP_URL . '/' . $imagePath : APP_URL . '/public/' . $imagePath);
-                                        echo "<a href='{$detailLink}' class='diary-entry' title='{$diaryTitle}' aria-label='查看日記：{$diaryTitle}'>";
+                                        echo "<a href='{$detailLink}' class='diary-entry diary-entry--photo mood-{$moodSlug}' title='{$diaryTitle}' aria-label='查看日記：{$diaryTitle}'>";
                                         echo "<img class='diary-thumb' loading='lazy' src='" . htmlspecialchars($imgUrl) . "' alt='{$diaryTitle} 縮圖'/>";
                                         echo "</a>";
                                     } else {
-                                        echo "<a href='{$detailLink}' class='diary-entry' title='{$diaryTitle}' aria-label='查看日記：{$diaryTitle}'>";
-                                        echo "<span class='mood-word mood-" . moodSlug($diary['mood'] ?? '') . "'>{$moodEmoji}</span>";
+                                        echo "<a href='{$detailLink}' class='diary-entry mood-{$moodSlug}' title='{$diaryTitle}' aria-label='查看日記：{$diaryTitle}'>";
+                                        echo "<span class='mood-word mood-{$moodSlug}'>{$moodEmoji}</span>";
                                         echo "</a>";
                                     }
                                 } else {

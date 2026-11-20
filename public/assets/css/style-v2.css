@@ -161,7 +161,7 @@ body {
 .navbar-toggler.active .toggler-bar:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
 
 .nav-link {
-  color: var(--color-text-secondary); text-decoration: none;
+  color: var(--color-text-primary); text-decoration: none;
   padding: 0.5rem 1rem; border-radius: var(--border-radius-sm);
   transition: background var(--transition-speed) ease, color var(--transition-speed) ease;
   font-weight: 400;
@@ -170,6 +170,8 @@ body {
   background-color: var(--color-border-light);
   color: var(--color-text-primary);
 }
+/* 導覽的註冊做成按鈕，但用次要樣式，讓橘色主 CTA 只留在 Hero */
+.navbar-nav .nav-cta { padding: 0.45rem 1.1rem; font-size: 0.9rem; }
 
 .nav-user-greeting { color: var(--color-text-muted); font-size: 0.9rem; }
 
@@ -2002,6 +2004,16 @@ h1, h2, h3, .btn, .chip-body, .calendar-header h2 { font-weight: 400; }
   .diary-entry, .no-diary, .multiple-diaries, .diary-thumb { border-radius: 12px; }
   .day-number { top: 3px; left: 3px; min-width: 18px; height: 18px; padding: 0 4px; font-size: 0.72rem; }
   .calendar td .mood-word { padding: 2px 5px; font-size: 0.72rem; }
+  /* 手機格子太窄：縮圖看不清，改成心情色圓點；點格子仍可開日記看大圖 */
+  .calendar .diary-entry--photo .diary-thumb { display: none; }
+  .calendar .diary-entry--photo::after {
+    content: '';
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--mood, var(--c-action));
+    box-shadow: 0 0 0 3px var(--mood-soft, rgba(120, 80, 30, 0.08));
+  }
   .calendar-header h2 { font-size: 1.45rem; }
 }
 
@@ -2098,21 +2110,21 @@ h1, h2, h3, .btn, .chip-body, .calendar-header h2 { font-weight: 400; }
   }
   /* 手機格子小：空白日子點格子就能寫，「+」只留在今天 */
   .calendar td:not(.today) .add-diary-btn { opacity: 0; }
-  /* 手機把標題、拍立得、說明、按鈕依序排好，讓完整成品留在首屏 */
+  /* 手機先讀完標題與說明，再放拍立得，最後才是按鈕 */
   .mc-hero-text { display: contents; }
   .mc-hero-text h1 {
     order: 1;
     margin-bottom: 0;
     font-size: clamp(1.55rem, 6.5vw, 1.9rem);
   }
-  .mc-hero-stack { order: 2; width: min(56%, 190px); margin: 0 auto; }
   .mc-hero-text p {
-    order: 3;
+    order: 2;
     max-width: 24em;
     margin: 0 auto;
     font-size: 0.95rem;
     line-height: 1.65;
   }
+  .mc-hero-stack { order: 3; width: min(56%, 190px); margin: 0 auto; }
   .mc-hero-cta { order: 4; align-items: center; gap: 8px; }
   .mc-hero-actions { justify-content: center; }
   .mc-hero-actions .btn-lg { height: 42px; min-height: 42px; padding: 0 1.35rem; }
