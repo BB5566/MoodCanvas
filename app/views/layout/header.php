@@ -81,18 +81,15 @@ if (!defined('APP_URL')) {
                             <a class="nav-link" href="<?php echo APP_URL; ?>/public/index.php?action=login">登入</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="<?php echo APP_URL; ?>/public/index.php?action=register">註冊</a>
+                            <a class="btn btn-secondary nav-cta" href="<?php echo APP_URL; ?>/public/index.php?action=register">註冊</a>
                         </li>
                     <?php endif; ?>
                 <?php else: ?>
                     <li class="nav-item">
-                        <a class="nav-link" href="<?php echo APP_URL; ?>/public/index.php?action=diary_create">試寫一篇</a>
-                    </li>
-                    <li class="nav-item">
                         <a class="nav-link" href="<?php echo APP_URL; ?>/public/index.php?action=login">登入</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="<?php echo APP_URL; ?>/public/index.php?action=register">註冊</a>
+                        <a class="btn btn-secondary nav-cta" href="<?php echo APP_URL; ?>/public/index.php?action=register">註冊</a>
                     </li>
                 <?php endif; ?>
             </ul>
