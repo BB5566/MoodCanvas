@@ -2010,12 +2010,28 @@ h1, h2, h3, .btn, .chip-body, .calendar-header h2 { font-weight: 400; }
   .bento-sidebar .bento-card { flex: none; }
 }
 @media (max-width: 640px) {
-  .bento-calendar { padding: 16px 12px; }
-  .calendar { gap: 4px; }
-  .calendar td { height: calc((100cqw - 24px) / 7); border-radius: 12px; }
-  .diary-entry, .no-diary, .multiple-diaries, .diary-thumb { border-radius: 12px; }
-  .day-number { top: 3px; left: 3px; min-width: 18px; height: 18px; padding: 0 4px; font-size: 0.72rem; }
-  .calendar td .mood-word { padding: 2px 5px; font-size: 0.72rem; }
+  /* 手機不擠厚圓角卡片：縮小內距與間距，改用輕量細框，讓日期和照片有空間 */
+  .bento-calendar { padding: 14px 6px; }
+  .calendar { gap: 3px; }
+  .calendar td {
+    height: calc((100cqw - 18px) / 7);
+    border-radius: 6px;
+    background: transparent;
+    box-shadow: inset 0 0 0 1px var(--color-border-light);
+  }
+  .calendar td.other-month { box-shadow: none; }
+  .calendar td.today { box-shadow: inset 0 0 0 2px var(--c-select); }
+  .diary-entry, .no-diary, .multiple-diaries, .diary-thumb { border-radius: 6px; }
+  .day-number { top: 2px; left: 2px; min-width: 16px; height: 16px; padding: 0 3px; font-size: 0.68rem; }
+  .calendar td:has(.diary-thumb) .day-number {
+    top: 2px;
+    left: 2px;
+    min-width: 15px;
+    height: 15px;
+    padding: 0 3px;
+    font-size: 0.64rem;
+  }
+  .calendar td .mood-word { padding: 1px 4px; font-size: 0.68rem; }
   .calendar-header h2 { font-size: 1.45rem; }
 }
 
@@ -2101,7 +2117,20 @@ h1, h2, h3, .btn, .chip-body, .calendar-header h2 { font-weight: 400; }
   border-radius: var(--border-radius-pill);
 }
 .mc-hero-actions .btn-primary { box-shadow: 0 3px 0 var(--c-action-ledge); }
-.mc-hero-actions .btn-secondary { box-shadow: 0 3px 0 var(--color-border-medium); }
+/* 次要行動改成透明外框，拉開與橘色主按鈕的層級 */
+.mc-hero-actions .btn-secondary {
+  background: transparent;
+  border-color: var(--color-text-secondary);
+  box-shadow: none;
+}
+@media (hover: hover) {
+  .mc-hero-actions .btn-secondary:hover {
+    background: rgba(46, 38, 32, 0.06);
+    border-color: var(--color-ink);
+    box-shadow: none;
+  }
+}
+.mc-hero-actions .btn-secondary:active { box-shadow: none; }
 @media (max-width: 900px) {
   .mc-hero { padding: 36px 32px; gap: 36px; }
 }
@@ -2115,22 +2144,22 @@ h1, h2, h3, .btn, .chip-body, .calendar-header h2 { font-weight: 400; }
   }
   /* 手機格子小：空白日子點格子就能寫，「+」只留在今天 */
   .calendar td:not(.today) .add-diary-btn { opacity: 0; }
-  /* 手機先讀標題、說明與行動按鈕，拍立得成品放在按鈕下方，不中斷 CTA 動線 */
+  /* 手機先看標題與成品，再讀說明、按行動按鈕；縮小拍立得讓 CTA 與日曆入口留在首屏 */
   .mc-hero-text { display: contents; }
   .mc-hero-text h1 {
     order: 1;
     margin-bottom: 0;
     font-size: clamp(1.55rem, 6.5vw, 1.9rem);
   }
+  .mc-hero-stack { order: 2; width: min(46%, 160px); margin: 4px auto; }
   .mc-hero-text p {
-    order: 2;
+    order: 3;
     max-width: 24em;
     margin: 0 auto;
     font-size: 0.95rem;
     line-height: 1.65;
   }
-  .mc-hero-cta { order: 3; align-items: center; gap: 12px; }
-  .mc-hero-stack { order: 4; width: min(54%, 184px); margin: 8px auto 0; }
+  .mc-hero-cta { order: 4; align-items: center; gap: 12px; }
   .mc-hero-back { top: 5%; }
   .mc-hero-actions { justify-content: center; }
   .mc-hero-actions .btn-lg { height: 42px; min-height: 42px; padding: 0 1.35rem; }
